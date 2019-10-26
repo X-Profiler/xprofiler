@@ -1,0 +1,19 @@
+{
+  "name": "xprofiler",
+  "version": "0.0.0",
+  "description": "",
+  "main": "xprofiler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyj1991/xprofiler.git"
+  },
+  "author": "yeekwanvong@gmail.com",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/hyj1991/xprofiler/issues"
+  },
+  "homepage": "https://github.com/hyj1991/xprofiler#readme"
+}
