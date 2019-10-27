@@ -1,10 +1,14 @@
 {
   "name": "xprofiler",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "xprofiler.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node-gyp rebuild",
+    "format": "clang-format -i src/*",
+    "lint": "npm run format && eslint --fix xprofiler.js test/*.js",
+    "test": "mocha -t 10000 -R spec test/*.test.js",
+    "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js  --timeout 10000"
   },
   "repository": {
     "type": "git",
@@ -15,5 +19,18 @@
   "bugs": {
     "url": "https://github.com/hyj1991/xprofiler/issues"
   },
-  "homepage": "https://github.com/hyj1991/xprofiler#readme"
+  "homepage": "https://github.com/hyj1991/xprofiler#readme",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "nan": "^2.14.0",
+    "node-gyp": "^6.0.0"
+  },
+  "devDependencies": {
+    "clang-format": "^1.2.4",
+    "eslint": "^6.6.0",
+    "expect.js": "^0.3.1",
+    "mm": "^2.5.0",
+    "mocha": "^6.2.2",
+    "nyc": "^14.1.1"
+  }
 }
