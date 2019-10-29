@@ -34,6 +34,48 @@ std::string sep = "/";
 std::string sep = "\\";
 #endif
 
+// for v8.x
+#if (NODE_MODULE_VERSION < 64)
+typedef struct {
+  int64_t tv_sec;
+  int32_t tv_usec;
+} uv_timeval64_t;
+
+#ifndef _WIN32
+// from libuv: uv/src/unix
+int uv_gettimeofday(uv_timeval64_t* tv) {
+  struct timeval time;
+
+  if (tv == NULL)
+    return UV_EINVAL;
+
+  if (gettimeofday(&time, NULL) != 0)
+    return -1;
+
+  tv->tv_sec = (int64_t) time.tv_sec;
+  tv->tv_usec = (int32_t) time.tv_usec;
+  return 0;
+}
+#else
+// from libuv: uv/src/unix
+int uv_gettimeofday(uv_timeval64_t* tv) {
+  const uint64_t epoch = (uint64_t) 116444736000000000ULL;
+  FILETIME file_time;
+  ULARGE_INTEGER ularge;
+
+  if (tv == NULL)
+    return UV_EINVAL;
+
+  GetSystemTimeAsFileTime(&file_time);
+  ularge.LowPart = file_time.dwLowDateTime;
+  ularge.HighPart = file_time.dwHighDateTime;
+  tv->tv_sec = (int64_t) ((ularge.QuadPart - epoch) / 10000000L);
+  tv->tv_usec = (int32_t) (((ularge.QuadPart - epoch) % 10000000L) / 10);
+  return 0;
+}
+#endif
+#endif
+
 #define WRITET_TO_FILE(type)                                                   \
   type##_stream.open(filepath, std::ios::app);                                 \
   type##_stream << log;                                                        \
