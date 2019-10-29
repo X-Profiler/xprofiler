@@ -17,6 +17,8 @@ using v8::String;
 static string log_dir = "/tmp";
 static uint32_t log_interval = 60;
 static bool enable_log_uv_handles = true;
+static bool log_format_alinode = false;
+static LOG_LEVEL log_level = LOG_ERROR;
 
 void Configure(const FunctionCallbackInfo<Value> &info) {
   if (!info[0]->IsObject()) {
@@ -51,6 +53,22 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
     enable_log_uv_handles = To<bool>(enable_log_uv_handles_value).ToChecked();
   }
 
+  // log format: standard or alinode
+  Local<Value> log_format_alinode_value =
+      Get(config, New<String>("log_format_alinode").ToLocalChecked())
+          .ToLocalChecked();
+  if (log_format_alinode_value->IsBoolean()) {
+    log_format_alinode = To<bool>(log_format_alinode_value).ToChecked();
+  }
+
+  // log level: 0 info, 1 error, 2 debug
+  Local<Value> log_level_value =
+      Get(config, New<String>("log_level").ToLocalChecked()).ToLocalChecked();
+  if (log_level_value->IsUint32()) {
+    log_level =
+        static_cast<LOG_LEVEL>(To<uint32_t>(log_level_value).ToChecked());
+  }
+
   info.GetReturnValue().Set(New<Boolean>(true));
 }
 
@@ -62,6 +80,16 @@ void GetConfig(const FunctionCallbackInfo<Value> &info) {
       New<Number>(log_interval));
   Set(config, New<String>("enable_log_uv_handles").ToLocalChecked(),
       New<Boolean>(enable_log_uv_handles));
+  Set(config, New<String>("log_format_alinode").ToLocalChecked(),
+      New<Boolean>(log_format_alinode));
+  Set(config, New<String>("log_level").ToLocalChecked(),
+      New<Number>(log_level));
   info.GetReturnValue().Set(config);
 }
+
+LOG_LEVEL GetLogLevel() { return log_level; }
+
+bool GetFormatAsAlinode() { return log_format_alinode; }
+
+std::string GetLogDir() { return log_dir; }
 } // namespace xprofiler

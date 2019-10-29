@@ -6,8 +6,9 @@
   "scripts": {
     "build": "node-gyp rebuild",
     "format": "clang-format -i src/*",
-    "lint": "npm run format && eslint --fix xprofiler.js test/**/*.js",
+    "lint": "npm run format && eslint --fix xprofiler.js test/*.js",
     "test": "mocha -t 10000 -R spec test/*.test.js",
+    "test-single": "mocha -t 10000 -R spec",
     "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js  --timeout 10000",
     "ci": "npm run lint && npm run cov && codecov"
   },
@@ -23,6 +24,7 @@
   "homepage": "https://github.com/hyj1991/xprofiler#readme",
   "dependencies": {
     "bindings": "^1.5.0",
+    "moment": "^2.24.0",
     "nan": "^2.14.0",
     "node-gyp": "^6.0.0"
   },

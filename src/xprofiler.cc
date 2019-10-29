@@ -1,5 +1,7 @@
-#include "configure.h"
 #include "nan.h"
+
+#include "configure.h"
+#include "logger.h"
 
 namespace xprofiler {
 using Nan::GetFunction;
@@ -13,6 +15,12 @@ NAN_MODULE_INIT(Initialize) {
       GetFunction(New<FunctionTemplate>(Configure)).ToLocalChecked());
   Set(target, New<String>("getConfig").ToLocalChecked(),
       GetFunction(New<FunctionTemplate>(GetConfig)).ToLocalChecked());
+  Set(target, New<String>("info").ToLocalChecked(),
+      GetFunction(New<FunctionTemplate>(JsInfo)).ToLocalChecked());
+  Set(target, New<String>("error").ToLocalChecked(),
+      GetFunction(New<FunctionTemplate>(JsError)).ToLocalChecked());
+  Set(target, New<String>("debug").ToLocalChecked(),
+      GetFunction(New<FunctionTemplate>(JsDebug)).ToLocalChecked());
 }
 
 NODE_MODULE(xprofiler, Initialize)

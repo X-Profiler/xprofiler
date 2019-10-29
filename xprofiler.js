@@ -9,8 +9,16 @@ let configured = false;
 const defaultConfig = {
   log_dir: os.tmpdir(),
   log_interval: 60, // seconds
-  enable_log_uv_handles: true
+  enable_log_uv_handles: true,
+  log_format_alinode: false,
+  log_level: 1
 };
+
+function check() {
+  if (!configured) {
+    throw new Error('must run "require(\'xprofiler\')()" to set xprofiler config first!');
+  }
+}
 
 exports = module.exports = (config = {}) => {
   configured = true;
@@ -46,13 +54,45 @@ exports = module.exports = (config = {}) => {
     userConfig.enable_log_uv_handles = config.enable_log_uv_handles;
   }
 
+  // log format alinode
+  const logFormatAlinodeEnv = process.env.XPROFILER_LOG_FORMAT_ALINODE;
+  if (typeof logFormatAlinodeEnv === 'string') {
+    envConfig.log_format_alinode = logFormatAlinodeEnv === 'YES';
+  }
+  if (config.log_format_alinode === false || config.log_format_alinode === true) {
+    userConfig.log_format_alinode = config.log_format_alinode;
+  }
+
+  // log level
+  const logLevelEnv = process.env.XPROFILER_LOG_LEVEL;
+  if (logLevelEnv !== null && !isNaN(logLevelEnv)) {
+    envConfig.log_level = Number(logLevelEnv);
+  }
+  const logLevelUser = config.log_level;
+  if (logLevelUser !== null && !isNaN(logLevelUser)) {
+    userConfig.log_level = Number(logLevelUser);
+  }
+
   // set config
   xprofiler.configure(Object.assign({}, defaultConfig, envConfig, userConfig));
 };
 
 exports.getXprofilerConfig = function () {
-  if (!configured) {
-    throw new Error('must run "require(\'xprofiler\')()" to set xprofiler config first!');
-  }
+  check();
   return xprofiler.getConfig();
+};
+
+exports.info = function (...args) {
+  check();
+  return xprofiler.info(...args);
+};
+
+exports.error = function (...args) {
+  check();
+  return xprofiler.error(...args);
+};
+
+exports.debug = function (...args) {
+  check();
+  return xprofiler.debug(...args);
 };

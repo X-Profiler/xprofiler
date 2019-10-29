@@ -5,7 +5,8 @@
       'win_delay_load_hook': 'false',
       "sources": [
         "src/xprofiler.cc",
-        "src/configure.cc"
+        "src/configure.cc",
+        "src/logger.cc"
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       "conditions": [

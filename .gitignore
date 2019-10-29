@@ -67,3 +67,5 @@ package-lock.json
 build
 
 demo.js
+
+logdir
