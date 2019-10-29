@@ -1,8 +1,8 @@
+#include "cstdarg"
 #include "uv.h"
 #include <fstream>
 #include <iostream>
 #include <time.h>
-#include "cstdarg"
 
 #ifndef _WIN32
 #include "unistd.h"
@@ -45,7 +45,7 @@ typedef struct {
 
 #ifndef _WIN32
 // from libuv: uv/src/unix
-int uv_gettimeofday(uv_timeval64_t* tv) {
+int uv_gettimeofday(uv_timeval64_t *tv) {
   struct timeval time;
 
   if (tv == NULL)
@@ -54,14 +54,14 @@ int uv_gettimeofday(uv_timeval64_t* tv) {
   if (gettimeofday(&time, NULL) != 0)
     return -1;
 
-  tv->tv_sec = (int64_t) time.tv_sec;
-  tv->tv_usec = (int32_t) time.tv_usec;
+  tv->tv_sec = (int64_t)time.tv_sec;
+  tv->tv_usec = (int32_t)time.tv_usec;
   return 0;
 }
 #else
 // from libuv: uv/src/unix
-int uv_gettimeofday(uv_timeval64_t* tv) {
-  const uint64_t epoch = (uint64_t) 116444736000000000ULL;
+int uv_gettimeofday(uv_timeval64_t *tv) {
+  const uint64_t epoch = (uint64_t)116444736000000000ULL;
   FILETIME file_time;
   ULARGE_INTEGER ularge;
 
@@ -71,8 +71,8 @@ int uv_gettimeofday(uv_timeval64_t* tv) {
   GetSystemTimeAsFileTime(&file_time);
   ularge.LowPart = file_time.dwLowDateTime;
   ularge.HighPart = file_time.dwHighDateTime;
-  tv->tv_sec = (int64_t) ((ularge.QuadPart - epoch) / 10000000L);
-  tv->tv_usec = (int32_t) (((ularge.QuadPart - epoch) % 10000000L) / 10);
+  tv->tv_sec = (int64_t)((ularge.QuadPart - epoch) / 10000000L);
+  tv->tv_usec = (int32_t)(((ularge.QuadPart - epoch) % 10000000L) / 10);
   return 0;
 }
 #endif
@@ -83,11 +83,17 @@ int uv_gettimeofday(uv_timeval64_t* tv) {
   type##_stream << log;                                                        \
   type##_stream.close();
 
+#define LOG_TO_FILE(level)                                                     \
+  va_list args;                                                                \
+  va_start(args, format);                                                      \
+  Log(LOG_LEVEL::level, log_type, format, args);                               \
+  va_end(args);
+
 void WriteToFile(const LOG_LEVEL output_level, char *log) {
   // get time of date
   char time_string_day[32];
   time_t tt = time(NULL);
-  struct tm* ptm = localtime(&tt);
+  struct tm *ptm = localtime(&tt);
   strftime(time_string_day, sizeof(time_string_day), "%Y%m%d", ptm);
 
   // get filepath and write to file
@@ -138,13 +144,13 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   char time_string_ms[64];
   char time_string_ms_alinode[64];
   time_t tt = time(NULL);
-  struct tm* ptm = localtime(&tt);
+  struct tm *ptm = localtime(&tt);
   strftime(time_string_ms, sizeof(time_string_ms), "%Y-%m-%d %H:%M:%S", ptm);
   if (log_format_alinode) {
     uv_timeval64_t tv;
     uv_gettimeofday(&tv);
-    snprintf(time_string_ms_alinode, sizeof(time_string_ms_alinode), "%s.%03d", time_string_ms,
-             tv.tv_usec);
+    snprintf(time_string_ms_alinode, sizeof(time_string_ms_alinode), "%s.%03d",
+             time_string_ms, tv.tv_usec);
   }
 
   // log level
@@ -171,7 +177,8 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   char tmp_format[kMaxFormatLength];
   if (log_format_alinode) {
     snprintf(tmp_format, sizeof(tmp_format), "[%s] [%s] [%s] [%s] %s\n",
-             time_string_ms_alinode, level_string.c_str(), type, pid.c_str(), format);
+             time_string_ms_alinode, level_string.c_str(), type, pid.c_str(),
+             format);
   } else {
     snprintf(tmp_format, sizeof(tmp_format), "[%s] [%s] [%s] [%s] [%s] %s\n",
              time_string_ms, XPROFILER_VERSION, level_string.c_str(), type,
@@ -189,24 +196,15 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
 }
 
 void Info(const char *log_type, const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  Log(LOG_LEVEL::LOG_INFO, log_type, format, args);
-  va_end(args);
+  LOG_TO_FILE(LOG_INFO);
 }
 
 void Error(const char *log_type, const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  Log(LOG_LEVEL::LOG_ERROR, log_type, format, args);
-  va_end(args);
+  LOG_TO_FILE(LOG_ERROR);
 }
 
 void Debug(const char *log_type, const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  Log(LOG_LEVEL::LOG_DEBUG, log_type, format, args);
-  va_end(args);
+  LOG_TO_FILE(LOG_DEBUG);
 }
 
 void JsLog(LOG_LEVEL output_level, const FunctionCallbackInfo<Value> &info) {
