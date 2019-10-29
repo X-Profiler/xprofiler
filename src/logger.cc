@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sys/time.h>
+#include "cstdarg"
 
 #ifndef _WIN32
 #include "unistd.h"
@@ -84,9 +85,8 @@ int uv_gettimeofday(uv_timeval64_t* tv) {
 void WriteToFile(const LOG_LEVEL output_level, char *log) {
   // get time of date
   char time_string_day[32];
-  uv_timeval64_t tv;
-  uv_gettimeofday(&tv);
-  struct tm *ptm = localtime((time_t *)&tv.tv_sec);
+  time_t tt = time(NULL);
+  struct tm* ptm = localtime(&tt);
   strftime(time_string_day, sizeof(time_string_day), "%Y%m%d", ptm);
 
   // get filepath and write to file
@@ -135,12 +135,14 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
 
   // time of day
   char time_string_ms[64];
-  uv_timeval64_t tv;
-  uv_gettimeofday(&tv);
-  struct tm *ptm = localtime((time_t *)&tv.tv_sec);
+  char time_string_ms_alinode[64];
+  time_t tt = time(NULL);
+  struct tm* ptm = localtime(&tt);
   strftime(time_string_ms, sizeof(time_string_ms), "%Y-%m-%d %H:%M:%S", ptm);
   if (log_format_alinode) {
-    snprintf(time_string_ms, sizeof(time_string_ms), "%s.%03d", time_string_ms,
+    uv_timeval64_t tv;
+    uv_gettimeofday(&tv);
+    snprintf(time_string_ms_alinode, sizeof(time_string_ms_alinode), "%s.%03d", time_string_ms,
              tv.tv_usec);
   }
 
@@ -168,7 +170,7 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   char tmp_format[kMaxFormatLength];
   if (log_format_alinode) {
     snprintf(tmp_format, sizeof(tmp_format), "[%s] [%s] [%s] [%s] %s\n",
-             time_string_ms, level_string.c_str(), type, pid.c_str(), format);
+             time_string_ms_alinode, level_string.c_str(), type, pid.c_str(), format);
   } else {
     snprintf(tmp_format, sizeof(tmp_format), "[%s] [%s] [%s] [%s] [%s] %s\n",
              time_string_ms, XPROFILER_VERSION, level_string.c_str(), type,
