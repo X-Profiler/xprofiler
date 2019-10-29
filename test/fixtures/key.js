@@ -71,6 +71,18 @@ const configure = {
     envKey: 'XPROFILER_ENABLE_LOG_UV_HANDLES',
     envValue: 'NO',
     userValue: false
+  },
+  log_format_alinode: {
+    defaultValue: false,
+    envKey: 'XPROFILER_LOG_FORMAT_ALINODE',
+    envValue: 'YES',
+    userValue: true
+  },
+  log_level: {
+    defaultValue: 1,
+    envKey: 'XPROFILER_LOG_LEVEL',
+    envValue: 0,
+    userValue: 2
   }
 };
 
