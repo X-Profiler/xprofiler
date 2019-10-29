@@ -1,15 +1,15 @@
 'use strict';
 
-const os = require('os');
-const path = require('path');
 const mm = require('mm');
 const expect = require('expect.js');
-const xprofiler = require('../');
+const xprofiler = require('../xprofiler');
+const testXprofilerConfigKeys = require('./fixtures/key');
+const testKeys = Object.keys(testXprofilerConfigKeys);
 
 describe('xprofiler config', function () {
   const message = 'must run "require(\'xprofiler\')()" to set xprofiler config first!';
   let error;
-  it(`should throw error not init config: ${message}`, function () {
+  it(`should throw error if not init config: ${message}`, function () {
     try {
       xprofiler.getXprofilerConfig();
     } catch (err) {
@@ -20,154 +20,89 @@ describe('xprofiler config', function () {
   });
 
   it('should be ok after init config', function () {
-    describe('xprofiler default config', function () {
+    let defaultConfig;
+    let error;
+    try {
       xprofiler();
-      const defaultConfig = xprofiler.getXprofilerConfig();
-      it(`log_dir should be ${os.tmpdir()}`, function () {
-        expect(defaultConfig.log_dir).to.be(os.tmpdir());
-      });
+      defaultConfig = xprofiler.getXprofilerConfig();
+    } catch (err) {
+      error = err;
+    }
+    expect(error).not.to.be.ok();
 
-      it('log_interval should be 60', function () {
-        expect(defaultConfig.log_interval).to.be(60);
-      });
-
-      it('enable_log_uv_handles should be true', function () {
-        expect(defaultConfig.enable_log_uv_handles).to.be(true);
-      });
-    });
-
-    describe('xprofiler config with env', function () {
-      const logDirEnv = path.join(__dirname, 'logdir_env');
-      const logIntervalEnv = 30;
-      const enableLogUvHandlesEnv = false;
-      let config;
-
-      before(function () {
-        mm(process.env, 'XPROFILER_LOG_DIR', logDirEnv);
-        mm(process.env, 'XPROFILER_LOG_INTERVAL', logIntervalEnv);
-        mm(process.env, 'XPROFILER_ENABLE_LOG_UV_HANDLES', enableLogUvHandlesEnv);
-        xprofiler();
-        config = xprofiler.getXprofilerConfig();
-      });
-
-      after(function () {
-        mm.restore();
-      });
-
-      it('config should be object', function () {
-        expect(config).to.be.ok();
-        expect(typeof config).to.be('object');
-      });
-
-      it(`log_dir should be ${logDirEnv}`, function () {
-        expect(config.log_dir).to.be(logDirEnv);
-      });
-
-      it(`log_interval should be ${logIntervalEnv}`, function () {
-        expect(config.log_interval).to.be(logIntervalEnv);
-      });
-
-      it(`enable_log_uv_handles should be ${enableLogUvHandlesEnv}`, function () {
-        expect(config.enable_log_uv_handles).to.be(enableLogUvHandlesEnv);
+    describe('xprofiler config keys', function () {
+      const configKeys = Object.keys(defaultConfig);
+      it(`should have these keys: [${configKeys.join(', ')}]`, function () {
+        expect(testKeys.join(', ')).to.be(configKeys.join(', '));
       });
     });
 
-    describe('xprofiler config with not absolute log dir by env', function () {
-      let config;
+    for (const testKey of testKeys) {
+      describe(`xprofiler config.${testKey}`, function () {
+        const defaultValue = defaultConfig[testKey];
+        const envTestList = testXprofilerConfigKeys[testKey].env;
+        const userTestList = testXprofilerConfigKeys[testKey].user;
+        const assignRule = testXprofilerConfigKeys[testKey].rule;
 
-      before(function () {
-        mm(process.env, 'XPROFILER_LOG_DIR', 'env/not/absolute/path');
-        xprofiler();
-        config = xprofiler.getXprofilerConfig();
-      });
-
-      after(function () {
-        mm.restore();
-      });
-
-      it(`log_dir should be ${os.tmpdir()}`, function () {
-        expect(config.log_dir).to.be(os.tmpdir());
-        mm.restore();
-        xprofiler({
-          log_dir: 'user/not/absolute/path'
+        // test default value
+        it(`default value should be ${defaultValue}`, function () {
+          expect(testXprofilerConfigKeys[testKey].defaultValue).to.be(defaultValue);
         });
-        config = xprofiler.getXprofilerConfig();
-        expect(config.log_dir).to.be(os.tmpdir());
-      });
-    });
 
-    describe('xprofiler config with user', function () {
-      const logDirUser = path.join(__dirname, 'logdir_user');
-      const logIntervalUser = 66;
-      const enableLogUvHandlesUser = false;
-      xprofiler({
-        log_dir: logDirUser,
-        log_interval: logIntervalUser,
-        enable_log_uv_handles: enableLogUvHandlesUser
-      });
-      const config = xprofiler.getXprofilerConfig();
+        // test env config
+        for (const envTest of envTestList) {
+          describe(`set env ${envTest.key}=${envTest.value}`, function () {
+            let config;
+            before(function () {
+              mm(process.env, envTest.key, envTest.value);
+              xprofiler();
+              config = xprofiler.getXprofilerConfig();
+            });
+            after(function () {
+              mm.restore();
+            });
 
-      it('config should be object', function () {
-        expect(config).to.be.ok();
-        expect(typeof config).to.be('object');
-      });
+            it(`config.${testKey} should be ${envTest.expected}`, function () {
+              expect(config[testKey]).to.be(envTest.expected);
+            });
+          });
+        }
 
-      it(`log_dir should be ${logDirUser}`, function () {
-        expect(config.log_dir).to.be(logDirUser);
-      });
+        // test user config
+        for (const userTest of userTestList) {
+          const testValue = userTest.value;
+          const userConfigValue = typeof testValue === 'string' ? `"${testValue}"` : testValue;
+          describe(`set user config { ${userTest.key}: ${userConfigValue} }`,
+            function () {
+              xprofiler({ [userTest.key]: userTest.value });
+              const config = xprofiler.getXprofilerConfig();
+              it(`config.${testKey} should be ${userTest.expected}`, function () {
+                expect(config[testKey]).to.be(userTest.expected);
+              });
+            });
+        }
 
-      it(`log_interval should be ${logIntervalUser}`, function () {
-        expect(config.log_interval).to.be(logIntervalUser);
-      });
+        // test config assign rule
+        const envDescription = `${assignRule.env.key}=${assignRule.env.value}`;
+        const userAssignRuleValue = assignRule.user.value;
+        const userConfigDescription = `{ ${assignRule.user.key}: ` +
+          (typeof userAssignRuleValue === 'string' ? `"${userAssignRuleValue}"` : userAssignRuleValue) + ' }';
+        describe(`both set env ${envDescription} and user config ${userConfigDescription}`, function () {
+          let config;
+          before(function () {
+            mm(process.env, assignRule.env.key, assignRule.env.value);
+            xprofiler({ [assignRule.user.key]: assignRule.user.value });
+            config = xprofiler.getXprofilerConfig();
+          });
+          after(function () {
+            mm.restore();
+          });
 
-      it(`enable_log_uv_handles should be ${enableLogUvHandlesUser}`, function () {
-        expect(config.enable_log_uv_handles).to.be(enableLogUvHandlesUser);
-      });
-    });
-
-    describe('xprofiler config with both env and user', function () {
-      const logDirEnv = path.join(__dirname, 'logdir_env');
-      const logIntervalEnv = 30;
-      const enableLogUvHandlesEnv = true;
-
-      const logDirUser = path.join(__dirname, 'logdir_user');
-      const logIntervalUser = 66;
-      const enableLogUvHandlesUser = false;
-
-      let config;
-
-      before(function () {
-        mm(process.env, 'XPROFILER_LOG_DIR', logDirEnv);
-        mm(process.env, 'XPROFILER_LOG_INTERVAL', logIntervalEnv);
-        mm(process.env, 'XPROFILER_ENABLE_LOG_UV_HANDLES', enableLogUvHandlesEnv);
-        xprofiler({
-          log_dir: logDirUser,
-          log_interval: logIntervalUser,
-          enable_log_uv_handles: enableLogUvHandlesUser
+          it(`config.${testKey} shoule be ${assignRule.expected}`, function () {
+            expect(config[testKey]).to.be(assignRule.expected);
+          });
         });
-        config = xprofiler.getXprofilerConfig();
       });
-
-      after(function () {
-        mm.restore();
-      });
-
-      it('config should be object', function () {
-        expect(config).to.be.ok();
-        expect(typeof config).to.be('object');
-      });
-
-      it(`log_dir should be ${logDirUser} setting by user`, function () {
-        expect(config.log_dir).to.be(logDirUser);
-      });
-
-      it(`log_interval should be ${logIntervalUser} setting by user`, function () {
-        expect(config.log_interval).to.be(logIntervalUser);
-      });
-
-      it(`enable_log_uv_handles should be ${enableLogUvHandlesUser} setting by user`, function () {
-        expect(config.enable_log_uv_handles).to.be(enableLogUvHandlesUser);
-      });
-    });
+    }
   });
 });

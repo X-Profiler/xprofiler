@@ -37,7 +37,8 @@
     "global-require": 0,
     "no-console": 0,
     "require-yield": 0,
-    "no-constant-condition": 1
+    "no-constant-condition": 1,
+    "max-len": ["error", { "code": 120 }]
   },
   "env": {
     "es6": true,
