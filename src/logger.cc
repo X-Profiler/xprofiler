@@ -1,7 +1,7 @@
 #include "uv.h"
 #include <fstream>
 #include <iostream>
-#include <sys/time.h>
+#include <time.h>
 #include "cstdarg"
 
 #ifndef _WIN32
@@ -21,8 +21,8 @@ using Nan::Utf8String;
 using v8::Local;
 using v8::String;
 
-static int kMaxMessageLength = 1024;
-static int kMaxFormatLength = 1024;
+static const int kMaxMessageLength = 1024;
+static const int kMaxFormatLength = 1024;
 
 // output
 static std::ofstream info_stream;
@@ -35,8 +35,8 @@ std::string sep = "/";
 std::string sep = "\\";
 #endif
 
-// for v8.x
-#if (NODE_MODULE_VERSION < 64)
+// for v8.x & v10.x
+#if (NODE_MODULE_VERSION < 72)
 typedef struct {
   int64_t tv_sec;
   int32_t tv_usec;
@@ -94,7 +94,7 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
   std::string filepath = log_dir + sep;
   bool log_format_alinode = GetFormatAsAlinode();
   switch (output_level) {
-  case LOG_LEVEL::INFO:
+  case LOG_LEVEL::LOG_INFO:
     if (log_format_alinode) {
       filepath = filepath + "node-" + time_string_day + ".log";
     } else {
@@ -102,7 +102,7 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
     }
     WRITET_TO_FILE(info);
     break;
-  case LOG_LEVEL::ERROR:
+  case LOG_LEVEL::LOG_ERROR:
     if (log_format_alinode) {
       filepath = filepath + "node-error-" + time_string_day + ".log";
     } else {
@@ -110,7 +110,7 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
     }
     WRITET_TO_FILE(error);
     break;
-  case LOG_LEVEL::DEBUG:
+  case LOG_LEVEL::LOG_DEBUG:
     if (log_format_alinode) {
       filepath = filepath + "node-debug-" + time_string_day + ".log";
     } else {
@@ -149,13 +149,13 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   // log level
   std::string level_string = "";
   switch (output_level) {
-  case LOG_LEVEL::INFO:
+  case LOG_LEVEL::LOG_INFO:
     level_string = "info";
     break;
-  case LOG_LEVEL::ERROR:
+  case LOG_LEVEL::LOG_ERROR:
     level_string = "error";
     break;
-  case LOG_LEVEL::DEBUG:
+  case LOG_LEVEL::LOG_DEBUG:
     level_string = "debug";
     break;
   default:
@@ -190,21 +190,21 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
 void Info(const char *log_type, const char *format, ...) {
   va_list args;
   va_start(args, format);
-  Log(LOG_LEVEL::INFO, log_type, format, args);
+  Log(LOG_LEVEL::LOG_INFO, log_type, format, args);
   va_end(args);
 }
 
 void Error(const char *log_type, const char *format, ...) {
   va_list args;
   va_start(args, format);
-  Log(LOG_LEVEL::ERROR, log_type, format, args);
+  Log(LOG_LEVEL::LOG_ERROR, log_type, format, args);
   va_end(args);
 }
 
 void Debug(const char *log_type, const char *format, ...) {
   va_list args;
   va_start(args, format);
-  Log(LOG_LEVEL::DEBUG, log_type, format, args);
+  Log(LOG_LEVEL::LOG_DEBUG, log_type, format, args);
   va_end(args);
 }
 
@@ -222,13 +222,13 @@ void JsLog(LOG_LEVEL output_level, const FunctionCallbackInfo<Value> &info) {
 }
 
 void JsInfo(const FunctionCallbackInfo<Value> &info) {
-  JsLog(LOG_LEVEL::INFO, info);
+  JsLog(LOG_LEVEL::LOG_INFO, info);
 }
 
 void JsError(const FunctionCallbackInfo<Value> &info) {
-  JsLog(LOG_LEVEL::ERROR, info);
+  JsLog(LOG_LEVEL::LOG_ERROR, info);
 }
 void JsDebug(const FunctionCallbackInfo<Value> &info) {
-  JsLog(LOG_LEVEL::DEBUG, info);
+  JsLog(LOG_LEVEL::LOG_DEBUG, info);
 }
 }; // namespace xprofiler

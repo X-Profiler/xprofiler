@@ -18,7 +18,7 @@ static string log_dir = "/tmp";
 static uint32_t log_interval = 60;
 static bool enable_log_uv_handles = true;
 static bool log_format_alinode = false;
-static LOG_LEVEL log_level = ERROR;
+static LOG_LEVEL log_level = LOG_ERROR;
 
 void Configure(const FunctionCallbackInfo<Value> &info) {
   if (!info[0]->IsObject()) {

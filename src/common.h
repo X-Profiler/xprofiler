@@ -3,7 +3,7 @@
 
 namespace xprofiler {
 // xprofiler logger
-enum LOG_LEVEL { INFO, ERROR, DEBUG };
+enum LOG_LEVEL { LOG_INFO, LOG_ERROR, LOG_DEBUG };
 } // namespace xprofiler
 
 #endif
