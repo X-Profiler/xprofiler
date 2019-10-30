@@ -131,7 +131,7 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
 }
 
 void Log(const LOG_LEVEL output_level, const char *type, const char *format,
-         ...) {
+         va_list arglist = nullptr) {
   LOG_LEVEL level = GetLogLevel();
   if (level < output_level) {
     return;
@@ -181,16 +181,16 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
              format);
   } else {
     snprintf(tmp_format, sizeof(tmp_format), "[%s] [%s] [%s] [%s] [%s] %s\n",
-             time_string_ms, XPROFILER_VERSION, level_string.c_str(), type,
-             pid.c_str(), format);
+             time_string_ms, level_string.c_str(), type, pid.c_str(),
+             XPROFILER_VERSION, format);
   }
 
   // compose log
   char tmp_log[kMaxMessageLength];
-  va_list arglist;
-  va_start(arglist, format);
-  vsnprintf(tmp_log, sizeof(tmp_log), tmp_format, arglist);
-  va_end(arglist);
+  if (arglist != nullptr)
+    vsnprintf(tmp_log, sizeof(tmp_log), tmp_format, arglist);
+  else
+    snprintf(tmp_log, sizeof(tmp_log), "%s", tmp_format);
 
   WriteToFile(output_level, tmp_log);
 }

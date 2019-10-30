@@ -77,7 +77,9 @@ exports = module.exports = (config = {}) => {
   xprofiler.configure(Object.assign({}, defaultConfig, envConfig, userConfig));
 
   // start performance log thread
-  xprofiler.runLogBypass();
+  if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
+    xprofiler.runLogBypass();
+  }
 };
 
 exports.getXprofilerConfig = function () {

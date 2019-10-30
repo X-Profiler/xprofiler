@@ -1,14 +1,15 @@
 #include "cpu.h"
+#include "../logger.h"
 #include "uv.h"
 
 #define INIT_CPU_PERIOD(period)                                                \
   static double *cpu_##period = new double[period];                            \
   static int cpu_##period##_array_index = 0;                                   \
-  static int cpu_##period##_array_lenhth = period;
+  static int cpu_##period##_array_length = period;
 
-#define SET_CPU_PERIOD(period, cpu_now)                                        \
+#define SET_CPU_PERIOD(period)                                                 \
   bool cpu_##period##_array_not_full =                                         \
-      cpu_##period##_array_index < cpu_##period##_array_lenhth;                \
+      cpu_##period##_array_index < cpu_##period##_array_length;                \
   if (cpu_##period##_array_not_full) {                                         \
     cpu_##period[cpu_##period##_array_index++] = cpu_now;                      \
   } else {                                                                     \
@@ -16,7 +17,26 @@
     cpu_##period[cpu_##period##_array_index++] = cpu_now;                      \
   }
 
+#define CALAULATE_AVERAGE(total_length, period)                                \
+  if (total_length == 0)                                                       \
+    return;                                                                    \
+  for (int i = 0; i < total_length; i++) {                                     \
+    cpu_##period##_average += cpu_##period[i];                                 \
+  }                                                                            \
+  cpu_##period##_average = cpu_##period##_average / total_length;
+
+#define GET_CPU_PERIOD(period)                                                 \
+  bool cpu_##period##_array_not_full =                                         \
+      cpu_##period##_array_index < cpu_##period##_array_length;                \
+  if (cpu_##period##_array_not_full) {                                         \
+    CALAULATE_AVERAGE(cpu_##period##_array_index, period);                     \
+  } else {                                                                     \
+    CALAULATE_AVERAGE(cpu_##period##_array_length, period);                    \
+  }
+
 namespace xprofiler {
+// init cpu now
+double cpu_now = 0.0;
 // init cpu 15/30/60
 INIT_CPU_PERIOD(15);
 INIT_CPU_PERIOD(30);
@@ -34,23 +54,41 @@ double GetNowCpuUsage() {
   }
 
   // calculate cpu usage
-  double cpu_now = 100 * (clock() - last_cpu_usage) / CLOCKS_PER_SEC /
-                   ((uv_hrtime() - last_time) / 10e8);
+  double cpu_now_ = 100 * (clock() - last_cpu_usage) / CLOCKS_PER_SEC /
+                    ((uv_hrtime() - last_time) / 10e8);
 
   // update time & cpu usage
   last_time = uv_hrtime();
   last_cpu_usage = clock();
 
-  return cpu_now;
+  return cpu_now_;
 }
 
 void SetNowCpuUsage() {
-  double cpu_now = GetNowCpuUsage();
-  if (cpu_now < 0) {
+  double cpu_now_ = GetNowCpuUsage();
+  if (cpu_now_ < 0) {
     return;
   }
-  SET_CPU_PERIOD(15, cpu_now);
-  SET_CPU_PERIOD(30, cpu_now);
-  SET_CPU_PERIOD(60, cpu_now);
+  cpu_now = cpu_now_;
+  SET_CPU_PERIOD(15);
+  SET_CPU_PERIOD(30);
+  SET_CPU_PERIOD(60);
+}
+
+void WriteCpuUsageInPeriod(bool log_format_alinode) {
+  double cpu_15_average = 0.0, cpu_30_average = 0.0, cpu_60_average = 0.0;
+  GET_CPU_PERIOD(15);
+  GET_CPU_PERIOD(30);
+  GET_CPU_PERIOD(60);
+
+  if (log_format_alinode)
+    Info(
+        "other",
+        "cpu_usage(%%) now: %.2lf, cpu_15: %.2lf, cpu_30: %.2lf, cpu_60: %.2lf",
+        cpu_now, cpu_15_average, cpu_30_average, cpu_60_average);
+  else
+    Info("cpu",
+         "cpu_usage(%%) cpu_now: %lf, cpu_15: %lf, cpu_30: %lf, cpu_60: %lf",
+         cpu_now, cpu_15_average, cpu_30_average, cpu_60_average);
 }
 } // namespace xprofiler

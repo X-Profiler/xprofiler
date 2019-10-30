@@ -12,6 +12,7 @@ using v8::Value;
 LOG_LEVEL GetLogLevel();
 bool GetFormatAsAlinode();
 std::string GetLogDir();
+uint32_t GetLogInterval();
 
 // javascript accessible
 void Configure(const FunctionCallbackInfo<Value> &info);

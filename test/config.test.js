@@ -3,7 +3,7 @@
 const mm = require('mm');
 const expect = require('expect.js');
 const xprofiler = require('../xprofiler');
-const testXprofilerConfigKeys = require('./fixtures/key');
+const testXprofilerConfigKeys = require('./fixtures/config.test');
 const testKeys = Object.keys(testXprofilerConfigKeys);
 
 describe('xprofiler config', function () {

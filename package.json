@@ -6,12 +6,12 @@
   "scripts": {
     "build": "npm run lint && node-gyp rebuild",
     "format": "clang-format -i --glob=\"src/**/*[.h|.cc]\"",
-    "lint": "npm run format && eslint --fix xprofiler.js test/*.js",
+    "lint": "npm run format && eslint --fix xprofiler.js \"test/**/*.js\"",
     "test": "mocha -t 10000 -R spec test/*.test.js",
     "test-single": "mocha -t 10000 -R spec",
     "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js  --timeout 10000",
     "ci": "npm run lint && npm run cov && codecov",
-    "dep": "npm run lint && npm run build && npm run test"
+    "dep": "npm run build && npm run cov"
   },
   "repository": {
     "type": "git",
