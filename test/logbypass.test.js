@@ -50,10 +50,7 @@ for (const testCase of cases) {
       before(async function () {
         const p = cp.fork(target.file, { env: testCase.env });
         pid = p.pid;
-        await new Promise(resolve => setTimeout(() => {
-          p.kill();
-          resolve();
-        }, testCase.execTime));
+        await new Promise(resolve => p.on('close', resolve));
         logContent = fs.readFileSync(testCase.logfile, 'utf8');
       });
 

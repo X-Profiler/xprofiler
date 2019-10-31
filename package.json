@@ -10,6 +10,7 @@
     "test": "mocha -t 10000 -R spec test/*.test.js",
     "test-single": "mocha -t 10000 -R spec",
     "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js  --timeout 10000",
+    "cov-single": "nyc --reporter=html --reporter=text --reporter=lcov mocha --timeout 10000 -R spec",
     "ci": "npm run lint && npm run cov && codecov",
     "dep": "npm run build && npm run cov"
   },

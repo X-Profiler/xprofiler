@@ -10,6 +10,6 @@ if (process.env.TEST_START_XPROFILER_LOG_THREAD === 'YES') {
 
 /*eslint no-empty: "off"*/
 const start = Date.now();
-while (Date.now() - start < 5000) {
+while (Date.now() - start < 3500) {
 
 }

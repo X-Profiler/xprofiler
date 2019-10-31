@@ -34,12 +34,12 @@ function getTestCases(title, logdir, envConfig = {}, structure = {}) {
   const date = moment().format('YYYYMMDD');
 
   // common env
-  const commonEnvConfig = {
+  const commonEnvConfig = Object.assign({}, process.env, {
     XPROFILER_LOG_DIR: logdir,
     XPROFILER_LOG_INTERVAL: 1,
     XPROFILER_UNIT_TEST_SINGLE_MODULE: 'YES',
     TEST_START_XPROFILER_LOG_THREAD: 'YES'
-  };
+  });
 
   // common case config
   const subtitle = 'when js worker thread';
@@ -55,7 +55,7 @@ function getTestCases(title, logdir, envConfig = {}, structure = {}) {
   // add alinode performance log test
   cases.push(Object.assign({}, commonCaseConfig, {
     title: `alinode ${title}`,
-    env: Object.assign({ XPROFILER_LOG_FORMAT_ALINODE: 'YES' }, commonEnvConfig, envConfig),
+    env: Object.assign({}, commonEnvConfig, { XPROFILER_LOG_FORMAT_ALINODE: 'YES' }, envConfig),
     struct: Object.assign({}, alinodeLogStructure, structure),
     logfile: path.join(logdir, `node-${date}.log`),
     logparse: utils.alinodePrefixRegexp,
