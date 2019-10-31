@@ -6,7 +6,10 @@
       "sources": [
         "src/xprofiler.cc",
         "src/configure.cc",
-        "src/logger.cc"
+        "src/logger.cc",
+        "src/utils.cc",
+        "src/logbypass/log.cc",
+        "src/logbypass/cpu.cc"
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       "conditions": [

@@ -1,6 +1,7 @@
 #include "nan.h"
 
 #include "configure.h"
+#include "logbypass/log.h"
 #include "logger.h"
 
 namespace xprofiler {
@@ -10,17 +11,22 @@ using Nan::Set;
 using v8::FunctionTemplate;
 using v8::String;
 
+#define JS_METHOD(js_func, native_func)                                        \
+  Set(target, New<String>(#js_func).ToLocalChecked(),                          \
+      GetFunction(New<FunctionTemplate>(native_func)).ToLocalChecked());
+
 NAN_MODULE_INIT(Initialize) {
-  Set(target, New<String>("configure").ToLocalChecked(),
-      GetFunction(New<FunctionTemplate>(Configure)).ToLocalChecked());
-  Set(target, New<String>("getConfig").ToLocalChecked(),
-      GetFunction(New<FunctionTemplate>(GetConfig)).ToLocalChecked());
-  Set(target, New<String>("info").ToLocalChecked(),
-      GetFunction(New<FunctionTemplate>(JsInfo)).ToLocalChecked());
-  Set(target, New<String>("error").ToLocalChecked(),
-      GetFunction(New<FunctionTemplate>(JsError)).ToLocalChecked());
-  Set(target, New<String>("debug").ToLocalChecked(),
-      GetFunction(New<FunctionTemplate>(JsDebug)).ToLocalChecked());
+  // config
+  JS_METHOD(configure, Configure);
+  JS_METHOD(getConfig, GetConfig);
+
+  // js logger
+  JS_METHOD(info, JsInfo);
+  JS_METHOD(error, JsError);
+  JS_METHOD(debug, JsDebug);
+
+  // performance log
+  JS_METHOD(runLogBypass, RunLogBypass);
 }
 
 NODE_MODULE(xprofiler, Initialize)

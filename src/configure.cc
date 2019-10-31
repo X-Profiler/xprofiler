@@ -92,4 +92,6 @@ LOG_LEVEL GetLogLevel() { return log_level; }
 bool GetFormatAsAlinode() { return log_format_alinode; }
 
 std::string GetLogDir() { return log_dir; }
+
+uint32_t GetLogInterval() { return log_interval; }
 } // namespace xprofiler

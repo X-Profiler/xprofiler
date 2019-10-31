@@ -5,6 +5,7 @@ const path = require('path');
 const xprofiler = require('bindings')('xprofiler');
 
 let configured = false;
+let bypassLogThreadStarted = false;
 
 const defaultConfig = {
   log_dir: os.tmpdir(),
@@ -14,7 +15,7 @@ const defaultConfig = {
   log_level: 1
 };
 
-function check() {
+function checkNecessary() {
   if (!configured) {
     throw new Error('must run "require(\'xprofiler\')()" to set xprofiler config first!');
   }
@@ -75,24 +76,38 @@ exports = module.exports = (config = {}) => {
 
   // set config
   xprofiler.configure(Object.assign({}, defaultConfig, envConfig, userConfig));
+
+  // start performance log thread
+  if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
+    xprofiler.runLogBypass();
+  }
 };
 
 exports.getXprofilerConfig = function () {
-  check();
+  checkNecessary();
   return xprofiler.getConfig();
 };
 
 exports.info = function (...args) {
-  check();
+  checkNecessary();
   return xprofiler.info(...args);
 };
 
 exports.error = function (...args) {
-  check();
+  checkNecessary();
   return xprofiler.error(...args);
 };
 
 exports.debug = function (...args) {
-  check();
+  checkNecessary();
   return xprofiler.debug(...args);
+};
+
+exports.runLogBypass = function () {
+  if (bypassLogThreadStarted) {
+    return;
+  }
+  bypassLogThreadStarted = true;
+  checkNecessary();
+  return xprofiler.runLogBypass();
 };

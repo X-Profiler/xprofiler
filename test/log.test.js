@@ -2,20 +2,15 @@
 
 const fs = require('fs');
 const path = require('path');
+const mm = require('mm');
 const expect = require('expect.js');
 const moment = require('moment');
 const xprofiler = require('../xprofiler');
 const pack = require('../package.json');
+const utils = require('./fixtures/utils');
 
 // clean logdir
-const log_dir = path.join(__dirname, 'logdir');
-if (!fs.existsSync(log_dir)) {
-  fs.mkdirSync(log_dir, { recursive: true });
-} else {
-  for (const file of fs.readdirSync(log_dir)) {
-    fs.unlinkSync(path.join(log_dir, file));
-  }
-}
+const log_dir = utils.createLogDir('logdir');
 
 const date = moment().format('YYYYMMDD');
 // xprofiler file
@@ -27,10 +22,8 @@ const alinodeLogPath = path.join(log_dir, `node-${date}.log`);
 const alinodeErrorLogPath = path.join(log_dir, `node-error-${date}.log`);
 const alinodeDebugLogPath = path.join(log_dir, `node-debug-${date}.log`);
 
-const xprofilerPrefixRegexp =
-  /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[(\d{1,3}\.\d{1,3}\.\d{1,3})\] \[(.+)\] \[(.+)\] \[(\d+)\] (.*)/g;
-const alinodePrefixRegexp =
-  /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{0,6}\] \[(.+)\] \[(.+)\] \[(\d+)\] (.*)/g;
+const xprofilerPrefixRegexp = utils.xprofilerPrefixRegexp;
+const alinodePrefixRegexp = utils.alinodePrefixRegexp;
 
 function parseXprofilerLog(type, content) {
   let matched;
@@ -40,22 +33,18 @@ function parseXprofilerLog(type, content) {
     regexp = alinodePrefixRegexp;
   }
   while ((matched = regexp.exec(content)) !== null) {
+    const obj = {
+      log_level: matched[1],
+      log_type: matched[2],
+      pid: matched[3]
+    };
     if (type === 'alinode') {
-      parsed.push({
-        log_level: matched[1],
-        log_type: matched[2],
-        pid: matched[3],
-        detail: matched[4]
-      });
+      obj.detail = matched[4];
     } else {
-      parsed.push({
-        version: matched[1],
-        log_level: matched[2],
-        log_type: matched[3],
-        pid: matched[4],
-        detail: matched[5]
-      });
+      obj.version = matched[4];
+      obj.detail = matched[5];
     }
+    parsed.push(obj);
   }
   return parsed;
 }
@@ -84,6 +73,7 @@ const testConfigList = [
 for (const testConfig of testConfigList) {
   describe(`${testConfig.type} log`, function () {
     before(function () {
+      mm(process.env, 'XPROFILER_UNIT_TEST_SINGLE_MODULE', 'YES');
       xprofiler(testConfig.config);
       for (const log of testConfig.logs) {
         xprofiler[log.level](log.type, log.content);
@@ -93,6 +83,7 @@ for (const testConfig of testConfigList) {
     after(function () {
       for (const log of testConfig.logs) {
         fs.unlinkSync(log.path);
+        mm.restore();
       }
     });
 
