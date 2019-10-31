@@ -5,6 +5,7 @@ const path = require('path');
 const xprofiler = require('bindings')('xprofiler');
 
 let configured = false;
+let bypassLogThreadStarted = false;
 
 const defaultConfig = {
   log_dir: os.tmpdir(),
@@ -103,6 +104,10 @@ exports.debug = function (...args) {
 };
 
 exports.runLogBypass = function () {
+  if (bypassLogThreadStarted) {
+    return;
+  }
+  bypassLogThreadStarted = true;
   checkNecessary();
   return xprofiler.runLogBypass();
 };

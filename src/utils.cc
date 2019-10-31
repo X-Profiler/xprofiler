@@ -7,7 +7,7 @@
 #include "utils.h"
 
 namespace xprofiler {
-void Sleep(int seconds) {
+void SleepSeconds(int seconds) {
 #ifndef _WIN32
   sleep(seconds);
 #else

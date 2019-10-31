@@ -14,7 +14,7 @@ static void CreateUvThread(void *data) {
   uint64_t last_loop_time = uv_hrtime();
   while (1) {
     // sleep 1s for releasing cpu
-    Sleep(1);
+    SleepSeconds(1);
 
     // set now cpu usage
     SetNowCpuUsage();
