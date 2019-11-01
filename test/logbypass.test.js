@@ -7,7 +7,7 @@ const pack = require('../package.json');
 const utils = require('./fixtures/utils');
 const getTestCases = require('./fixtures/logbypass.test');
 
-const logdir = utils.createLogDir('logbypass');
+const logdir = utils.createLogDir('log_bypass');
 
 const cases = getTestCases('performance log correctly', logdir);
 
@@ -76,10 +76,14 @@ for (const testCase of cases) {
             }
           });
 
+          const struct = testCase.struct[type];
+          it(`type [${type}] should have keys ${Object.keys(struct)}`, function () {
+            const detail = parsed.detail;
+            expect(utils.objKeyEqual(detail, struct)).to.be.ok();
+          });
+
           it(`type [${type}] should as expected`, function () {
             const detail = parsed.detail;
-            const struct = testCase.struct[type];
-            expect(utils.objKeyEqual(detail, struct)).to.be.ok();
             describe(`${testCase.title} ${target.title}: ${type}`, function () {
               for (const key of Object.keys(detail)) {
                 it(`${key}: ${detail[key]} shoule be ${struct[key]}`, function () {

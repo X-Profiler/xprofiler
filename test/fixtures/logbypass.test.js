@@ -6,27 +6,51 @@ const utils = require('./utils');
 const blocking = path.join(__dirname, 'blocking.js');
 const nonBlocking = path.join(__dirname, 'non-blocking.js');
 
-const alinodeCpuRule = /^\d{1,3}.\d{2}/;
-const xprofilerCpuRule = /^\d{1,3}.\d{2}/;
-
-function getCpuRules(list, alinode) {
+function setRules(list, alinode, { alinodeRule, xprofilerRule }) {
   const rules = {};
   for (const r of list) {
     if (alinode) {
-      rules[r] = alinodeCpuRule;
+      rules[r] = alinodeRule;
     } else {
-      rules[r] = xprofilerCpuRule;
+      rules[r] = xprofilerRule;
     }
   }
   return rules;
 }
 
+// cpu rule
+const alinodeCpuRule = /^\d{1,3}.\d{2}$/;
+const xprofilerCpuRule = /^\d{1,3}.\d{2}$/;
+function getCpuRules(list, alinode) {
+  return setRules(list, alinode, { alinodeRule: alinodeCpuRule, xprofilerRule: xprofilerCpuRule });
+}
+
+// memory rule
+const alindoeMemoryRule = /^\d+$/;
+const xprofilerMemoryRule = /^\d+$/;
+function getMemoryRules(list, alinode) {
+  return setRules(list, alinode, { alinodeRule: alindoeMemoryRule, xprofilerRule: xprofilerMemoryRule });
+}
+function setSpaceKeys(list) {
+  const spaces = ['new', 'old', 'code', 'map', 'lo'];
+  for (const key of spaces) {
+    list.push(`${key}_space_size`);
+    list.push(`${key}_space_used`);
+    list.push(`${key}_space_available`);
+    list.push(`${key}_space_committed`);
+  }
+}
+const memoryKeys = ['rss', 'heap_used', 'heap_available', 'heap_total', 'heap_limit',
+  'heap_executeable', 'total_physical_size', 'malloced_memory', 'amount_of_external_allocated_memory'];
+setSpaceKeys(memoryKeys);
 const alinodeLogStructure = {
-  other: getCpuRules(['now', 'cpu_15', 'cpu_30', 'cpu_60'], true)
+  other: getCpuRules(['now', 'cpu_15', 'cpu_30', 'cpu_60'], true),
+  heap: getMemoryRules(memoryKeys, true)
 };
 
 const xprofilerLogStructure = {
-  cpu: getCpuRules(['cpu_now', 'cpu_15', 'cpu_30', 'cpu_60'])
+  cpu: getCpuRules(['cpu_now', 'cpu_15', 'cpu_30', 'cpu_60']),
+  memory: getMemoryRules(memoryKeys)
 };
 
 function getTestCases(title, logdir, envConfig = {}, structure = {}) {
