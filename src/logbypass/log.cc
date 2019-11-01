@@ -4,9 +4,13 @@
 #include "../logger.h"
 #include "../utils.h"
 #include "cpu.h"
+#include "heap.h"
 #include "log.h"
 
 namespace xprofiler {
+using Nan::False;
+using Nan::ThrowTypeError;
+using Nan::True;
 
 uv_thread_t uv_log_thread;
 
@@ -23,20 +27,38 @@ static void CreateUvThread(void *data) {
     if (uv_hrtime() - last_loop_time >= GetLogInterval() * 10e8) {
       last_loop_time = uv_hrtime();
       bool log_format_alinode = GetFormatAsAlinode();
+
       // write cpu info
       WriteCpuUsageInPeriod(log_format_alinode);
+
+      // write heap memory info
+      WriteMemoryInfoToLog(log_format_alinode);
     }
   }
 }
 
 void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
-  int rc = uv_thread_create(&uv_log_thread, CreateUvThread, nullptr);
+  int rc = 0;
+
+  // init log thread
+  rc = uv_thread_create(&uv_log_thread, CreateUvThread, nullptr);
   if (rc != 0) {
-    Nan::ThrowError("xprofiler: create uv log thread failed!");
-    info.GetReturnValue().Set(Nan::False());
+    ThrowTypeError("xprofiler: create uv log thread failed!");
+    info.GetReturnValue().Set(False());
     return;
   }
   Info("init", "xprofiler log thread created.");
-  info.GetReturnValue().Set(Nan::True());
+
+  // init memory statistics callback
+  rc = InitMemoryAsyncCallback();
+  if (rc != 0) {
+    ThrowTypeError("xprofiler: init memory statistics async callback failed!");
+    info.GetReturnValue().Set(False());
+    return;
+  }
+  UnrefAsyncHandle();
+  Info("init", "xprofiler memory statistics async callback setted.");
+
+  info.GetReturnValue().Set(True());
 }
 } // namespace xprofiler
