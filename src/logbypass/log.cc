@@ -5,7 +5,6 @@
 #include "../utils.h"
 #include "cpu.h"
 #include "heap.h"
-#include "log.h"
 
 namespace xprofiler {
 using Nan::False;
@@ -18,7 +17,7 @@ static void CreateUvThread(void *data) {
   uint64_t last_loop_time = uv_hrtime();
   while (1) {
     // sleep 1s for releasing cpu
-    SleepSeconds(1);
+    Sleep(1);
 
     // set now cpu usage
     SetNowCpuUsage();

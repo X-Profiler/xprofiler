@@ -1,24 +1,21 @@
-#include "cstdarg"
 #include "uv.h"
 #include <fstream>
-#include <iostream>
-#include <time.h>
+#include <stdarg.h>
 
-#ifndef _WIN32
-#include "unistd.h"
-#include <sys/time.h>
-#else
-#include <windows.h>
+#ifdef _WIN32
+#include <time.h>
 #endif
 
 #include "configure.h"
-#include "logger.h"
+#include "platform/platform.h"
 
 namespace xprofiler {
 using Nan::New;
 using Nan::ThrowTypeError;
 using Nan::To;
 using Nan::Utf8String;
+using std::string;
+using std::to_string;
 using v8::Local;
 using v8::String;
 
@@ -29,54 +26,6 @@ static const int kMaxFormatLength = 1024;
 static std::ofstream info_stream;
 static std::ofstream error_stream;
 static std::ofstream debug_stream;
-
-#ifndef _WIN32
-std::string sep = "/";
-#else
-std::string sep = "\\";
-#endif
-
-// for v8.x & v10.x
-#if (NODE_MODULE_VERSION < 72)
-typedef struct {
-  int64_t tv_sec;
-  int32_t tv_usec;
-} uv_timeval64_t;
-
-#ifndef _WIN32
-// from libuv: uv/src/unix
-int uv_gettimeofday(uv_timeval64_t *tv) {
-  struct timeval time;
-
-  if (tv == NULL)
-    return UV_EINVAL;
-
-  if (gettimeofday(&time, NULL) != 0)
-    return -1;
-
-  tv->tv_sec = (int64_t)time.tv_sec;
-  tv->tv_usec = (int32_t)time.tv_usec;
-  return 0;
-}
-#else
-// from libuv: uv/src/unix
-int uv_gettimeofday(uv_timeval64_t *tv) {
-  const uint64_t epoch = (uint64_t)116444736000000000ULL;
-  FILETIME file_time;
-  ULARGE_INTEGER ularge;
-
-  if (tv == NULL)
-    return UV_EINVAL;
-
-  GetSystemTimeAsFileTime(&file_time);
-  ularge.LowPart = file_time.dwLowDateTime;
-  ularge.HighPart = file_time.dwHighDateTime;
-  tv->tv_sec = (int64_t)((ularge.QuadPart - epoch) / 10000000L);
-  tv->tv_usec = (int32_t)(((ularge.QuadPart - epoch) % 10000000L) / 10);
-  return 0;
-}
-#endif
-#endif
 
 #define WRITET_TO_FILE(type)                                                   \
   type##_stream.open(filepath, std::ios::app);                                 \
@@ -97,8 +46,8 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
   strftime(time_string_day, sizeof(time_string_day), "%Y%m%d", ptm);
 
   // get filepath and write to file
-  std::string log_dir = GetLogDir();
-  std::string filepath = log_dir + sep;
+  string log_dir = GetLogDir();
+  string filepath = log_dir + GetSep();
   bool log_format_alinode = GetFormatAsAlinode();
   switch (output_level) {
   case LOG_LEVEL::LOG_INFO:
@@ -154,7 +103,7 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   }
 
   // log level
-  std::string level_string = "";
+  string level_string = "";
   switch (output_level) {
   case LOG_LEVEL::LOG_INFO:
     level_string = "info";
@@ -170,8 +119,8 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
     break;
   }
 
-  // pid
-  std::string pid = std::to_string(getpid());
+  // get pid
+  string pid = to_string(GetPid());
 
   // add log prefix
   char tmp_format[kMaxFormatLength];

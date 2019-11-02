@@ -14,17 +14,27 @@
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       "conditions": [
-        ["OS=='linux'", {
+        ["OS == 'linux'", {
           "defines": [ "_GNU_SOURCE" ],
           "cflags": [ "-O2", "-std=c++11" ],
+          "sources": [
+            "src/platform/unix/cpu.cc",
+            "src/platform/unix/utils.cc"
+          ]
         }],
-        ["OS=='win'", {
+        ["OS == 'mac'", {
+          "sources": [
+            "src/platform/unix/cpu.cc",
+            "src/platform/unix/utils.cc"
+          ]
+        }],
+        ["OS == 'win'", {
           "libraries": [ "dbghelp.lib", "Netapi32.lib", "PsApi.lib", "Ws2_32.lib" ],
           "dll_files": [ "dbghelp.dll", "Netapi32.dll", "PsApi.dll", "Ws2_32.dll" ],
-        }],
-        ["OS=='zos'", {
-          "cflags!": [ "-O2", "-O3" ],
-          "cflags": [ "-qascii" ],
+          "sources": [
+            "src/platform/win/cpu_win.cc",
+            "src/platform/win/utils_win.cc",
+          ]
         }],
       ],
       "defines": [

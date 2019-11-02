@@ -8,3 +8,5 @@ script: npm run ci
 os:
   - linux
   - osx
+notifications:
+  webhooks: https://oapi.dingtalk.com/robot/send?access_token=785180885da0881a7e866929d640ef518201660357c2a4b1093ad69abf532265
