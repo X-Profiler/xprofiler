@@ -1,5 +1,10 @@
 #include "uv.h"
 #include <fstream>
+#include <stdarg.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include "configure.h"
 #include "platform/platform.h"
