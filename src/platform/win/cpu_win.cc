@@ -1,4 +1,6 @@
 #ifdef _WIN32
+#include "uv.h"
+#include "windows.h"
 
 namespace xprofiler {
 #define GET_CURRENT_TIME(curtime)                                              \

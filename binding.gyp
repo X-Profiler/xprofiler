@@ -32,8 +32,8 @@
           "libraries": [ "dbghelp.lib", "Netapi32.lib", "PsApi.lib", "Ws2_32.lib" ],
           "dll_files": [ "dbghelp.dll", "Netapi32.dll", "PsApi.dll", "Ws2_32.dll" ],
           "sources": [
-            "src/platform/win/cpu.cc",
-            "src/platform/win/utils.cc",
+            "src/platform/win/cpu_win.cc",
+            "src/platform/win/utils_win.cc",
           ]
         }],
       ],
