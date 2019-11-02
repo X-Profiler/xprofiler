@@ -5,7 +5,6 @@
 #include "../utils.h"
 #include "cpu.h"
 #include "heap.h"
-#include "log.h"
 
 namespace xprofiler {
 using Nan::False;
