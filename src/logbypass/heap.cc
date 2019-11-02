@@ -85,7 +85,7 @@ void UnrefAsyncHandle() {
 void WriteMemoryInfoToLog(bool log_format_alinode) {
   uv_async_send(&memory_statistics_trigger);
   // sleep 1s for executing async callback
-  SleepSeconds(1);
+  Sleep(1);
 
   if (log_format_alinode) {
     Info("heap",

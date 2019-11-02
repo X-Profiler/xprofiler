@@ -2,7 +2,7 @@
 #define _SRC_UTILS_H
 
 namespace xprofiler {
-void SleepSeconds(int seconds);
+void Sleep(int seconds);
 }
 
 #endif

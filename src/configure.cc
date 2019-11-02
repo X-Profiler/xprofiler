@@ -1,6 +1,8 @@
-#include "configure.h"
+#include "common.h"
+#include "nan.h"
 
 namespace xprofiler {
+using Nan::FunctionCallbackInfo;
 using Nan::Get;
 using Nan::New;
 using Nan::Set;
@@ -13,6 +15,7 @@ using v8::Local;
 using v8::Number;
 using v8::Object;
 using v8::String;
+using v8::Value;
 
 static string log_dir = "/tmp";
 static uint32_t log_interval = 60;
