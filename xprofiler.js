@@ -1,6 +1,7 @@
 'use strict';
 
 const os = require('os');
+const fs = require('fs');
 const path = require('path');
 const xprofiler = require('bindings')('xprofiler');
 
@@ -21,61 +22,112 @@ function checkNecessary() {
   }
 }
 
-exports = module.exports = (config = {}) => {
-  configured = true;
+function checkLogDirAccessiable(logdir) {
+  const exists = fs.existsSync(logdir);
+  let accessiable;
+  try {
+    fs.accessSync(logdir, fs.constants.R_OK | fs.constants.W_OK);
+    accessiable = true;
+  } catch (err) {
+    accessiable = false;
+  }
+  return exists && accessiable;
+}
 
+const simpleCheck = {
+  string: value => typeof value === 'string',
+  path: value => path.isAbsolute(value),
+  number: value => value !== null && !isNaN(value),
+  boolean: value => ['YES', 'NO', true, false].includes(value)
+};
+
+const formatValue = {
+  string: value => String(value),
+  number: value => Number(value),
+  boolean: value => ['YES', 'NO'].includes(value) ? value === 'YES' : value
+};
+
+function checkRule(rules, value, { config, key, format }) {
+  if (rules.every(rule => simpleCheck[rule] && simpleCheck[rule](value))) {
+    config[key] = typeof format === 'function' && format(value);
+  }
+}
+
+function getFinalUserConfigure(envConfig, userConfig) {
+  // check user configured log_dir is accessiable
+  const finalConfigure = Object.assign({}, envConfig, userConfig);
+  const logDirIllegal =
+    typeof finalConfigure.log_dir === 'string' && !checkLogDirAccessiable(finalConfigure.log_dir);
+  let logDirMessage = '';
+  if (logDirIllegal) {
+    // todo: check default log_dir is accessiable
+    // if (!checkLogDirAccessiable(defaultConfig.log_dir)) {
+    //   throw new Error(`can't access default log dir: ${defaultConfig.log_dir}`);
+    // }
+    const extra = `env: ${envConfig.log_dir}, user: ${userConfig.log_dir}`;
+    logDirMessage =
+      `${finalConfigure.log_dir} will be ignored (${extra}), use default log_dir: ${defaultConfig.log_dir}`;
+    // output error log
+    console.error('[config_int]', logDirMessage);
+    finalConfigure.log_dir = defaultConfig.log_dir;
+  }
+  return finalConfigure;
+}
+
+function getConfigure(configList, user) {
   const envConfig = {};
   const userConfig = {};
-  // log dir
-  const logDirEnv = process.env.XPROFILER_LOG_DIR;
-  if (typeof logDirEnv === 'string' && path.isAbsolute(logDirEnv)) {
-    envConfig.log_dir = path.resolve(logDirEnv);
+  for (const config of configList) {
+    const rules = config.rules;
+    const key = config.name;
+    const format = formatValue[config.format];
+    const envValue = process.env[config.env];
+    checkRule(rules, envValue, { config: envConfig, key, format });
+    const userValue = user[config.name];
+    checkRule(rules, userValue, { config: userConfig, key, format });
   }
-  const logDirUser = config.log_dir;
-  if (typeof logDirUser === 'string' && path.isAbsolute(logDirUser)) {
-    userConfig.log_dir = path.resolve(config.log_dir);
-  }
+  return getFinalUserConfigure(envConfig, userConfig);
+}
 
-  // log interval
-  const logIntervalEnv = process.env.XPROFILER_LOG_INTERVAL;
-  if (logIntervalEnv !== null && !isNaN(logIntervalEnv)) {
-    envConfig.log_interval = Number(logIntervalEnv);
-  }
-  const logIntervalUser = config.log_interval;
-  if (logIntervalUser !== null && !isNaN(logIntervalUser)) {
-    userConfig.log_interval = Number(logIntervalUser);
-  }
+exports = module.exports = (config = {}) => {
+  const configList = [
+    {
+      name: 'log_dir',
+      env: 'XPROFILER_LOG_DIR',
+      rules: ['string', 'path'],
+      format: 'string'
+    },
+    {
+      name: 'log_interval',
+      env: 'XPROFILER_LOG_INTERVAL',
+      rules: ['number'],
+      format: 'number'
+    },
+    {
+      name: 'enable_log_uv_handles',
+      env: 'XPROFILER_ENABLE_LOG_UV_HANDLES',
+      rules: ['boolean'],
+      format: 'boolean'
+    },
+    {
+      name: 'log_format_alinode',
+      env: 'XPROFILER_LOG_FORMAT_ALINODE',
+      rules: ['boolean'],
+      format: 'boolean'
+    },
+    {
+      name: 'log_level',
+      env: 'XPROFILER_LOG_LEVEL',
+      rules: ['number'],
+      format: 'number'
+    }
+  ];
 
-  // enable collecting uv handles
-  const enableLogUvHandlesEnv = process.env.XPROFILER_ENABLE_LOG_UV_HANDLES;
-  if (typeof enableLogUvHandlesEnv === 'string') {
-    envConfig.enable_log_uv_handles = enableLogUvHandlesEnv === 'YES';
-  }
-  if (config.enable_log_uv_handles === false || config.enable_log_uv_handles === true) {
-    userConfig.enable_log_uv_handles = config.enable_log_uv_handles;
-  }
-
-  // log format alinode
-  const logFormatAlinodeEnv = process.env.XPROFILER_LOG_FORMAT_ALINODE;
-  if (typeof logFormatAlinodeEnv === 'string') {
-    envConfig.log_format_alinode = logFormatAlinodeEnv === 'YES';
-  }
-  if (config.log_format_alinode === false || config.log_format_alinode === true) {
-    userConfig.log_format_alinode = config.log_format_alinode;
-  }
-
-  // log level
-  const logLevelEnv = process.env.XPROFILER_LOG_LEVEL;
-  if (logLevelEnv !== null && !isNaN(logLevelEnv)) {
-    envConfig.log_level = Number(logLevelEnv);
-  }
-  const logLevelUser = config.log_level;
-  if (logLevelUser !== null && !isNaN(logLevelUser)) {
-    userConfig.log_level = Number(logLevelUser);
-  }
+  const finalConfigure = getConfigure(configList, config);
 
   // set config
-  xprofiler.configure(Object.assign({}, defaultConfig, envConfig, userConfig));
+  xprofiler.configure(Object.assign({}, defaultConfig, finalConfigure));
+  configured = true;
 
   // start performance log thread
   if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {

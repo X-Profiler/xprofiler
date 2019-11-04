@@ -2,6 +2,7 @@
 
 const os = require('os');
 const path = require('path');
+const utils = require('./utils');
 
 function getExtra(key, expected, ext) {
   return ext.map(item => {
@@ -55,10 +56,10 @@ const configure = {
   log_dir: {
     defaultValue: os.tmpdir(),
     envKey: 'XPROFILER_LOG_DIR',
-    envValue: path.join(__dirname, 'logdir_env'),
-    userValue: path.join(__dirname, 'logdir_user'),
-    envExt: ['env/not/absolute/path'],
-    userExt: ['user/not/absolute/path']
+    envValue: utils.createLogDir('logdir_env'),
+    userValue: utils.createLogDir('logdir_user'),
+    envExt: ['env/not/absolute/path', path.join(__dirname, 'fixtures/no_dir_env')],
+    userExt: ['user/not/absolute/path', path.join(__dirname, 'fixtures/no_dir_user')],
   },
   log_interval: {
     defaultValue: 60,
