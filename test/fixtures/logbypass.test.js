@@ -65,13 +65,12 @@ const xprofilerLogStructure = {
     'scavange_duration_last_record', 'marksweep_duration_last_record', 'incremental_marking_duration_last_record'])
 };
 
-function getTestCases(title, logdir, envConfig = {}, structure = {}) {
+function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig = {}, structure = {}) {
   const cases = [];
   const date = moment().format('YYYYMMDD');
 
   // common env
   const commonEnvConfig = Object.assign({}, process.env, {
-    XPROFILER_LOG_DIR: logdir,
     XPROFILER_LOG_INTERVAL: 1,
     XPROFILER_UNIT_TEST_SINGLE_MODULE: 'YES',
     TEST_START_XPROFILER_LOG_THREAD: 'YES'
@@ -79,11 +78,17 @@ function getTestCases(title, logdir, envConfig = {}, structure = {}) {
 
   // common case config
   const subtitle = 'when js worker thread';
+  const blockingTarget = {
+    title: `${subtitle} blocking`,
+    file: blocking,
+    env: { XPROFILER_LOG_DIR: logdirBlocking }
+  };
+  const nonBlockingTarget = {
+    title: `${subtitle} non-blocking`,
+    file: nonBlocking,
+    env: { XPROFILER_LOG_DIR: logdirNonBlocking }
+  };
   const commonCaseConfig = {
-    targets: [
-      { title: `${subtitle} blocking`, file: blocking },
-      { title: `${subtitle} non-blocking`, file: nonBlocking }
-    ],
     env: Object.assign({}, commonEnvConfig, envConfig),
     execTime: 3500
   };
@@ -93,7 +98,10 @@ function getTestCases(title, logdir, envConfig = {}, structure = {}) {
     title: `alinode ${title}`,
     env: Object.assign({}, commonEnvConfig, { XPROFILER_LOG_FORMAT_ALINODE: 'YES' }, envConfig),
     struct: Object.assign({}, alinodeLogStructure, structure),
-    logfile: path.join(logdir, `node-${date}.log`),
+    targets: [
+      Object.assign({}, blockingTarget, { logfile: path.join(logdirBlocking, `node-${date}.log`) }),
+      Object.assign({}, nonBlockingTarget, { logfile: path.join(logdirNonBlocking, `node-${date}.log`) }),
+    ],
     logparse: utils.alinodePrefixRegexp,
     alinode: true
   }));
@@ -102,7 +110,10 @@ function getTestCases(title, logdir, envConfig = {}, structure = {}) {
   cases.push(Object.assign({}, commonCaseConfig, {
     title: `xprofiler ${title}`,
     struct: Object.assign({}, xprofilerLogStructure, structure),
-    logfile: path.join(logdir, `xprofiler-${date}.log`),
+    targets: [
+      Object.assign({}, blockingTarget, { logfile: path.join(logdirBlocking, `xprofiler-${date}.log`) }),
+      Object.assign({}, nonBlockingTarget, { logfile: path.join(logdirNonBlocking, `xprofiler-${date}.log`) }),
+    ],
     logparse: utils.xprofilerPrefixRegexp,
     alinode: false
   }));

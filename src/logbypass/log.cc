@@ -50,7 +50,7 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
     return;
   }
   UnrefAsyncHandle();
-  Info("init", "xprofiler memory statistics async callback setted.");
+  Info("init", "memory statistics async callback setted.");
 
   // init gc hooks
   rc = InitGcStatusHooks();
@@ -68,7 +68,7 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
     info.GetReturnValue().Set(False());
     return;
   }
-  Info("init", "xprofiler log thread created.");
+  Info("init", "log thread created.");
 
   info.GetReturnValue().Set(True());
 }

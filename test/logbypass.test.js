@@ -7,11 +7,13 @@ const pack = require('../package.json');
 const utils = require('./fixtures/utils');
 const getTestCases = require('./fixtures/logbypass.test');
 
-const logdir = utils.createLogDir('log_bypass');
+const logdirBlocking = utils.createLogDir('log_bypass_blocking');
+const logdirNonBlocking = utils.createLogDir('log_bypass_non_blocking');
 
-const cases = getTestCases('performance log correctly', logdir);
+const cases = getTestCases('performance log correctly', logdirBlocking, logdirNonBlocking);
 
 function parseLog(logType, content, patt, alinode) {
+  console.log(`parse log ${logType}: ${JSON.stringify(content)}`);
   const reg = /([^\s]*): (\d+(\.\d{0,2})?)/g;
   let matched;
   const res = { prefix: {}, detail: {} };
@@ -48,14 +50,14 @@ for (const testCase of cases) {
       let logContent;
       let pid;
       before(async function () {
-        const p = cp.fork(target.file, { env: testCase.env });
+        const p = cp.fork(target.file, { env: Object.assign({}, testCase.env, target.env) });
         pid = p.pid;
         await new Promise(resolve => p.on('close', resolve));
-        logContent = fs.readFileSync(testCase.logfile, 'utf8');
+        logContent = fs.readFileSync(target.logfile, 'utf8');
       });
 
       after(function () {
-        fs.unlinkSync(testCase.logfile);
+        fs.unlinkSync(target.logfile);
       });
 
       const types = Object.keys(testCase.struct);
