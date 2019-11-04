@@ -70,4 +70,10 @@ demo.js
 
 logdir
 
-log_bypass
+logdir_env
+
+logdir_user
+
+log_bypass_blocking
+
+log_bypass_non_blocking

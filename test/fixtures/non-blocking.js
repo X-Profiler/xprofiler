@@ -12,4 +12,4 @@ setInterval(() => { }, 1000);
 
 setTimeout(() => {
   process.exit(0);
-}, 3500);
+}, 6000);
