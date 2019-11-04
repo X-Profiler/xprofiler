@@ -1,6 +1,7 @@
 'use strict';
 
 const os = require('os');
+const fs = require('fs');
 const path = require('path');
 const xprofiler = require('bindings')('xprofiler');
 
@@ -19,6 +20,18 @@ function checkNecessary() {
   if (!configured) {
     throw new Error('must run "require(\'xprofiler\')()" to set xprofiler config first!');
   }
+}
+
+function checkLogDirAccessiable(logdir) {
+  const exists = fs.existsSync(logdir);
+  let accessiable;
+  try {
+    fs.accessSync(logdir, fs.constants.R_OK | fs.constants.W_OK);
+    accessiable = true;
+  } catch (err) {
+    accessiable = false;
+  }
+  return exists && accessiable;
 }
 
 exports = module.exports = (config = {}) => {
@@ -75,7 +88,26 @@ exports = module.exports = (config = {}) => {
   }
 
   // set config
-  xprofiler.configure(Object.assign({}, defaultConfig, envConfig, userConfig));
+  // check user configured log_dir is accessiable
+  const finalConfigure = Object.assign({}, envConfig, userConfig);
+  const logDirIllegal =
+    typeof finalConfigure.log_dir === 'string' && !checkLogDirAccessiable(finalConfigure.log_dir);
+  let logDirMessage = '';
+  if (logDirIllegal) {
+    // todo: check default log_dir is accessiable
+    // if (!checkLogDirAccessiable(defaultConfig.log_dir)) {
+    //   throw new Error(`can't access default log dir: ${defaultConfig.log_dir}`);
+    // }
+    const extra = `env: ${envConfig.log_dir}, user: ${config.log_dir}`;
+    logDirMessage =
+      `${finalConfigure.log_dir} will be ignored (${extra}), use default log_dir: ${defaultConfig.log_dir}`;
+    finalConfigure.log_dir = defaultConfig.log_dir;
+  }
+  xprofiler.configure(Object.assign({}, defaultConfig, finalConfigure));
+  // output error log
+  if (logDirIllegal) {
+    xprofiler.error(`int`, logDirMessage);
+  }
 
   // start performance log thread
   if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
