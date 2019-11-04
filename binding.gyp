@@ -8,9 +8,11 @@
         "src/configure.cc",
         "src/logger.cc",
         "src/utils.cc",
+        "src/common.cc",
         "src/logbypass/log.cc",
         "src/logbypass/cpu.cc",
-        "src/logbypass/heap.cc"
+        "src/logbypass/heap.cc",
+        "src/logbypass/gc.cc"
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       "conditions": [

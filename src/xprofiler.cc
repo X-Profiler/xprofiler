@@ -1,5 +1,6 @@
 #include "nan.h"
 
+#include "common.h"
 #include "configure.h"
 #include "logbypass/log.h"
 #include "logger.h"
@@ -16,6 +17,9 @@ using v8::String;
       GetFunction(New<FunctionTemplate>(native_func)).ToLocalChecked());
 
 NAN_MODULE_INIT(Initialize) {
+  // init global variables
+  InitGlobalVariables();
+
   // config
   JS_METHOD(configure, Configure);
   JS_METHOD(getConfig, GetConfig);

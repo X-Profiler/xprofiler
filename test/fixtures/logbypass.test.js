@@ -43,14 +43,26 @@ function setSpaceKeys(list) {
 const memoryKeys = ['rss', 'heap_used', 'heap_available', 'heap_total', 'heap_limit',
   'heap_executeable', 'total_physical_size', 'malloced_memory', 'amount_of_external_allocated_memory'];
 setSpaceKeys(memoryKeys);
+
+// gc rulr
+const alindoeGcRule = /^\d+$/;
+const xprofilerGcRule = /^\d+$/;
+function getGcRules(list, alinode) {
+  return setRules(list, alinode, { alinodeRule: alindoeGcRule, xprofilerRule: xprofilerGcRule });
+}
+
 const alinodeLogStructure = {
   other: getCpuRules(['now', 'cpu_15', 'cpu_30', 'cpu_60'], true),
-  heap: getMemoryRules(memoryKeys, true)
+  heap: getMemoryRules(memoryKeys, true),
+  gc: getGcRules(['gc_time_during_last_min', 'total', 'scavange_duration', 'marksweep_duration'], true)
 };
 
 const xprofilerLogStructure = {
   cpu: getCpuRules(['cpu_now', 'cpu_15', 'cpu_30', 'cpu_60']),
-  memory: getMemoryRules(memoryKeys)
+  memory: getMemoryRules(memoryKeys),
+  gc: getGcRules(['uptime', 'total_gc_times', 'total_gc_duration', 'total_scavange_duration',
+    'total_marksweep_duration', 'total_incremental_marking_duration', 'gc_time_during_last_record',
+    'scavange_duration_last_record', 'marksweep_duration_last_record', 'incremental_marking_duration_last_record'])
 };
 
 function getTestCases(title, logdir, envConfig = {}, structure = {}) {
