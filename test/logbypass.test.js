@@ -10,7 +10,11 @@ const getTestCases = require('./fixtures/logbypass.test');
 const logdirBlocking = utils.createLogDir('log_bypass_blocking');
 const logdirNonBlocking = utils.createLogDir('log_bypass_non_blocking');
 
-const cases = getTestCases('performance log correctly', logdirBlocking, logdirNonBlocking);
+let cases = getTestCases('performance log correctly', logdirBlocking, logdirNonBlocking);
+const casesForLibuv = getTestCases('performance log correctly with XPROFILER_ENABLE_LOG_UV_HANDLES=NO',
+  logdirBlocking, logdirNonBlocking, { XPROFILER_ENABLE_LOG_UV_HANDLES: 'NO' },
+  { uv: getTestCases.getUvRules(['active_handles']) });
+cases = cases.concat(casesForLibuv);
 
 function parseLog(logType, content, patt, alinode) {
   console.log(`parse log ${logType}: ${JSON.stringify(content)}`);

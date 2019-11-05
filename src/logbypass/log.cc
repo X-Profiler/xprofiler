@@ -6,6 +6,7 @@
 #include "cpu.h"
 #include "gc.h"
 #include "heap.h"
+#include "libuv.h"
 
 namespace xprofiler {
 using Nan::False;
@@ -36,6 +37,9 @@ static void CreateUvThread(void *data) {
 
       // write gc status
       WriteGcStatusToLog(log_format_alinode);
+
+      // write libuv handle info
+      WriteLibuvHandleInfoToLog(log_format_alinode);
     }
   }
 }
