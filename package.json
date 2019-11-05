@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "",
   "main": "xprofiler.js",
   "scripts": {
@@ -18,6 +18,11 @@
     "type": "git",
     "url": "git+https://github.com/hyj1991/xprofiler.git"
   },
+  "files": [
+    "src",
+    "binding.gyp",
+    "xprofiler.js"
+  ],
   "author": "yeekwanvong@gmail.com",
   "license": "BSD-2-Clause",
   "bugs": {
