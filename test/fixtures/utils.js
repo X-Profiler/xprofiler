@@ -7,7 +7,7 @@ exports.xprofilerPrefixRegexp =
   /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[(.+)\] \[(.+)\] \[(\d+)\] \[(\d{1,3}\.\d{1,3}\.\d{1,3})\] (.*)/g;
 
 exports.alinodePrefixRegexp =
-  /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{0,6}\] \[(.+)\] \[(.+)\] \[(\d+)\] (.*)/g;
+  /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{6}\] \[(.+)\] \[(.+)\] \[(\d+)\] (.*)/g;
 
 exports.createLogDir = function createLogDir(logdir) {
   const log_dir = path.join(__dirname, logdir);

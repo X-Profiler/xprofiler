@@ -98,7 +98,7 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   if (log_format_alinode) {
     uv_timeval64_t tv;
     uv_gettimeofday(&tv);
-    snprintf(time_string_ms_alinode, sizeof(time_string_ms_alinode), "%s.%03d",
+    snprintf(time_string_ms_alinode, sizeof(time_string_ms_alinode), "%s.%06d",
              time_string_ms, tv.tv_usec);
   }
 
