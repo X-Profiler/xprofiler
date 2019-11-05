@@ -96,5 +96,7 @@ bool GetFormatAsAlinode() { return log_format_alinode; }
 
 std::string GetLogDir() { return log_dir; }
 
+bool GetEnableLogUvHandles() { return enable_log_uv_handles; }
+
 uint32_t GetLogInterval() { return log_interval; }
 } // namespace xprofiler

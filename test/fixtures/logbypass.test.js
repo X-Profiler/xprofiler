@@ -51,21 +51,33 @@ function getGcRules(list, alinode) {
   return setRules(list, alinode, { alinodeRule: alindoeGcRule, xprofilerRule: xprofilerGcRule });
 }
 
+// libuv handles
+const alindoeUvHandleRule = /^\d+$/;
+const xprofilerUvHandleRule = /^\d+$/;
+function getUvRules(list, alinode) {
+  return setRules(list, alinode, { alinodeRule: alindoeUvHandleRule, xprofilerRule: xprofilerUvHandleRule });
+}
+
+// alinode log structure
 const alinodeLogStructure = {
   other: getCpuRules(['now', 'cpu_15', 'cpu_30', 'cpu_60'], true),
   heap: getMemoryRules(memoryKeys, true),
-  gc: getGcRules(['gc_time_during_last_min', 'total', 'scavange_duration', 'marksweep_duration'], true)
+  gc: getGcRules(['gc_time_during_last_min', 'total', 'scavange_duration', 'marksweep_duration'], true),
+  timer: getUvRules(['total_timer', 'active_handles'], true)
 };
 
+// xprofiler log structure
 const xprofilerLogStructure = {
   cpu: getCpuRules(['cpu_now', 'cpu_15', 'cpu_30', 'cpu_60']),
   memory: getMemoryRules(memoryKeys),
   gc: getGcRules(['uptime', 'total_gc_times', 'total_gc_duration', 'total_scavange_duration',
     'total_marksweep_duration', 'total_incremental_marking_duration', 'gc_time_during_last_record',
-    'scavange_duration_last_record', 'marksweep_duration_last_record', 'incremental_marking_duration_last_record'])
+    'scavange_duration_last_record', 'marksweep_duration_last_record', 'incremental_marking_duration_last_record']),
+  uv: getUvRules(['active_handles', 'active_file_handles', 'active_tcp_handles',
+    'active_udp_handles', 'active_timer_handles'])
 };
 
-function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig = {}, structure = {}) {
+function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, structure, alinode) {
   const cases = [];
   const date = moment().format('YYYYMMDD');
 
@@ -93,32 +105,58 @@ function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig = {}, 
     execTime: 3500
   };
 
-  // add alinode performance log test
-  cases.push(Object.assign({}, commonCaseConfig, {
+  // alinode common config
+  const alinodeCommonConfig = {
     title: `alinode ${title}`,
     env: Object.assign({}, commonEnvConfig, { XPROFILER_LOG_FORMAT_ALINODE: 'YES' }, envConfig),
-    struct: Object.assign({}, alinodeLogStructure, structure),
     targets: [
       Object.assign({}, blockingTarget, { logfile: path.join(logdirBlocking, `node-${date}.log`) }),
       Object.assign({}, nonBlockingTarget, { logfile: path.join(logdirNonBlocking, `node-${date}.log`) }),
     ],
     logparse: utils.alinodePrefixRegexp,
     alinode: true
-  }));
+  };
 
-  // add xprofiler performance log test
-  cases.push(Object.assign({}, commonCaseConfig, {
+  // xprofiler common config
+  const xprofilerCommonConfig = {
     title: `xprofiler ${title}`,
-    struct: Object.assign({}, xprofilerLogStructure, structure),
     targets: [
       Object.assign({}, blockingTarget, { logfile: path.join(logdirBlocking, `xprofiler-${date}.log`) }),
       Object.assign({}, nonBlockingTarget, { logfile: path.join(logdirNonBlocking, `xprofiler-${date}.log`) }),
     ],
     logparse: utils.xprofilerPrefixRegexp,
     alinode: false
-  }));
+  };
+
+  if (envConfig && structure) {
+    if (alinode) {
+      cases.push(Object.assign({},
+        commonCaseConfig,
+        alinodeCommonConfig,
+        { struct: structure }));
+    } else {
+      cases.push(Object.assign({},
+        commonCaseConfig,
+        xprofilerCommonConfig,
+        { struct: structure }));
+    }
+  } else {
+    // add alinode performance log test
+    cases.push(Object.assign({},
+      commonCaseConfig,
+      alinodeCommonConfig,
+      { struct: Object.assign({}, alinodeLogStructure, structure) }));
+
+    // add xprofiler performance log test
+    cases.push(Object.assign({},
+      commonCaseConfig,
+      xprofilerCommonConfig,
+      { struct: Object.assign({}, xprofilerLogStructure, structure) }));
+  }
 
   return cases;
 }
 
-module.exports = getTestCases;
+exports = module.exports = getTestCases;
+
+exports.getUvRules = getUvRules;

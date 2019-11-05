@@ -13,6 +13,7 @@ LOG_LEVEL GetLogLevel();
 bool GetFormatAsAlinode();
 std::string GetLogDir();
 uint32_t GetLogInterval();
+bool GetEnableLogUvHandles();
 
 // javascript accessible
 void Configure(const FunctionCallbackInfo<Value> &info);

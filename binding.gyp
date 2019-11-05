@@ -12,7 +12,8 @@
         "src/logbypass/log.cc",
         "src/logbypass/cpu.cc",
         "src/logbypass/heap.cc",
-        "src/logbypass/gc.cc"
+        "src/logbypass/gc.cc",
+        "src/logbypass/libuv.cc"
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       "conditions": [
