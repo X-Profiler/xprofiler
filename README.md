@@ -116,7 +116,7 @@ const xprofilerConfig = Object.assign({}, defaultConfig, envConfig, userConfig);
 如果设置为 alinode 日志格式输出，日志前缀则为：
 
 ```bash
-1"[YYYY-MM-DD HH:mm:ss.usec] [日志级别] [日志类型] [pid] 日志详情"
+"[YYYY-MM-DD HH:mm:ss.usec] [日志级别] [日志类型] [pid] 日志详情"
 ```
 
 插件 xprofiler 多采集一个输出日志信息时的版本，目的是方便服务端统计当前各个 xprofiler 插件版本以及当前对应的应用信息，以帮助找到负责人来推动核心插件版本的升级。

@@ -13,9 +13,9 @@ using Nan::False;
 using Nan::ThrowTypeError;
 using Nan::True;
 
-uv_thread_t uv_log_thread;
+static uv_thread_t uv_log_thread;
 
-static void CreateUvThread(void *data) {
+static void CreateLogThread(void *unused) {
   uint64_t last_loop_time = uv_hrtime();
   while (1) {
     // sleep 1s for releasing cpu
@@ -66,7 +66,7 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
   Info("init", "gc hooks setted.");
 
   // init log thread
-  rc = uv_thread_create(&uv_log_thread, CreateUvThread, nullptr);
+  rc = uv_thread_create(&uv_log_thread, CreateLogThread, nullptr);
   if (rc != 0) {
     ThrowTypeError("xprofiler: create uv log thread failed!");
     info.GetReturnValue().Set(False());

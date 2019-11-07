@@ -1,5 +1,6 @@
 #include "nan.h"
 
+#include "commands/listener.h"
 #include "common.h"
 #include "configure.h"
 #include "logbypass/log.h"
@@ -31,6 +32,9 @@ NAN_MODULE_INIT(Initialize) {
 
   // performance log
   JS_METHOD(runLogBypass, RunLogBypass);
+
+  // commands listener
+  JS_METHOD(runCommandsListener, RunCommandsListener);
 }
 
 NODE_MODULE(xprofiler, Initialize)
