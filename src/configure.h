@@ -10,6 +10,7 @@ using v8::Value;
 
 // normal external
 LOG_LEVEL GetLogLevel();
+LOG_TYPE GetLogType();
 bool GetFormatAsAlinode();
 std::string GetLogDir();
 uint32_t GetLogInterval();

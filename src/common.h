@@ -4,6 +4,7 @@
 namespace xprofiler {
 // xprofiler logger
 enum LOG_LEVEL { LOG_INFO, LOG_ERROR, LOG_DEBUG };
+enum LOG_TYPE { LOG_TO_FILE, LOG_TO_TTL };
 
 // global variables
 void InitGlobalVariables();

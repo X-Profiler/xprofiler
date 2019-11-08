@@ -141,7 +141,19 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   else
     snprintf(tmp_log, sizeof(tmp_log), "%s", tmp_format);
 
-  WriteToFile(output_level, tmp_log);
+  // get log type
+  LOG_TYPE log_type = GetLogType();
+
+  // ttl
+  if (log_type == LOG_TO_TTL) {
+    printf("%s", tmp_log);
+    return;
+  }
+
+  // file
+  if (log_type == LOG_TO_FILE) {
+    WriteToFile(output_level, tmp_log);
+  }
 }
 
 void Info(const char *log_type, const char *format, ...) {

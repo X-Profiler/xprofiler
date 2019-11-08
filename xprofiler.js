@@ -13,7 +13,8 @@ const defaultConfig = {
   log_interval: 60, // seconds
   enable_log_uv_handles: true,
   log_format_alinode: false,
-  log_level: 1
+  log_level: 1,
+  log_type: 0
 };
 
 function checkNecessary() {
@@ -118,6 +119,12 @@ exports = module.exports = (config = {}) => {
     {
       name: 'log_level',
       env: 'XPROFILER_LOG_LEVEL',
+      rules: ['number'],
+      format: 'number'
+    },
+    {
+      name: 'log_type',
+      env: 'XPROFILER_LOG_TYPE',
       rules: ['number'],
       format: 'number'
     }

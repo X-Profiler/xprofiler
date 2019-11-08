@@ -22,6 +22,7 @@ static uint32_t log_interval = 60;
 static bool enable_log_uv_handles = true;
 static bool log_format_alinode = false;
 static LOG_LEVEL log_level = LOG_ERROR;
+static LOG_TYPE log_type = LOG_TO_FILE;
 
 void Configure(const FunctionCallbackInfo<Value> &info) {
   if (!info[0]->IsObject()) {
@@ -72,6 +73,13 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
         static_cast<LOG_LEVEL>(To<uint32_t>(log_level_value).ToChecked());
   }
 
+  // log type: 0 file, 1 ttl
+  Local<Value> log_type_value =
+      Get(config, New<String>("log_type").ToLocalChecked()).ToLocalChecked();
+  if (log_level_value->IsUint32()) {
+    log_type = static_cast<LOG_TYPE>(To<uint32_t>(log_type_value).ToChecked());
+  }
+
   info.GetReturnValue().Set(New<Boolean>(true));
 }
 
@@ -87,10 +95,13 @@ void GetConfig(const FunctionCallbackInfo<Value> &info) {
       New<Boolean>(log_format_alinode));
   Set(config, New<String>("log_level").ToLocalChecked(),
       New<Number>(log_level));
+  Set(config, New<String>("log_type").ToLocalChecked(), New<Number>(log_type));
   info.GetReturnValue().Set(config);
 }
 
 LOG_LEVEL GetLogLevel() { return log_level; }
+
+LOG_TYPE GetLogType() { return log_type; }
 
 bool GetFormatAsAlinode() { return log_format_alinode; }
 

@@ -84,6 +84,12 @@ const configure = {
     envKey: 'XPROFILER_LOG_LEVEL',
     envValue: 0,
     userValue: 2
+  },
+  log_type: {
+    defaultValue: 0,
+    envKey: 'XPROFILER_LOG_TYPE',
+    envValue: 1,
+    userValue: 1
   }
 };
 
