@@ -2,6 +2,8 @@
 #include "uv.h"
 
 #include "../logger.h"
+#include "../platform/platform.h"
+#include "./parser.h"
 
 namespace xprofiler {
 using Nan::False;
@@ -10,7 +12,9 @@ using Nan::True;
 
 static uv_thread_t uv_commands_listener_thread;
 
-static void CreateCommandsListenerThread(void *unused) {}
+static void CreateCommandsListenerThread(void *unused) {
+  CreateIpcServer(ParseCmd);
+}
 
 void RunCommandsListener(const FunctionCallbackInfo<Value> &info) {
   int rc = 0;

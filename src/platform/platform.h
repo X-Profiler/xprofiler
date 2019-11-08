@@ -8,6 +8,10 @@ using std::string;
 // cpu
 double GetNowCpuUsage();
 
+// ipc
+void CreateIpcServer(void parsecmd(char *));
+void CreateIpcClient(char *message);
+
 // utils
 void SleepCrossPlatform(int seconds);
 string GetSep();
