@@ -27,7 +27,8 @@
           "cflags": [ "-O2", "-std=c++11" ],
           "sources": [
             "src/platform/unix/cpu.cc",
-            "src/platform/unix/utils.cc"
+            "src/platform/unix/utils.cc",
+            "src/platform/unix/ipc.cc",
           ]
         }],
         ["OS == 'mac'", {
@@ -36,7 +37,8 @@
           },
           "sources": [
             "src/platform/unix/cpu.cc",
-            "src/platform/unix/utils.cc"
+            "src/platform/unix/utils.cc",
+            "src/platform/unix/ipc.cc",
           ]
         }],
         ["OS == 'win'", {

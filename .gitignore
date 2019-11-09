@@ -68,6 +68,8 @@ build
 
 demo.js
 
+client.js
+
 logdir
 
 logdir_env

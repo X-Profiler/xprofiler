@@ -15,7 +15,7 @@ using std::string;
 
 static void SendVersion(json command) {
   char version[32];
-  snprintf(version, sizeof(version), "v%s", XPROFILER_VERSION);
+  snprintf(version, sizeof(version), "%s", XPROFILER_VERSION);
   SendMessageToAgent(version);
 }
 
