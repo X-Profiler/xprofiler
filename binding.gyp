@@ -25,6 +25,9 @@
         ["OS == 'linux'", {
           "defines": [ "_GNU_SOURCE" ],
           "cflags": [ "-O2", "-std=c++11" ],
+          "defines": [
+            'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.unix\")"',
+          ],
           "sources": [
             "src/platform/unix/cpu.cc",
             "src/platform/unix/utils.cc",
@@ -35,6 +38,9 @@
           'xcode_settings': {
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
           },
+          "defines": [
+            'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.unix\")"',
+          ],
           "sources": [
             "src/platform/unix/cpu.cc",
             "src/platform/unix/utils.cc",
@@ -49,6 +55,9 @@
               'ExceptionHandling': '2',
             },
           },
+          "defines": [
+            'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.win32\")"',
+          ],
           "sources": [
             "src/platform/win/cpu_win.cc",
             "src/platform/win/utils_win.cc",
@@ -57,7 +66,7 @@
         }],
       ],
       "defines": [
-        'XPROFILER_VERSION="<!(node -p \"require(\'./package.json\').version\")"'
+        'XPROFILER_VERSION="<!(node -p \"require(\'./package.json\').version\")"',
       ],
     },
   ],

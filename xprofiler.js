@@ -4,9 +4,12 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const xprofiler = require('bindings')('xprofiler');
+const utils = require('./lib/utils');
+const SPLITTER = utils.SPLITTER;
 
 let configured = false;
 let bypassLogThreadStarted = false;
+let commandsListenerThreadStarted = false;
 
 const defaultConfig = {
   log_dir: os.tmpdir(),
@@ -33,6 +36,24 @@ function checkLogDirAccessiable(logdir) {
     accessiable = false;
   }
   return exists && accessiable;
+}
+
+function composeLogDirInfo(logdir) {
+  return [process.pid, logdir].join(SPLITTER) + '\n';
+}
+
+function setLogDir(logdir) {
+  const dataFile = path.join(os.homedir(), '.xprofiler');
+  if (fs.existsSync(dataFile)) {
+    const processes = fs
+      .readFileSync(dataFile, 'utf8')
+      .split('\n')
+      .filter(p => utils.processAlive(p.split(SPLITTER)[0]))
+      .join('\n') + composeLogDirInfo(logdir);
+    fs.writeFileSync(dataFile, processes);
+  } else {
+    fs.writeFileSync(dataFile, composeLogDirInfo(logdir));
+  }
 }
 
 const simpleCheck = {
@@ -130,15 +151,24 @@ exports = module.exports = (config = {}) => {
     }
   ];
 
-  const finalConfigure = getConfigure(configList, config);
+  const finalUserConfigure = getConfigure(configList, config);
 
   // set config
-  xprofiler.configure(Object.assign({}, defaultConfig, finalConfigure));
+  const finalConfig = Object.assign({}, defaultConfig, finalUserConfigure);
+  xprofiler.configure(finalConfig);
+  setLogDir(finalConfig.log_dir);
   configured = true;
 
   // start performance log thread
   if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
+    bypassLogThreadStarted = true;
     xprofiler.runLogBypass();
+  }
+
+  // start commands listener thread
+  if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
+    commandsListenerThreadStarted = true;
+    xprofiler.runCommandsListener();
   }
 };
 
@@ -169,4 +199,13 @@ exports.runLogBypass = function () {
   bypassLogThreadStarted = true;
   checkNecessary();
   return xprofiler.runLogBypass();
+};
+
+exports.runCommandsListener = function () {
+  if (commandsListenerThreadStarted) {
+    return;
+  }
+  commandsListenerThreadStarted = true;
+  checkNecessary();
+  return xprofiler.runCommandsListener();
 };

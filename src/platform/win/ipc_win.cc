@@ -9,10 +9,12 @@ namespace xprofiler {
 using std::string;
 using std::wstring;
 
+static const char module_type[] = "ipc";
+
 #define IN_AND_OUT_BUFFER_SIZE 4096
 
 #define TEARDOWN(message)                                                      \
-  Error("ipc", message);                                                       \
+  Error(module_type, message);                                                 \
   error_closed = true;                                                         \
   CloseHandle(named_pipe);
 
@@ -36,10 +38,12 @@ wstring String2LPCWSTR(const string &s) {
 
 void CreateIpcServer(void parsecmd(char *)) {
   HANDLE named_pipe = NULL;
-  string lp_name_string =
-      "\\\\.\\pipe\\xprofiler-named-pipe-" + std::to_string(getpid());
+  string lp_name_string = "\\\\.\\pipe\\" + GetLogDir() +
+                          "\\xprofiler-named-pipe-" + std::to_string(getpid());
   wstring lp_name_ws = String2LPCWSTR(lp_name_string);
   LPCWSTR lp_name = lp_name_ws.c_str();
+
+  Debug(module_type, "win32 named pipe path: %s.", lp_name_string.c_str());
 
   bool error_closed = false;
 
@@ -58,14 +62,14 @@ void CreateIpcServer(void parsecmd(char *)) {
       continue;
     }
 
-    Debug("ipc", "wait for client...");
+    Debug(module_type, "wait for client...");
     bool connected = ConnectNamedPipe(named_pipe, NULL);
     if (!connected && GetLastError() != ERROR_IO_PENDING) {
       TEARDOWN("client connected failed.");
       continue;
     }
 
-    Debug("ipc", "client connected.");
+    Debug(module_type, "client connected.");
 
     // check this client's data
     bool need_read = false;
@@ -79,7 +83,7 @@ void CreateIpcServer(void parsecmd(char *)) {
                                 &read_bytes_tmp, &total_bytes, NULL);
       read_bytes += read_bytes_tmp;
       Debug(
-          "ipc",
+          module_type,
           "check should read file: peek (%d), read_bytes (%d), total_bytes(%d)",
           peek, read_bytes, total_bytes);
       if (!peek)
@@ -91,7 +95,7 @@ void CreateIpcServer(void parsecmd(char *)) {
       Sleep(100);
     }
     if (!need_read) {
-      TEARDOWN("client connected failed.");
+      CloseHandle(named_pipe);
       continue;
     }
 
@@ -115,14 +119,15 @@ void CreateIpcServer(void parsecmd(char *)) {
 
 void CreateIpcClient(char *message) {
   HANDLE named_pipe_client = NULL;
-  string lp_name_string = "\\\\.\\pipe\\" + GetLogDir() + "xprofiler-agent";
+  string lp_name_string =
+      "\\\\.\\pipe\\" + GetLogDir() + "\\" + XPROFILER_IPC_PATH;
   wstring lp_name_ws = String2LPCWSTR(lp_name_string);
   LPCWSTR lp_name = lp_name_ws.c_str();
 
   // check available named pipe
   bool has_named_pipe = WaitNamedPipeW(lp_name, NMPWAIT_USE_DEFAULT_WAIT);
   if (!has_named_pipe) {
-    Error("ipc", "no named pipe: %s.", lp_name_string.c_str());
+    Error(module_type, "no named pipe: %s.", lp_name_string.c_str());
     return;
   }
 
@@ -131,7 +136,7 @@ void CreateIpcClient(char *message) {
       CreateFileW(lp_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING,
                   FILE_FLAG_OVERLAPPED, NULL);
   if (named_pipe_client == INVALID_HANDLE_VALUE) {
-    Error("ipc", "create file failed.");
+    Error(module_type, "create file failed.");
     return;
   }
 
@@ -140,10 +145,10 @@ void CreateIpcClient(char *message) {
   bool written =
       WriteFile(named_pipe_client, message, strlen(message), &send_bytes, NULL);
   if (!written || send_bytes == 0) {
-    Error("ipc", "send message failed: %s.", message);
+    Error(module_type, "send message failed: %s.", message);
     return;
   }
-  Debug("ipc", "send message succeed: %s.", message);
+  Debug(module_type, "send message succeed: %s.", message);
 
   CloseHandle(named_pipe_client);
 }

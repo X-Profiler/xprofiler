@@ -3,10 +3,13 @@
 const xprofiler = require('../../');
 xprofiler();
 
-if (process.env.TEST_START_XPROFILER_LOG_THREAD === 'YES') {
-  xprofiler.runLogBypass();
-  xprofiler.runLogBypass();
-}
+// start log bypass
+xprofiler.runLogBypass();
+xprofiler.runLogBypass();
+
+// start commands listener
+xprofiler.runCommandsListener();
+xprofiler.runCommandsListener();
 
 setInterval(() => { }, 1000);
 

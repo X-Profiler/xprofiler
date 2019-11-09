@@ -2,7 +2,7 @@
 #define _SRC_COMMANDS_SEND_H
 
 namespace xprofiler {
-void SendMessageToAgent(char *message);
+void SendMessageToAgent(bool ok, const char *format, ...);
 } // namespace xprofiler
 
 #endif

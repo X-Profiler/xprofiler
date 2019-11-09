@@ -1,12 +1,18 @@
 'use strict';
 
 const xprofiler = require('../../');
+
+process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE = 'YES';
+
 xprofiler();
 
-if (process.env.TEST_START_XPROFILER_LOG_THREAD === 'YES') {
-  xprofiler.runLogBypass();
-  xprofiler.runLogBypass();
-}
+// start log bypass
+xprofiler.runLogBypass();
+xprofiler.runLogBypass();
+
+// start commands listener
+xprofiler.runCommandsListener();
+xprofiler.runCommandsListener();
 
 /*eslint no-empty: "off"*/
 const start = Date.now();

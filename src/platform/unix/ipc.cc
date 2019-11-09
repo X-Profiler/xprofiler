@@ -34,7 +34,7 @@ void CreateIpcServer(void parsecmd(char *)) {
   // get domain socket file name
   string filename =
       GetLogDir() + "/xprofiler-uds-path-" + std::to_string(getpid()) + ".sock";
-  Debug(module_type, "unix domain socket file name: %s", filename.c_str());
+  Debug(module_type, "unix domain socket file name: %s.", filename.c_str());
 
   // set server addr
   server_addr.sun_family = AF_UNIX;
@@ -103,7 +103,7 @@ void CreateIpcClient(char *message) {
 
   // set client addr
   client_addr.sun_family = AF_UNIX;
-  std::string filename = GetLogDir() + "/xprofiler-agent-uds-path.sock";
+  std::string filename = GetLogDir() + "/" + XPROFILER_IPC_PATH;
   strcpy(client_addr.sun_path, filename.c_str());
 
   // connect server

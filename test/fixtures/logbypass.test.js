@@ -83,9 +83,7 @@ function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, struc
 
   // common env
   const commonEnvConfig = Object.assign({}, process.env, {
-    XPROFILER_LOG_INTERVAL: 1,
-    XPROFILER_UNIT_TEST_SINGLE_MODULE: 'YES',
-    TEST_START_XPROFILER_LOG_THREAD: 'YES'
+    XPROFILER_LOG_INTERVAL: 1
   });
 
   // common case config

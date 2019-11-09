@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const yargs = require('yargs');
+const xctl = require('../lib/xctl');
+
+const args = yargs
+  .usage('$0 <action> -p <pid> [-t profiling_time]')
+  // commands
+  .command('start_cpu_profiling', '触发进程生成 cpuprofile')
+  .command('start_heap_profiling', '触发进程生成 heapprofile')
+  .command('heapdump', '触发进程生成 heapsnapshot')
+  .command('check_version', '获取进程使用的 xprofiler 插件版本号')
+  // pid
+  .describe('p', '进程 pid')
+  .alias('p', 'pid')
+  .demandOption(['p'])
+  // profiling time
+  .describe('t', 'profiling 时长')
+  .alias('t', 'profiling_time')
+  .number('t')
+  // examples
+  .example('$0 start_cpu_profiling -p 29156 -t 30', '触发进程 29156 生成 30s 的 cpu 采样')
+  .example('$0 start_cpu_profiling -p 29156', '默认生成 5min 的 cpu 采样')
+  .example('$0 heapdump -p 29156', '触发进程 29156 生成堆快照')
+  // common
+  .alias('v', 'version')
+  .alias('h', 'help')
+  .help('h')
+  .epilog('copyright 2019')
+  .argv;
+
+
+// get args
+const action = args['_'][0];
+const pid = args['pid'];
+const profilingTime = args['profiling_time'];
+
+// send message
+const options = {};
+if (profilingTime !== null && !isNaN(profilingTime)) {
+  options.profiling_time = profilingTime;
+}
+
+xctl(pid, action, options)
+  .then(data => {
+    if (data.ok) {
+      switch (action) {
+        case 'check_version':
+          console.log(`插件版本号: v${data.data}`);
+          break;
+        default:
+          console.log(`未知操作 ${action}: ${data.data}`);
+      }
+    } else {
+      console.log(`执行命令失败: ${data.message || data}`);
+    }
+  })
+  .catch(err => {
+    console.log(`操作出错: ${err}`);
+  });

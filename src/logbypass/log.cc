@@ -54,7 +54,7 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
     return;
   }
   UnrefAsyncHandle();
-  Info("init", "memory statistics async callback setted.");
+  Info("init", "logbypass: memory statistics async callback setted.");
 
   // init gc hooks
   rc = InitGcStatusHooks();
@@ -63,7 +63,7 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
     info.GetReturnValue().Set(False());
     return;
   }
-  Info("init", "gc hooks setted.");
+  Info("init", "logbypass: gc hooks setted.");
 
   // init log thread
   rc = uv_thread_create(&uv_log_thread, CreateLogThread, nullptr);
@@ -72,7 +72,7 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
     info.GetReturnValue().Set(False());
     return;
   }
-  Info("init", "log thread created.");
+  Info("init", "logbypass: log thread created.");
 
   info.GetReturnValue().Set(True());
 }

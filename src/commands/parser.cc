@@ -10,13 +10,15 @@ using std::exception;
 using std::string;
 
 #define HANDLE_CMD(cmd_str, handle)                                            \
-  if (strcmp(cmd.c_str(), #cmd_str) == 0)                                      \
-    handle(parsed);
+  if (strcmp(cmd.c_str(), #cmd_str) == 0) {                                    \
+    handle(parsed);                                                            \
+    handled = true;                                                            \
+  }
 
 static void SendVersion(json command) {
   char version[32];
   snprintf(version, sizeof(version), "%s", XPROFILER_VERSION);
-  SendMessageToAgent(version);
+  SendMessageToAgent(true, version);
 }
 
 void ParseCmd(char *command) {
@@ -29,7 +31,14 @@ void ParseCmd(char *command) {
     return;
   }
 
+  // handle cmd
+  bool handled = false;
   string cmd = parsed["cmd"];
   HANDLE_CMD(check_version, SendVersion);
+
+  // not match any commands
+  if (!handled) {
+    SendMessageToAgent(false, "not support command: %s", cmd.c_str());
+  }
 }
 } // namespace xprofiler

@@ -9,6 +9,15 @@ const testKeys = Object.keys(testXprofilerConfigKeys);
 describe('xprofiler config', function () {
   const message = 'must run "require(\'xprofiler\')()" to set xprofiler config first!';
   let error;
+
+  before(function () {
+    mm(process.env, 'XPROFILER_UNIT_TEST_SINGLE_MODULE', 'YES');
+  });
+
+  after(function () {
+    mm.restore();
+  });
+
   it(`should throw error if not init config: ${message}`, function () {
     try {
       xprofiler.getXprofilerConfig();
@@ -55,6 +64,7 @@ describe('xprofiler config', function () {
             let config;
             before(function () {
               mm(process.env, envTest.key, envTest.value);
+              mm(process.env, 'XPROFILER_UNIT_TEST_SINGLE_MODULE', 'YES');
               xprofiler();
               config = xprofiler.getXprofilerConfig();
             });
@@ -74,9 +84,17 @@ describe('xprofiler config', function () {
           const userConfigValue = typeof testValue === 'string' ? `"${testValue}"` : testValue;
           describe(`set user config { ${userTest.key}: ${userConfigValue} }`,
             function () {
-              xprofiler({ [userTest.key]: userTest.value });
-              const config = xprofiler.getXprofilerConfig();
+              before(function () {
+                mm(process.env, 'XPROFILER_UNIT_TEST_SINGLE_MODULE', 'YES');
+                xprofiler({ [userTest.key]: userTest.value });
+              });
+
+              after(function () {
+                mm.restore();
+              });
+
               it(`config.${testKey} should be ${userTest.expected}`, function () {
+                const config = xprofiler.getXprofilerConfig();
                 expect(config[testKey]).to.be(userTest.expected);
               });
             });
@@ -91,6 +109,7 @@ describe('xprofiler config', function () {
           let config;
           before(function () {
             mm(process.env, assignRule.env.key, assignRule.env.value);
+            mm(process.env, 'XPROFILER_UNIT_TEST_SINGLE_MODULE', 'YES');
             xprofiler({ [assignRule.user.key]: assignRule.user.value });
             config = xprofiler.getXprofilerConfig();
           });

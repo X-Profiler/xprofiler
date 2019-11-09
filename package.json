@@ -1,7 +1,10 @@
 {
   "name": "xprofiler",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "",
+  "bin": {
+    "xprofctl": "bin/xctl"
+  },
   "main": "xprofiler.js",
   "scripts": {
     "build": "npm run lint && node-gyp rebuild",
@@ -33,7 +36,8 @@
     "bindings": "^1.5.0",
     "moment": "^2.24.0",
     "nan": "^2.14.0",
-    "node-gyp": "^6.0.0"
+    "node-gyp": "^6.0.0",
+    "yargs": "^14.2.0"
   },
   "devDependencies": {
     "clang-format": "^1.2.4",
@@ -43,5 +47,9 @@
     "mm": "^2.5.0",
     "mocha": "^6.2.2",
     "nyc": "^14.1.1"
+  },
+  "xctlIpcPath": {
+    "unix": "xprofiler-ctl-uds-path.sock",
+    "win32": "xprofiler-ctl"
   }
 }
