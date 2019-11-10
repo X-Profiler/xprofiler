@@ -33,3 +33,15 @@ exports.cleanDir = function (dir) {
   }
   fs.rmdirSync(dir);
 };
+
+exports.sleep = function (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+exports.getNestingValue = function (origin, key) {
+  const keys = key.split('.');
+  for (const k of keys) {
+    origin = origin[k];
+  }
+  return origin;
+};
