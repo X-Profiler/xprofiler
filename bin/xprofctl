@@ -47,11 +47,11 @@ xctl(pid, action, options)
   .then(data => {
     if (data.ok) {
       switch (action) {
-        case 'check_version':
-          console.log(`插件版本号: v${data.data}`);
-          break;
-        default:
-          console.log(`未知操作 ${action}: ${data.data}`);
+      case 'check_version':
+        console.log(`插件版本号: v${data.data}`);
+        break;
+      default:
+        console.log(`未知操作 ${action}: ${data.data}`);
       }
     } else {
       console.log(`执行命令失败: ${data.message || data}`);

@@ -32,4 +32,4 @@ exports.cleanDir = function (dir) {
     fs.unlinkSync(path.join(dir, file));
   }
   fs.rmdirSync(dir);
-}
+};
