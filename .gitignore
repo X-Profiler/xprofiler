@@ -72,10 +72,3 @@ client.js
 
 logdir
 
-logdir_env
-
-logdir_user
-
-log_bypass_blocking
-
-log_bypass_non_blocking

@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "",
   "bin": {
-    "xprofctl": "bin/xctl"
+    "xprofctl": "bin/xprofctl"
   },
   "main": "xprofiler.js",
   "scripts": {
@@ -34,7 +34,6 @@
   "homepage": "https://github.com/hyj1991/xprofiler#readme",
   "dependencies": {
     "bindings": "^1.5.0",
-    "moment": "^2.24.0",
     "nan": "^2.14.0",
     "node-gyp": "^6.0.0",
     "yargs": "^14.2.0"
@@ -46,7 +45,9 @@
     "expect.js": "^0.3.1",
     "mm": "^2.5.0",
     "mocha": "^6.2.2",
-    "nyc": "^14.1.1"
+    "moment": "^2.24.0",
+    "nyc": "^14.1.1",
+    "test-exclude": "^5.2.3"
   },
   "xctlIpcPath": {
     "unix": "xprofiler-ctl-uds-path.sock",

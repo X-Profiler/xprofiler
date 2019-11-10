@@ -62,6 +62,12 @@ for (const testCase of cases) {
 
       after(function () {
         fs.unlinkSync(target.logfile);
+        if (cases.indexOf(testCase) === cases.length - 1) {
+          if (testCase.targets.indexOf(target) === testCase.targets.length - 1) {
+            utils.cleanDir(logdirBlocking);
+            utils.cleanDir(logdirNonBlocking);
+          }
+        }
       });
 
       const types = Object.keys(testCase.struct);

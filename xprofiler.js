@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const xprofiler = require('bindings')('xprofiler');
 const utils = require('./lib/utils');
+const clean = require('./lib/clean');
 const SPLITTER = utils.SPLITTER;
 
 let configured = false;
@@ -42,7 +43,8 @@ function composeLogDirInfo(logdir) {
   return [process.pid, logdir].join(SPLITTER) + '\n';
 }
 
-function setLogDir(logdir) {
+function setLogDirToFile(logdir) {
+  clean(logdir);
   const dataFile = path.join(os.homedir(), '.xprofiler');
   if (fs.existsSync(dataFile)) {
     const processes = fs
@@ -77,12 +79,12 @@ function checkRule(rules, value, { config, key, format }) {
 
 function getFinalUserConfigure(envConfig, userConfig) {
   // check user configured log_dir is accessiable
-  const finalConfigure = Object.assign({}, envConfig, userConfig);
+  const finalConfigure = Object.assign({}, defaultConfig, envConfig, userConfig);
   const logDirIllegal =
     typeof finalConfigure.log_dir === 'string' && !checkLogDirAccessiable(finalConfigure.log_dir);
   let logDirMessage = '';
   if (logDirIllegal) {
-    // todo: check default log_dir is accessiable
+    // todo: need check default log_dir is accessiable
     // if (!checkLogDirAccessiable(defaultConfig.log_dir)) {
     //   throw new Error(`can't access default log dir: ${defaultConfig.log_dir}`);
     // }
@@ -93,6 +95,7 @@ function getFinalUserConfigure(envConfig, userConfig) {
     console.error('[config_int]', logDirMessage);
     finalConfigure.log_dir = defaultConfig.log_dir;
   }
+  setLogDirToFile(finalConfigure.log_dir);
   return finalConfigure;
 }
 
@@ -109,6 +112,24 @@ function getConfigure(configList, user) {
     checkRule(rules, userValue, { config: userConfig, key, format });
   }
   return getFinalUserConfigure(envConfig, userConfig);
+}
+
+function runLogBypass() {
+  if (bypassLogThreadStarted) {
+    return;
+  }
+  bypassLogThreadStarted = true;
+  checkNecessary();
+  return xprofiler.runLogBypass();
+};
+
+function runCommandsListener() {
+  if (commandsListenerThreadStarted) {
+    return;
+  }
+  commandsListenerThreadStarted = true;
+  checkNecessary();
+  return xprofiler.runCommandsListener();
 }
 
 exports = module.exports = (config = {}) => {
@@ -156,19 +177,13 @@ exports = module.exports = (config = {}) => {
   // set config
   const finalConfig = Object.assign({}, defaultConfig, finalUserConfigure);
   xprofiler.configure(finalConfig);
-  setLogDir(finalConfig.log_dir);
   configured = true;
 
-  // start performance log thread
   if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
-    bypassLogThreadStarted = true;
-    xprofiler.runLogBypass();
-  }
-
-  // start commands listener thread
-  if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
-    commandsListenerThreadStarted = true;
-    xprofiler.runCommandsListener();
+    // start performance log thread
+    runLogBypass();
+    // start commands listener thread
+    runCommandsListener();
   }
 };
 
@@ -192,20 +207,6 @@ exports.debug = function (...args) {
   return xprofiler.debug(...args);
 };
 
-exports.runLogBypass = function () {
-  if (bypassLogThreadStarted) {
-    return;
-  }
-  bypassLogThreadStarted = true;
-  checkNecessary();
-  return xprofiler.runLogBypass();
-};
+exports.runLogBypass = runLogBypass;
 
-exports.runCommandsListener = function () {
-  if (commandsListenerThreadStarted) {
-    return;
-  }
-  commandsListenerThreadStarted = true;
-  checkNecessary();
-  return xprofiler.runCommandsListener();
-};
+exports.runCommandsListener = runCommandsListener;

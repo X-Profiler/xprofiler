@@ -81,9 +81,8 @@ for (const testConfig of testConfigList) {
     });
 
     after(function () {
-      for (const log of testConfig.logs) {
-        fs.unlinkSync(log.path);
-        mm.restore();
+      if (testConfigList.indexOf(testConfig) === testConfigList.length - 1) {
+        utils.cleanDir(log_dir);
       }
     });
 

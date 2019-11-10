@@ -26,3 +26,10 @@ exports.objKeyEqual = function objKeyEqual(obj1, obj2) {
   const keys2 = Object.keys(obj2);
   return keys1.every(k1 => keys2.includes(k1)) && keys2.every(k2 => keys1.includes(k2));
 };
+
+exports.cleanDir = function (dir) {
+  for (const file of fs.readdirSync(dir)) {
+    fs.unlinkSync(path.join(dir, file));
+  }
+  fs.rmdirSync(dir);
+}

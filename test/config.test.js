@@ -1,10 +1,21 @@
 'use strict';
 
+const fs = require('fs');
+const os = require('os');
 const mm = require('mm');
 const expect = require('expect.js');
 const xprofiler = require('../xprofiler');
 const testXprofilerConfigKeys = require('./fixtures/config.test');
+const utils = require('./fixtures/utils');
 const testKeys = Object.keys(testXprofilerConfigKeys);
+
+function cleanDir(key, dir) {
+  if ((key === 'log_dir' || key === 'XPROFILER_LOG_DIR') && fs.existsSync(dir)) {
+    utils.cleanDir(dir);
+  }
+}
+
+const tmphome = utils.createLogDir('tmphome');
 
 describe('xprofiler config', function () {
   const message = 'must run "require(\'xprofiler\')()" to set xprofiler config first!';
@@ -12,10 +23,12 @@ describe('xprofiler config', function () {
 
   before(function () {
     mm(process.env, 'XPROFILER_UNIT_TEST_SINGLE_MODULE', 'YES');
+    mm(os, 'homedir', () => tmphome);
   });
 
   after(function () {
     mm.restore();
+    utils.cleanDir(tmphome);
   });
 
   it(`should throw error if not init config: ${message}`, function () {
@@ -115,6 +128,8 @@ describe('xprofiler config', function () {
           });
           after(function () {
             mm.restore();
+            cleanDir(assignRule.env.key, assignRule.env.value);
+            cleanDir(assignRule.user.key, assignRule.user.value);
           });
 
           it(`config.${testKey} shoule be ${assignRule.expected}`, function () {
