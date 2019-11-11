@@ -32,14 +32,6 @@ void SetHeapStatistics() {
 #endif
 }
 
-#define SET_SPACE_STATISTICS(name)                                             \
-  if (strcmp(s.space_name(), #name) == 0) {                                    \
-    heap_space_statistics->name##_size = s.space_size();                       \
-    heap_space_statistics->name##_used = s.space_used_size();                  \
-    heap_space_statistics->name##_available = s.space_used_size();             \
-    heap_space_statistics->name##_committed = s.physical_space_size();         \
-  }
-
 void SetHeapSpaceStatistics() {
   Isolate *isolate = Isolate::GetCurrent();
   HeapSpaceStatistics s;
@@ -47,16 +39,24 @@ void SetHeapSpaceStatistics() {
   for (size_t i = 0; i < number_of_heap_spaces; i++) {
     isolate->GetHeapSpaceStatistics(&s, i);
     // todo: read_only_space, large_object_space, code_large_object_space
+#define V(name)                                                                \
+  if (strcmp(s.space_name(), #name) == 0) {                                    \
+    heap_space_statistics->name##_size = s.space_size();                       \
+    heap_space_statistics->name##_used = s.space_used_size();                  \
+    heap_space_statistics->name##_available = s.space_used_size();             \
+    heap_space_statistics->name##_committed = s.physical_space_size();         \
+  }
     // new space
-    SET_SPACE_STATISTICS(new_space);
+    V(new_space)
     // old space
-    SET_SPACE_STATISTICS(old_space);
+    V(old_space)
     // code space
-    SET_SPACE_STATISTICS(code_space);
+    V(code_space)
     // map space
-    SET_SPACE_STATISTICS(map_space);
+    V(map_space)
     // large object space
-    SET_SPACE_STATISTICS(large_object_space);
+    V(large_object_space)
+#undef V
   }
 }
 
@@ -76,17 +76,15 @@ void UnrefAsyncHandle() {
   uv_unref(reinterpret_cast<uv_handle_t *>(&memory_statistics_trigger));
 }
 
-#define LOG_SPACE_STATISTICS(name)                                             \
-  heap_space_statistics->name##_space_size,                                    \
-      heap_space_statistics->name##_space_used,                                \
-      heap_space_statistics->name##_space_available,                           \
-      heap_space_statistics->name##_space_committed
-
 void WriteMemoryInfoToLog(bool log_format_alinode) {
   uv_async_send(&memory_statistics_trigger);
   // sleep 1s for executing async callback
   Sleep(1);
-
+#define V(name)                                                                \
+  heap_space_statistics->name##_space_size,                                    \
+      heap_space_statistics->name##_space_used,                                \
+      heap_space_statistics->name##_space_available,                           \
+      heap_space_statistics->name##_space_committed
   if (log_format_alinode) {
     Info("heap",
          "rss: %zu, "
@@ -128,15 +126,15 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          heap_statistics->total_physical_size(),
          heap_statistics->malloced_memory(), heap_statistics->external_memory(),
          // new space
-         LOG_SPACE_STATISTICS(new),
+         V(new),
          // old space
-         LOG_SPACE_STATISTICS(old),
+         V(old),
          // code space
-         LOG_SPACE_STATISTICS(code),
+         V(code),
          // map space
-         LOG_SPACE_STATISTICS(map),
+         V(map),
          // large object space
-         LOG_SPACE_STATISTICS(large_object));
+         V(large_object));
   } else {
     Info("memory",
          "memory_usage(byte) "
@@ -179,15 +177,16 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          heap_statistics->total_physical_size(),
          heap_statistics->malloced_memory(), heap_statistics->external_memory(),
          // new space
-         LOG_SPACE_STATISTICS(new),
+         V(new),
          // old space
-         LOG_SPACE_STATISTICS(old),
+         V(old),
          // code space
-         LOG_SPACE_STATISTICS(code),
+         V(code),
          // map space
-         LOG_SPACE_STATISTICS(map),
+         V(map),
          // large object space
-         LOG_SPACE_STATISTICS(large_object));
+         V(large_object));
   }
+#undef V
 }
 } // namespace xprofiler

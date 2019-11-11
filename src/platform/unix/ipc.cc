@@ -83,7 +83,7 @@ void CreateIpcServer(void parsecmd(char *)) {
     char data_buffer[CLIENT_BUFFER_SIZE] = {0};
     int recv_res = recv(new_client_fd, data_buffer, CLIENT_BUFFER_SIZE, 0);
     if (recv_res == -1) {
-      TEARDOWN("recv client data error.");
+      TEARDOWN("recv client data error.")
       continue;
     }
 

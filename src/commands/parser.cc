@@ -34,7 +34,7 @@ void ParseCmd(char *command) {
   // handle cmd
   bool handled = false;
   string cmd = parsed["cmd"];
-  HANDLE_CMD(check_version, SendVersion);
+  HANDLE_CMD(check_version, SendVersion)
 
   // not match any commands
   if (!handled) {

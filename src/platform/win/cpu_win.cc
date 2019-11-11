@@ -35,7 +35,7 @@ double GetNowCpuUsage() {
   }
 
   LARGE_INTEGER lgCurTime = {0};
-  GET_CURRENT_TIME(lgCurTime);
+  GET_CURRENT_TIME(lgCurTime)
   double cpu_now_ = ((lgCurTime.QuadPart - g_slgProcessTimeOld.QuadPart) * 100 /
                      ((uv_hrtime() - last_time) / 10e5));
 

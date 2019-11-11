@@ -1,0 +1,51 @@
+[
+  {
+    "name": "log_dir",
+    "env": "XPROFILER_LOG_DIR",
+    "rules": [
+      "string",
+      "path"
+    ],
+    "format": "string"
+  },
+  {
+    "name": "log_interval",
+    "env": "XPROFILER_LOG_INTERVAL",
+    "rules": [
+      "number"
+    ],
+    "format": "number"
+  },
+  {
+    "name": "enable_log_uv_handles",
+    "env": "XPROFILER_ENABLE_LOG_UV_HANDLES",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
+  },
+  {
+    "name": "log_format_alinode",
+    "env": "XPROFILER_LOG_FORMAT_ALINODE",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
+  },
+  {
+    "name": "log_level",
+    "env": "XPROFILER_LOG_LEVEL",
+    "rules": [
+      "number"
+    ],
+    "format": "number"
+  },
+  {
+    "name": "log_type",
+    "env": "XPROFILER_LOG_TYPE",
+    "rules": [
+      "number"
+    ],
+    "format": "number"
+  }
+]

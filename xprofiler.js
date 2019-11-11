@@ -4,11 +4,14 @@ const xprofiler = require('bindings')('xprofiler');
 const utils = require('./lib/utils');
 const clean = require('./lib/clean');
 const configure = require('./lib/configure');
+const configList = require('./xprofiler.json');
 
 const runOnceStatus = {
   bypassLogThreadStarted: false,
   commandsListenerThreadStarted: false
 };
+
+
 let configured = false;
 
 function checkNecessary() {
@@ -27,49 +30,8 @@ function runOnce(onceKey, onceFunc) {
 }
 
 exports = module.exports = (config = {}) => {
-  const configList = [
-    {
-      name: 'log_dir',
-      env: 'XPROFILER_LOG_DIR',
-      rules: ['string', 'path'],
-      format: 'string'
-    },
-    {
-      name: 'log_interval',
-      env: 'XPROFILER_LOG_INTERVAL',
-      rules: ['number'],
-      format: 'number'
-    },
-    {
-      name: 'enable_log_uv_handles',
-      env: 'XPROFILER_ENABLE_LOG_UV_HANDLES',
-      rules: ['boolean'],
-      format: 'boolean'
-    },
-    {
-      name: 'log_format_alinode',
-      env: 'XPROFILER_LOG_FORMAT_ALINODE',
-      rules: ['boolean'],
-      format: 'boolean'
-    },
-    {
-      name: 'log_level',
-      env: 'XPROFILER_LOG_LEVEL',
-      rules: ['number'],
-      format: 'number'
-    },
-    {
-      name: 'log_type',
-      env: 'XPROFILER_LOG_TYPE',
-      rules: ['number'],
-      format: 'number'
-    }
-  ];
-
-  // set config
-  const finalConfig = configure(configList, config);
-  configured = true;
-  xprofiler.configure(finalConfig);
+  // set config by user and env
+  const finalConfig = exports.setConfig(config);
 
   // clean & set logdir info to file
   const logdir = finalConfig.log_dir;
@@ -82,6 +44,15 @@ exports = module.exports = (config = {}) => {
     // start commands listener thread
     exports.runCommandsListener();
   }
+};
+
+exports.setConfig = function (config) {
+  // set config
+  const finalConfig = configure(configList, config);
+  configured = true;
+  xprofiler.configure(finalConfig);
+
+  return finalConfig;
 };
 
 exports.getXprofilerConfig = function () {

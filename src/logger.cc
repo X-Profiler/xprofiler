@@ -32,12 +32,6 @@ static std::ofstream debug_stream;
   type##_stream << log;                                                        \
   type##_stream.close();
 
-#define LOG_TO_FILE(level)                                                     \
-  va_list args;                                                                \
-  va_start(args, format);                                                      \
-  Log(LOG_LEVEL::level, log_type, format, args);                               \
-  va_end(args);
-
 void WriteToFile(const LOG_LEVEL output_level, char *log) {
   // get time of date
   char time_string_day[32];
@@ -56,7 +50,7 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
     } else {
       filepath = filepath + "xprofiler-" + time_string_day + ".log";
     }
-    WRITET_TO_FILE(info);
+    WRITET_TO_FILE(info)
     break;
   case LOG_LEVEL::LOG_ERROR:
     if (log_format_alinode) {
@@ -64,7 +58,7 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
     } else {
       filepath = filepath + "xprofiler-error-" + time_string_day + ".log";
     }
-    WRITET_TO_FILE(error);
+    WRITET_TO_FILE(error)
     break;
   case LOG_LEVEL::LOG_DEBUG:
     if (log_format_alinode) {
@@ -72,7 +66,7 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
     } else {
       filepath = filepath + "xprofiler-debug-" + time_string_day + ".log";
     }
-    WRITET_TO_FILE(debug);
+    WRITET_TO_FILE(debug)
     break;
   default:
     break;
@@ -151,44 +145,35 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   }
 
   // file
-  if (log_type == LOG_TO_FILE) {
+  if (log_type == LOG_TYPE::LOG_TO_FILE) {
     WriteToFile(output_level, tmp_log);
   }
 }
 
-void Info(const char *log_type, const char *format, ...) {
-  LOG_TO_FILE(LOG_INFO);
-}
+#define V(level)                                                               \
+  va_list args;                                                                \
+  va_start(args, format);                                                      \
+  Log(LOG_LEVEL::level, log_type, format, args);                               \
+  va_end(args);
+void Info(const char *log_type, const char *format, ...) { V(LOG_INFO) }
+void Error(const char *log_type, const char *format, ...) { V(LOG_ERROR) }
+void Debug(const char *log_type, const char *format, ...) { V(LOG_DEBUG) }
+#undef V
 
-void Error(const char *log_type, const char *format, ...) {
-  LOG_TO_FILE(LOG_ERROR);
-}
+#define V(level)                                                               \
+  if (!info[0]->IsString() || !info[1]->IsString()) {                          \
+    ThrowTypeError(                                                            \
+        New<String>("log type and content must be string!").ToLocalChecked()); \
+    return;                                                                    \
+  }                                                                            \
+  Local<String> log_type_string = To<String>(info[0]).ToLocalChecked();        \
+  Utf8String log_type(log_type_string);                                        \
+  Local<String> log_content_string = To<String>(info[1]).ToLocalChecked();     \
+  Utf8String log_content(log_content_string);                                  \
+  Log(LOG_LEVEL::level, *log_type, *log_content);
+void JsInfo(const FunctionCallbackInfo<Value> &info) { V(LOG_INFO) }
+void JsError(const FunctionCallbackInfo<Value> &info) { V(LOG_ERROR) }
+void JsDebug(const FunctionCallbackInfo<Value> &info) { V(LOG_DEBUG) }
+#undef V
 
-void Debug(const char *log_type, const char *format, ...) {
-  LOG_TO_FILE(LOG_DEBUG);
-}
-
-void JsLog(LOG_LEVEL output_level, const FunctionCallbackInfo<Value> &info) {
-  if (!info[0]->IsString() || !info[1]->IsString()) {
-    ThrowTypeError(
-        New<String>("log type and content must be string!").ToLocalChecked());
-    return;
-  }
-  Local<String> log_type_string = To<String>(info[0]).ToLocalChecked();
-  Utf8String log_type(log_type_string);
-  Local<String> log_content_string = To<String>(info[1]).ToLocalChecked();
-  Utf8String log_content(log_content_string);
-  Log(output_level, *log_type, *log_content);
-}
-
-void JsInfo(const FunctionCallbackInfo<Value> &info) {
-  JsLog(LOG_LEVEL::LOG_INFO, info);
-}
-
-void JsError(const FunctionCallbackInfo<Value> &info) {
-  JsLog(LOG_LEVEL::LOG_ERROR, info);
-}
-void JsDebug(const FunctionCallbackInfo<Value> &info) {
-  JsLog(LOG_LEVEL::LOG_DEBUG, info);
-}
 }; // namespace xprofiler

@@ -37,24 +37,24 @@ private:
   HeapStatistics heap_statistics_;
 } heap_statistics_t;
 
-#define INIT_HEAP_SPACE(name)                                                  \
+// heap space statistics struct
+typedef struct {
+#define V(name)                                                                \
   size_t name##_space_size = 0;                                                \
   size_t name##_space_used = 0;                                                \
   size_t name##_space_available = 0;                                           \
   size_t name##_space_committed = 0;
-
-// heap space statistics struct
-typedef struct {
   // new space
-  INIT_HEAP_SPACE(new)
+  V(new)
   // old space
-  INIT_HEAP_SPACE(old)
+  V(old)
   // code space
-  INIT_HEAP_SPACE(code)
+  V(code)
   // map space
-  INIT_HEAP_SPACE(map)
+  V(map)
   // large object space
-  INIT_HEAP_SPACE(large_object)
+  V(large_object)
+#undef V
 } heap_space_statistics_t;
 
 int InitMemoryAsyncCallback();

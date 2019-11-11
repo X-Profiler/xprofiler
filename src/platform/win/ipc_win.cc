@@ -58,14 +58,14 @@ void CreateIpcServer(void parsecmd(char *)) {
     CREATE_NAMED_PIPE
 
     if (named_pipe == INVALID_HANDLE_VALUE) {
-      TEARDOWN("create named pipe failed.");
+      TEARDOWN("create named pipe failed.")
       continue;
     }
 
     Debug(module_type, "wait for client...");
     bool connected = ConnectNamedPipe(named_pipe, NULL);
     if (!connected && GetLastError() != ERROR_IO_PENDING) {
-      TEARDOWN("client connected failed.");
+      TEARDOWN("client connected failed.")
       continue;
     }
 
@@ -105,7 +105,7 @@ void CreateIpcServer(void parsecmd(char *)) {
     bool readed = ReadFile(named_pipe, data_buffer, IN_AND_OUT_BUFFER_SIZE,
                            &data_length, NULL);
     if (!readed || data_length == 0) {
-      TEARDOWN("read client data failed.");
+      TEARDOWN("read client data failed.")
       continue;
     }
     data_buffer[data_length] = '\0';
