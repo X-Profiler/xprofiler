@@ -17,6 +17,9 @@ void InitGlobalVariables();
 unsigned long GetUptime();
 
 // commands
+#define COMMAND_CALLBACK(cb)                                                   \
+  void cb(json command, cb_success *success, cb_error *error)
+// message func
 typedef void cb_success(json);
 typedef void cb_error(const char *, ...);
 } // namespace xprofiler

@@ -3,6 +3,7 @@
 #include "../logger.h"
 #include "../platform/platform.h"
 #include "./send.h"
+#include "./simple/config.h"
 #include "./simple/version.h"
 
 namespace xprofiler {
@@ -30,6 +31,7 @@ void ParseCmd(char *command) {
   }
   // check xprofiler version
   V(check_version, GetXprofilerVersion)
+  V(get_config, GetXprofilerConfig)
 #undef V
 
   // not match any commands

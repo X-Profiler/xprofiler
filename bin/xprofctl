@@ -4,14 +4,16 @@
 
 const yargs = require('yargs');
 const xctl = require('../lib/xctl');
+const utils = require('../lib/utils');
 
 const args = yargs
   .usage('$0 <action> -p <pid> [-t profiling_time]')
   // commands
-  .command('start_cpu_profiling', '触发进程生成 cpuprofile')
-  .command('start_heap_profiling', '触发进程生成 heapprofile')
-  .command('heapdump', '触发进程生成 heapsnapshot')
-  .command('check_version', '获取进程使用的 xprofiler 插件版本号')
+  .command('start_cpu_profiling', '生成 cpuprofile')
+  .command('start_heap_profiling', '生成 heapprofile')
+  .command('heapdump', '生成 heapsnapshot')
+  .command('check_version', '获取 xprofiler 插件版本号')
+  .command('get_config', '获取 xprofiler 配置')
   // pid
   .describe('p', '进程 pid')
   .alias('p', 'pid')
@@ -49,7 +51,10 @@ xctl(pid, action, options)
       data = data.data;
       switch (action) {
       case 'check_version':
-        console.log(`X-Profiler 插件版本号: v${data.version}`);
+        console.log(`X-Profiler 插件版本号(pid ${pid}): v${data.version}`);
+        break;
+      case 'get_config':
+        console.log(`X-Profiler 当前配置(pid ${pid}):\n${utils.printConfig(data)}`);
         break;
       default:
         console.log(`未知操作 ${action}: ${JSON.stringify(data)}`);

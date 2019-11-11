@@ -7,25 +7,16 @@ const promisify = require('util').promisify;
 const exec = promisify(cp.exec);
 const mm = require('mm');
 const expect = require('expect.js');
-const pkg = require('../package.json');
 const xprofctl = path.join(__dirname, '../bin/xprofctl');
 const xctl = require('../lib/xctl');
 const utils = require('./fixtures/utils');
 
 const logdir = utils.createLogDir('logdir_command');
 const tmphome = utils.createLogDir('tmphome_command');
-
+const testConfig = require('./fixtures/command.test')(logdir);
 const testFiles = [
   { jspath: path.join(__dirname, './fixtures/blocking.js'), desc: 'when js main thread blocking' },
   { jspath: path.join(__dirname, './fixtures/non-blocking.js'), desc: 'when js main thread non blocking' }
-];
-
-const testConfig = [
-  {
-    cmd: 'check_version',
-    xctlRules: [{ key: 'data.version', rule: new RegExp(`^${pkg.version}$`) }],
-    xprofctlRules: [/X-Profiler 插件版本号: v(\d{1,3}\.\d{1,3}\.\d{1,3})/]
-  }
 ];
 
 for (let i = 0; i < testConfig.length; i++) {
@@ -36,6 +27,7 @@ for (let i = 0; i < testConfig.length; i++) {
     describe(title, function () {
       let resByXctl = '';
       let resByXprofctl = '';
+      let pid = 0;
       before(async function () {
         mm(os, 'homedir', () => tmphome);
         const p = cp.fork(jspath, {
@@ -44,13 +36,14 @@ for (let i = 0; i < testConfig.length; i++) {
             XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
           })
         });
+        pid = p.pid;
         await utils.sleep(1000);
         // send cmd with xctl (function)
-        resByXctl = await xctl(p.pid, cmd, options);
+        resByXctl = await xctl(pid, cmd, options);
         // send cmd with xprofctl (cli)
         const extra = options.profilingTime ? ` -t ${options.profilingTime}` : '';
         const nodeExe = os.platform() === 'win32' ? 'node ' : '';
-        resByXprofctl = await exec(`${nodeExe}${xprofctl} ${cmd} -p ${p.pid}${extra}`, {
+        resByXprofctl = await exec(`${nodeExe}${xprofctl} ${cmd} -p ${pid}${extra}`, {
           env: Object.assign({}, process.env, {
             XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
           })
@@ -84,14 +77,15 @@ for (let i = 0; i < testConfig.length; i++) {
         describe(title, function () {
           for (const rule of xctlRules) {
             const value = utils.getNestingValue(resByXctl, rule.key);
-            it(`response.${rule.key}: ${value} should be ${rule.rule}`, function () {
+            it(`response.${rule.key}: ${value} should be ${rule.rule.label || rule.rule}`, function () {
               expect(rule.rule.test(value)).to.be.ok();
             });
           }
 
-          for (const rule of xprofctlRules) {
+          const data = { pid };
+          for (const rule of xprofctlRules(data)) {
             const value = resByXprofctl;
-            it(`${value} should be ${rule}`, function () {
+            it(`${JSON.stringify(value)} should be ${rule}`, function () {
               expect(rule.test(value)).to.be.ok();
             });
           }
