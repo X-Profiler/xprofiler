@@ -11,7 +11,6 @@ const runOnceStatus = {
   commandsListenerThreadStarted: false
 };
 
-
 let configured = false;
 
 function checkNecessary() {

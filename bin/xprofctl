@@ -46,15 +46,16 @@ if (profilingTime !== null && !isNaN(profilingTime)) {
 xctl(pid, action, options)
   .then(data => {
     if (data.ok) {
+      data = data.data;
       switch (action) {
       case 'check_version':
-        console.log(`X-Profiler 插件版本号: v${data.data}`);
+        console.log(`X-Profiler 插件版本号: v${data.version}`);
         break;
       default:
-        console.log(`未知操作 ${action}: ${data.data}`);
+        console.log(`未知操作 ${action}: ${JSON.stringify(data)}`);
       }
     } else {
-      console.log(`执行命令失败: ${data.message || data}`);
+      console.log(`执行命令失败: ${data.message || JSON.stringify(data)}`);
     }
   })
   .catch(err => {

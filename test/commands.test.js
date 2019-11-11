@@ -23,7 +23,7 @@ const testFiles = [
 const testConfig = [
   {
     cmd: 'check_version',
-    xctlRules: [{ key: 'data', rule: new RegExp(`^${pkg.version}$`) }],
+    xctlRules: [{ key: 'data.version', rule: new RegExp(`^${pkg.version}$`) }],
     xprofctlRules: [/X-Profiler 插件版本号: v(\d{1,3}\.\d{1,3}\.\d{1,3})/]
   }
 ];

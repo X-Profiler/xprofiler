@@ -9,7 +9,7 @@ using std::string;
 double GetNowCpuUsage();
 
 // ipc
-void CreateIpcServer(void parsecmd(char *));
+void CreateIpcServer(void (*parsecmd)(char *));
 void CreateIpcClient(char *message);
 
 // utils

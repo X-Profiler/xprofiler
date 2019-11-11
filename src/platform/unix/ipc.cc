@@ -23,7 +23,7 @@ static const char module_type[] = "ipc";
   error_closed = true;                                                         \
   close(new_client_fd);
 
-void CreateIpcServer(void parsecmd(char *)) {
+void CreateIpcServer(void (*parsecmd)(char *)) {
   // create unix domain socket
   int server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (server_fd == -1) {

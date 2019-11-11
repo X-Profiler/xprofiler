@@ -18,6 +18,7 @@
         "src/commands/listener.cc",
         "src/commands/send.cc",
         "src/commands/parser.cc",
+        "src/commands/simple/version.cc",
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       'cflags_cc!': [ '-fno-exceptions' ],

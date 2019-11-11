@@ -36,7 +36,7 @@ wstring String2LPCWSTR(const string &s) {
   return r;
 }
 
-void CreateIpcServer(void parsecmd(char *)) {
+void CreateIpcServer(void (*parsecmd)(char *)) {
   HANDLE named_pipe = NULL;
   string lp_name_string = "\\\\.\\pipe\\" + GetLogDir() +
                           "\\xprofiler-named-pipe-" + std::to_string(getpid());
