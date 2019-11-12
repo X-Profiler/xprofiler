@@ -36,6 +36,30 @@ module.exports = function (logdir) {
           + '  - log_type: 0')
         ];
       }
+    },
+    {
+      cmd: 'set_config',
+      options: { enable_log_uv_handles: false, log_level: 0, log_type: 1 },
+      xctlRules: [
+        { key: 'data.enable_log_uv_handles', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.log_level', rule: /^0$/ },
+        { key: 'data.log_type', rule: /^1$/ }
+      ],
+      xprofctlRules(data) {
+        return [new RegExp(`^X-Profiler 配置\\(pid ${data.pid}\\)成功:\n`
+          + '  - enable_log_uv_handles: false\n'
+          + '  - log_level: 0\n'
+          + '  - log_type: 1')
+        ];
+      }
+    },
+    {
+      cmd: 'set_config',
+      errored: true,
+      xctlRules: [],
+      xprofctlRules() {
+        return [/^set_config 参数不正确，执行 xprofctl set_config 查看正确用法$/];
+      }
     }
   ];
 };

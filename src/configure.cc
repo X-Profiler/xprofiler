@@ -24,90 +24,85 @@ static bool log_format_alinode = false;
 static LOG_LEVEL log_level = LOG_ERROR;
 static LOG_TYPE log_type = LOG_TO_FILE;
 
+#define COVERT_STRING(key)                                                     \
+  if (key##_value->IsString()) {                                               \
+    Local<String> key##_string = To<String>(key##_value).ToLocalChecked();     \
+    Utf8String key##_utf8string(key##_string);                                 \
+    key = *key##_utf8string;                                                   \
+  }
+
+#define CONVERT_UINT32(key)                                                    \
+  if (key##_value->IsUint32())                                                 \
+    key = To<uint32_t>(key##_value).ToChecked();
+
+#define CONVERT_UINT32_V2(key, type)                                           \
+  if (key##_value->IsUint32())                                                 \
+    key = static_cast<type>(To<uint32_t>(key##_value).ToChecked());
+
+#define CONVERT_BOOL(key)                                                      \
+  if (key##_value->IsBoolean())                                                \
+    key = To<bool>(key##_value).ToChecked();
+
 void Configure(const FunctionCallbackInfo<Value> &info) {
   if (!info[0]->IsObject()) {
     ThrowTypeError(New<String>("config must be object!").ToLocalChecked());
     return;
   }
-
   Local<Object> config = To<Object>(info[0]).ToLocalChecked();
-
+#define S(key)                                                                 \
+  Local<Value> key##_value =                                                   \
+      Get(config, New<String>(#key).ToLocalChecked()).ToLocalChecked();
+#define V(key, cvrt) S(key) cvrt(key)
+#define W(key, cvrt, type) S(key) cvrt(key, type)
   // set log dir
-  Local<Value> log_dir_value =
-      Get(config, New<String>("log_dir").ToLocalChecked()).ToLocalChecked();
-  if (log_dir_value->IsString()) {
-    Local<String> log_dir_string = To<String>(log_dir_value).ToLocalChecked();
-    Utf8String log_dir_utf8string(log_dir_string);
-    log_dir = *log_dir_utf8string;
-  }
+  V(log_dir, COVERT_STRING)
 
   // set log interval
-  Local<Value> log_interval_value =
-      Get(config, New<String>("log_interval").ToLocalChecked())
-          .ToLocalChecked();
-  if (log_interval_value->IsUint32()) {
-    log_interval = To<uint32_t>(log_interval_value).ToChecked();
-  }
+  V(log_interval, CONVERT_UINT32)
 
   // enable collecting uv handles
-  Local<Value> enable_log_uv_handles_value =
-      Get(config, New<String>("enable_log_uv_handles").ToLocalChecked())
-          .ToLocalChecked();
-  if (enable_log_uv_handles_value->IsBoolean()) {
-    enable_log_uv_handles = To<bool>(enable_log_uv_handles_value).ToChecked();
-  }
+  V(enable_log_uv_handles, CONVERT_BOOL)
 
   // log format: standard or alinode
-  Local<Value> log_format_alinode_value =
-      Get(config, New<String>("log_format_alinode").ToLocalChecked())
-          .ToLocalChecked();
-  if (log_format_alinode_value->IsBoolean()) {
-    log_format_alinode = To<bool>(log_format_alinode_value).ToChecked();
-  }
+  V(log_format_alinode, CONVERT_BOOL)
 
   // log level: 0 info, 1 error, 2 debug
-  Local<Value> log_level_value =
-      Get(config, New<String>("log_level").ToLocalChecked()).ToLocalChecked();
-  if (log_level_value->IsUint32()) {
-    log_level =
-        static_cast<LOG_LEVEL>(To<uint32_t>(log_level_value).ToChecked());
-  }
+  W(log_level, CONVERT_UINT32_V2, LOG_LEVEL)
 
   // log type: 0 file, 1 ttl
-  Local<Value> log_type_value =
-      Get(config, New<String>("log_type").ToLocalChecked()).ToLocalChecked();
-  if (log_level_value->IsUint32()) {
-    log_type = static_cast<LOG_TYPE>(To<uint32_t>(log_type_value).ToChecked());
-  }
-
+  W(log_type, CONVERT_UINT32_V2, LOG_TYPE)
+#undef S
+#undef V
+#undef W
   info.GetReturnValue().Set(New<Boolean>(true));
 }
 
 void GetConfig(const FunctionCallbackInfo<Value> &info) {
   Local<Object> config = New<Object>();
-  Set(config, New<String>("log_dir").ToLocalChecked(),
-      New<String>(log_dir).ToLocalChecked());
-  Set(config, New<String>("log_interval").ToLocalChecked(),
-      New<Number>(log_interval));
-  Set(config, New<String>("enable_log_uv_handles").ToLocalChecked(),
-      New<Boolean>(enable_log_uv_handles));
-  Set(config, New<String>("log_format_alinode").ToLocalChecked(),
-      New<Boolean>(log_format_alinode));
-  Set(config, New<String>("log_level").ToLocalChecked(),
-      New<Number>(log_level));
-  Set(config, New<String>("log_type").ToLocalChecked(), New<Number>(log_type));
+#define V(key, type)                                                           \
+  Set(config, New<String>(#key).ToLocalChecked(),                              \
+      New<type>(key).ToLocalChecked());
+#define W(key, type)                                                           \
+  Set(config, New<String>(#key).ToLocalChecked(), New<type>(key));
+  V(log_dir, String)
+  W(log_interval, Number)
+  W(enable_log_uv_handles, Boolean)
+  W(log_format_alinode, Boolean)
+  W(log_level, Number)
+  W(log_type, Number)
+#undef V
+#undef W
   info.GetReturnValue().Set(config);
 }
 
-LOG_LEVEL GetLogLevel() { return log_level; }
-
-LOG_TYPE GetLogType() { return log_type; }
-
-bool GetFormatAsAlinode() { return log_format_alinode; }
-
-std::string GetLogDir() { return log_dir; }
-
-bool GetEnableLogUvHandles() { return enable_log_uv_handles; }
-
-uint32_t GetLogInterval() { return log_interval; }
+#define V(ret, func, vari)                                                     \
+  ret Get##func() { return vari; }                                             \
+  void Set##func(ret value) { vari = value; }
+V(string, LogDir, log_dir)
+V(uint32_t, LogInterval, log_interval)
+V(bool, FormatAsAlinode, log_format_alinode)
+V(bool, EnableLogUvHandles, enable_log_uv_handles)
+V(LOG_LEVEL, LogLevel, log_level)
+V(LOG_TYPE, LogType, log_type)
+#undef V
 } // namespace xprofiler

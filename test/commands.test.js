@@ -19,8 +19,20 @@ const testFiles = [
   { jspath: path.join(__dirname, './fixtures/non-blocking.js'), desc: 'when js main thread non blocking' }
 ];
 
+function convertOptions(options) {
+  let extra = '';
+  for (const [key, value] of Object.entries(options)) {
+    if (key.startsWith('enable_')) {
+      extra += ` --${key.replace('enable_', 'disable_')}`;
+    } else {
+      extra += ` --${key} ${value}`;
+    }
+  }
+  return extra;
+}
+
 for (let i = 0; i < testConfig.length; i++) {
-  const { cmd, options = {}, xctlRules, xprofctlRules } = testConfig[i];
+  const { cmd, options = {}, errored = false, xctlRules, xprofctlRules } = testConfig[i];
   for (let j = 0; j < testFiles.length; j++) {
     const { jspath, desc } = testFiles[j];
     const title = `execute [${cmd}] with options: ${JSON.stringify(options)} ${desc}`;
@@ -41,14 +53,18 @@ for (let i = 0; i < testConfig.length; i++) {
         // send cmd with xctl (function)
         resByXctl = await xctl(pid, cmd, options);
         // send cmd with xprofctl (cli)
-        const extra = options.profilingTime ? ` -t ${options.profilingTime}` : '';
+        const extra = convertOptions(options);
         const nodeExe = os.platform() === 'win32' ? 'node ' : '';
         resByXprofctl = await exec(`${nodeExe}${xprofctl} ${cmd} -p ${pid}${extra}`, {
           env: Object.assign({}, process.env, {
             XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
           })
         });
-        resByXprofctl = resByXprofctl.stdout.trim();
+        if (errored) {
+          resByXprofctl = resByXprofctl.stderr.trim();
+        } else {
+          resByXprofctl = resByXprofctl.stdout.trim();
+        }
         await new Promise(resolve => p.on('close', resolve));
       });
 
@@ -64,7 +80,11 @@ for (let i = 0; i < testConfig.length; i++) {
         console.log('xtcl:', JSON.stringify(resByXctl));
         expect(resByXctl).to.be.ok();
         expect(typeof resByXctl === 'object').to.be.ok();
-        expect(resByXctl['ok']).to.be.ok();
+        if (errored) {
+          expect(resByXctl['ok']).not.to.be.ok();
+        } else {
+          expect(resByXctl['ok']).to.be.ok();
+        }
       });
 
       it(`response with xprofctl should be ok`, function () {

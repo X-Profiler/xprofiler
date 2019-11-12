@@ -3,29 +3,52 @@
 'use strict';
 
 const yargs = require('yargs');
+const xctljosn = require('./xprofctl.json');
 const xctl = require('../lib/xctl');
 const utils = require('../lib/utils');
 
-const args = yargs
-  .usage('$0 <action> -p <pid> [-t profiling_time]')
-  // commands
-  .command('start_cpu_profiling', '生成 cpuprofile')
-  .command('start_heap_profiling', '生成 heapprofile')
-  .command('heapdump', '生成 heapsnapshot')
-  .command('check_version', '获取 xprofiler 插件版本号')
-  .command('get_config', '获取 xprofiler 配置')
-  // pid
-  .describe('p', '进程 pid')
-  .alias('p', 'pid')
-  .demandOption(['p'])
+const profilingYargs = yargs => yargs
+  .group(['t'], '采样配置:')
   // profiling time
   .describe('t', 'profiling 时长')
   .alias('t', 'profiling_time')
   .number('t')
+  // hide
+  .hide('v')
+  .hide('h');
+
+const normalYargs = yargs => yargs
+  .hide('v')
+  .hide('h');
+
+const args = yargs
+  .usage('$0 <action> -p <pid> [-t profiling_time]')
+  // commands
+  .command('start_cpu_profiling', '生成 cpuprofile', profilingYargs)
+  .command('start_heap_profiling', '生成 heapprofile', profilingYargs)
+  .command('heapdump', '生成 heapsnapshot', normalYargs)
+  .command('check_version', '获取 xprofiler 版本号', normalYargs)
+  .command('get_config', '获取 xprofiler 配置', normalYargs)
+  .command('set_config', '设置 xprofiler 配置',
+    yargs => yargs
+      .group(['enable_log_uv_handles', 'disable_log_uv_handles', 'log_level', 'log_type'], '配置项:')
+      .describe('enable_log_uv_handles', '开启 libuv 句柄详情采集')
+      .describe('disable_log_uv_handles', '关闭 libuv 句柄详情采集')
+      .describe('log_level', '日志级别: info, error, debug')
+      .describe('log_type', '日志输出未知: 文件, 控制台')
+      .boolean('enable_log_uv_handles')
+      .boolean('disable_log_uv_handles')
+      .choices('log_level', [0, 1, 2])
+      .choices('log_type', [0, 1])
+      .hide('v')
+      .hide('h'))
+  // pid
+  .describe('p', '进程 pid')
+  .alias('p', 'pid')
+  .demandOption(['p'])
   // examples
-  .example('$0 start_cpu_profiling -p 29156 -t 30', '触发进程 29156 生成 30s 的 cpu 采样')
-  .example('$0 start_cpu_profiling -p 29156', '默认生成 5min 的 cpu 采样')
-  .example('$0 heapdump -p 29156', '触发进程 29156 生成堆快照')
+  .example('$0 start_cpu_profiling -p 29156', '生成默认 5min 的 cpu 采样')
+  .example('$0 check_version -p 29156', '获取进程 29156 使用的插件版本')
   // common
   .alias('v', 'version')
   .alias('h', 'help')
@@ -37,15 +60,15 @@ const args = yargs
 // get args
 const action = args['_'][0];
 const pid = args['pid'];
-const profilingTime = args['profiling_time'];
 
 // send message
-const options = {};
-if (profilingTime !== null && !isNaN(profilingTime)) {
-  options.profiling_time = profilingTime;
+const options = utils.getXctOptions(action, args, xctljosn);
+if (!options.ok) {
+  console.error(options.message);
+  return;
 }
 
-xctl(pid, action, options)
+xctl(pid, action, options.data)
   .then(data => {
     if (data.ok) {
       data = data.data;
@@ -55,6 +78,9 @@ xctl(pid, action, options)
         break;
       case 'get_config':
         console.log(`X-Profiler 当前配置(pid ${pid}):\n${utils.printConfig(data)}`);
+        break;
+      case 'set_config':
+        console.log(`X-Profiler 配置(pid ${pid})成功:\n${utils.printConfig(data)}`);
         break;
       default:
         console.log(`未知操作 ${action}: ${JSON.stringify(data)}`);
