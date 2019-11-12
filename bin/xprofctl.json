@@ -1,0 +1,19 @@
+[
+  {
+    "actions": [],
+    "opts": {
+      "profiling_time": "number"
+    }
+  },
+  {
+    "actions": [
+      "set_config"
+    ],
+    "opts": {
+      "disable_log_uv_handles": "boolean",
+      "enable_log_uv_handles": "boolean",
+      "log_level": "number",
+      "log_type": "number"
+    }
+  }
+]

@@ -6,15 +6,20 @@
 
 namespace xprofiler {
 using Nan::FunctionCallbackInfo;
+using std::string;
 using v8::Value;
 
 // normal external
-LOG_LEVEL GetLogLevel();
-LOG_TYPE GetLogType();
-bool GetFormatAsAlinode();
-std::string GetLogDir();
-uint32_t GetLogInterval();
-bool GetEnableLogUvHandles();
+#define V(ret, func)                                                           \
+  ret Get##func();                                                             \
+  void Set##func(ret value);
+V(string, LogDir)
+V(uint32_t, LogInterval)
+V(bool, FormatAsAlinode)
+V(bool, EnableLogUvHandles)
+V(LOG_LEVEL, LogLevel)
+V(LOG_TYPE, LogType)
+#undef V
 
 // javascript accessible
 void Configure(const FunctionCallbackInfo<Value> &info);

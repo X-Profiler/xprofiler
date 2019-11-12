@@ -29,9 +29,11 @@ void ParseCmd(char *command) {
     handle(parsed, SuccessValue, ErrorValue);                                  \
     handled = true;                                                            \
   }
-  // check xprofiler version
+  // get version
   V(check_version, GetXprofilerVersion)
+  // get/set config
   V(get_config, GetXprofilerConfig)
+  V(set_config, SetXprofilerConfig)
 #undef V
 
   // not match any commands
