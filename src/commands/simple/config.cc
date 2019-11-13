@@ -1,8 +1,9 @@
-#include "config.h"
 #include "../../configure.h"
-#include "../../logger.h"
+#include "../../library/json.hpp"
+#include "../../utils.h"
 
 namespace xprofiler {
+using nlohmann::json;
 using std::exception;
 
 COMMAND_CALLBACK(GetXprofilerConfig) {
@@ -23,12 +24,10 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
 #define V(ret, key, func)                                                      \
   if (options.find(#key) != options.end()) {                                   \
     ret value;                                                                 \
-    try {                                                                      \
-      value = options[#key].get<ret>();                                        \
-    } catch (exception & e) {                                                  \
-      Error("set_config", "%s <" #key "> type error: %s",                      \
-            options.dump().c_str(), e.what());                                 \
-      error("%s <" #key "> type error: %s", options.dump().c_str(), e.what()); \
+    CommonError err;                                                           \
+    value = GetJsonValue<ret>(options, #key, err);                             \
+    if (err.Fail()) {                                                          \
+      error(err.GetErrorMessage());                                            \
       return;                                                                  \
     }                                                                          \
     Set##func(value);                                                          \
@@ -40,7 +39,7 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
   V(LOG_TYPE, log_type, LogType)
 #undef V
   if (!setted)
-    error("not support setting config %s", options.dump().c_str());
+    error(format("not support setting config %s", options.dump().c_str()));
   else
     success(data);
 }

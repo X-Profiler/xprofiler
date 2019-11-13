@@ -80,6 +80,7 @@ for (let i = 0; i < testConfig.length; i++) {
         console.log('xtcl:', JSON.stringify(resByXctl));
         expect(resByXctl).to.be.ok();
         expect(typeof resByXctl === 'object').to.be.ok();
+        expect(resByXctl['traceid']).to.be.ok();
         if (errored) {
           expect(resByXctl['ok']).not.to.be.ok();
         } else {

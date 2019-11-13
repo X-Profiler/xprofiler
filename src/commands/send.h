@@ -5,9 +5,10 @@
 
 namespace xprofiler {
 using nlohmann::json;
+using std::string;
 
-void ErrorValue(const char *format, ...);
-void SuccessValue(json data);
+void ErrorValue(string traceid, string message);
+void SuccessValue(string traceid, json data);
 } // namespace xprofiler
 
 #endif

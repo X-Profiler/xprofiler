@@ -2,6 +2,7 @@
 #include "../library/json.hpp"
 #include "../logger.h"
 #include "../platform/platform.h"
+#include "../utils.h"
 #include "./send.h"
 #include "./simple/config.h"
 #include "./simple/version.h"
@@ -24,9 +25,22 @@ void ParseCmd(char *command) {
   // handle cmd
   bool handled = false;
   string cmd = parsed["cmd"];
+
+  // get traceid
+  CommonError err;
+  string traceid = GetJsonValue<string>(parsed, "traceid", err);
+  if (err.Fail()) {
+    ErrorValue("unknown", FmtMessage("traceid shoule be passed in: %s",
+                                     err.GetErrorMessage()));
+    return;
+  }
+
 #define V(cmd_str, handle)                                                     \
   if (strcmp(cmd.c_str(), #cmd_str) == 0) {                                    \
-    handle(parsed, SuccessValue, ErrorValue);                                  \
+    handle(                                                                    \
+        parsed, FmtMessage,                                                    \
+        [traceid](json data) { SuccessValue(traceid, data); },                 \
+        [traceid](string message) { ErrorValue(traceid, message); });          \
     handled = true;                                                            \
   }
   // get version
@@ -38,7 +52,7 @@ void ParseCmd(char *command) {
 
   // not match any commands
   if (!handled) {
-    ErrorValue("not support command: %s", cmd.c_str());
+    ErrorValue(traceid, FmtMessage("not support command: %s", cmd.c_str()));
   }
 }
 } // namespace xprofiler

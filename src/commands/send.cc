@@ -1,29 +1,25 @@
-#include <stdarg.h>
-
+#include "../library/json.hpp"
 #include "../platform/platform.h"
-#include "send.h"
 
 namespace xprofiler {
+using nlohmann::json;
+using std::string;
 
-void ErrorValue(const char *format, ...) {
-  json result;
-  result["ok"] = false;
-
-  // compose error message
-  char message[1024];
-  va_list args;
-  va_start(args, format);
-  vsnprintf(message, sizeof(message), format, args);
-  va_end(args);
-
-  result["message"] = message;
+#define V(ok, res)                                                             \
+  result["ok"] = ok;                                                           \
+  result["traceid"] = traceid;                                                 \
+  result[#res] = res;                                                          \
   CreateIpcClient(const_cast<char *>(result.dump().c_str()));
+
+void ErrorValue(string traceid, string message) {
+  json result;
+  V(false, message);
 }
 
-void SuccessValue(json data) {
+void SuccessValue(string traceid, json data) {
   json result;
-  result["ok"] = true;
-  result["data"] = data;
-  CreateIpcClient(const_cast<char *>(result.dump().c_str()));
+  V(true, data);
 }
+
+#undef V
 } // namespace xprofiler
