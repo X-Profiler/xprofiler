@@ -6,7 +6,8 @@ node_js:
   - "12"
 script: npm run ci
 os:
+  - windows
   - linux
   - osx
 notifications:
-  webhooks: https://oapi.dingtalk.com/robot/send?access_token=785180885da0881a7e866929d640ef518201660357c2a4b1093ad69abf532265
+  webhooks: https://oapi.dingtalk.com/robot/send?access_token=091e1581536d3a08defd122c405cfd9239a5683bb3afbec4bdcf22d7ee278048
