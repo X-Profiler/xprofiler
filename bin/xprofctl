@@ -83,12 +83,12 @@ xctl(pid, action, options.data)
         console.log(`X-Profiler 配置(pid ${pid})成功:\n${utils.printConfig(data)}`);
         break;
       default:
-        console.log(`未知操作 ${action}: ${JSON.stringify(data)}`);
+        console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);
       }
     } else {
-      console.log(`执行命令失败: ${data.message || JSON.stringify(data)}`);
+      console.error(`执行命令失败: ${data.message || JSON.stringify(data)}`);
     }
   })
   .catch(err => {
-    console.log(`操作出错: ${err}`);
+    console.error(`操作出错: ${err}`);
   });

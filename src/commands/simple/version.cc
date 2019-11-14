@@ -2,10 +2,8 @@
 
 namespace xprofiler {
 COMMAND_CALLBACK(GetXprofilerVersion) {
-  char version[32];
-  snprintf(version, sizeof(version), "%s", XPROFILER_VERSION);
   json data;
-  data["version"] = version;
+  data["version"] = format("%s", XPROFILER_VERSION);
   success(data);
 }
 } // namespace xprofiler

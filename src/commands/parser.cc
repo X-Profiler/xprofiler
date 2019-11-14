@@ -1,8 +1,8 @@
-#include "../common.h"
+#include "../library/error.h"
 #include "../library/json.hpp"
+#include "../library/utils.h"
 #include "../logger.h"
 #include "../platform/platform.h"
-#include "../utils.h"
 #include "./send.h"
 #include "./simple/config.h"
 #include "./simple/version.h"
@@ -27,11 +27,11 @@ void ParseCmd(char *command) {
   string cmd = parsed["cmd"];
 
   // get traceid
-  CommonError err;
+  XpfError err;
   string traceid = GetJsonValue<string>(parsed, "traceid", err);
   if (err.Fail()) {
     ErrorValue("unknown", FmtMessage("traceid shoule be passed in: %s",
-                                     err.GetErrorMessage()));
+                                     err.GetErrMessage()));
     return;
   }
 

@@ -1,7 +1,8 @@
 #ifndef _SRC_CONFIGURE_H
 #define _SRC_CONFIGURE_H
 
-#include "common.h"
+#include "library/common.h"
+#include "library/error.h"
 #include "nan.h"
 
 namespace xprofiler {

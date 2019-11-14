@@ -60,6 +60,14 @@ module.exports = function (logdir) {
       xprofctlRules() {
         return [/^set_config 参数不正确，执行 xprofctl set_config 查看正确用法$/];
       }
+    },
+    {
+      cmd: 'set_config',
+      options: { enable_log_uv_handles: 1 },
+      errored: true,
+      /* eslint-disable */
+      xctlRules: [{ key: 'message', rule: /<enable_log_uv_handles> type error: \[json.exception.type_error.302\] type must be boolean, but is number/ }],
+      xprofctlRules() { return []; }
     }
   ];
 };

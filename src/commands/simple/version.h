@@ -1,7 +1,7 @@
 #ifndef _SRC_COMMANDS_SIMPLE_VERSION_H
 #define _SRC_COMMANDS_SIMPLE_VERSION_H
 
-#include "../../common.h"
+#include "../../library/common.h"
 #include "../../library/json.hpp"
 
 namespace xprofiler {

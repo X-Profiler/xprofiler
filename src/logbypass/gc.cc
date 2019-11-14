@@ -1,5 +1,5 @@
 #include "gc.h"
-#include "../common.h"
+#include "../library/common.h"
 #include "../logger.h"
 
 namespace xprofiler {

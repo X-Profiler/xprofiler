@@ -1,8 +1,8 @@
 #include "nan.h"
 
 #include "commands/listener.h"
-#include "common.h"
 #include "configure.h"
+#include "library/common.h"
 #include "logbypass/log.h"
 #include "logger.h"
 

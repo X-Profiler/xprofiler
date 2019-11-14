@@ -1,7 +1,7 @@
 #ifndef SRC_LOGGER_H
 #define SRC_LOGGER_H
 
-#include "common.h"
+#include "library/common.h"
 #include "nan.h"
 
 namespace xprofiler {
