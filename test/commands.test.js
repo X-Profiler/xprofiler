@@ -45,7 +45,9 @@ for (let i = 0; i < testConfig.length; i++) {
         const p = cp.fork(jspath, {
           env: Object.assign({}, process.env, {
             XPROFILER_LOG_DIR: logdir,
-            XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
+            XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome,
+            XPROFILER_LOG_LEVEL: 2,
+            XPROFILER_LOG_TYPE: 1
           })
         });
         pid = p.pid;

@@ -23,8 +23,8 @@ module.exports = function (logdir) {
         { key: 'data.log_interval', rule: /^60$/ },
         { key: 'data.enable_log_uv_handles', rule: { label: 'true', test: value => value === true } },
         { key: 'data.log_format_alinode', rule: { label: 'false', test: value => value === false } },
-        { key: 'data.log_level', rule: /^1$/ },
-        { key: 'data.log_type', rule: /^0$/ }
+        { key: 'data.log_level', rule: /^2$/ },
+        { key: 'data.log_type', rule: /^1$/ }
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 当前配置\\(pid ${data.pid}\\):\n`
@@ -32,8 +32,8 @@ module.exports = function (logdir) {
           + `  - log_dir: ${escape(logdir)}\n`
           + '  - log_format_alinode: false\n'
           + '  - log_interval: 60\n'
-          + '  - log_level: 1\n'
-          + '  - log_type: 0')
+          + '  - log_level: 2\n'
+          + '  - log_type: 1')
         ];
       }
     },
