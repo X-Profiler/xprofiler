@@ -10,4 +10,4 @@ os:
   - linux
   - osx
 notifications:
-  webhooks: https://oapi.dingtalk.com/robot/send?access_token=091e1581536d3a08defd122c405cfd9239a5683bb3afbec4bdcf22d7ee278048
+  webhooks: https://oapi.dingtalk.com/robot/send?access_token=0e2d67512c52548873f90eb782b4467621eaa94ee7b65a130cc572dc8220adff

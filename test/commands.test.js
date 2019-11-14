@@ -7,6 +7,7 @@ const promisify = require('util').promisify;
 const exec = promisify(cp.exec);
 const mm = require('mm');
 const expect = require('expect.js');
+const moment = require('moment');
 const xprofctl = path.join(__dirname, '../bin/xprofctl');
 const xctl = require('../lib/xctl');
 const utils = require('./fixtures/utils');
@@ -51,12 +52,14 @@ for (let i = 0; i < testConfig.length; i++) {
           })
         });
         pid = p.pid;
-        await utils.sleep(1000);
+        await utils.sleep(3000);
         // send cmd with xctl (function)
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xctl cmd.');
         resByXctl = await xctl(pid, cmd, options);
         // send cmd with xprofctl (cli)
         const extra = convertOptions(options);
         const nodeExe = os.platform() === 'win32' ? 'node ' : '';
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}`, 'send xprofctl cmd.');
         resByXprofctl = await exec(`${nodeExe}${xprofctl} ${cmd} -p ${pid}${extra}`, {
           env: Object.assign({}, process.env, {
             XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
