@@ -1,8 +1,8 @@
 #include "nan.h"
 #include "uv.h"
 
+#include "../library/utils.h"
 #include "../logger.h"
-#include "../utils.h"
 #include "heap.h"
 
 namespace xprofiler {

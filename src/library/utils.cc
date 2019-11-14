@@ -1,4 +1,4 @@
-#include "platform/platform.h"
+#include "../platform/platform.h"
 #include <stdarg.h>
 
 namespace xprofiler {

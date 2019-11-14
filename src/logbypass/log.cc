@@ -1,8 +1,8 @@
 #include "uv.h"
 
 #include "../configure.h"
+#include "../library/utils.h"
 #include "../logger.h"
-#include "../utils.h"
 #include "cpu.h"
 #include "gc.h"
 #include "heap.h"

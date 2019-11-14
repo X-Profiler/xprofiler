@@ -1,6 +1,6 @@
 #include "../../configure.h"
 #include "../../library/json.hpp"
-#include "../../utils.h"
+#include "../../library/utils.h"
 
 namespace xprofiler {
 using nlohmann::json;
@@ -24,10 +24,10 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
 #define V(ret, key, func)                                                      \
   if (options.find(#key) != options.end()) {                                   \
     ret value;                                                                 \
-    CommonError err;                                                           \
+    XpfError err;                                                              \
     value = GetJsonValue<ret>(options, #key, err);                             \
     if (err.Fail()) {                                                          \
-      error(err.GetErrorMessage());                                            \
+      error(format("%s", err.GetErrMessage()));                                \
       return;                                                                  \
     }                                                                          \
     Set##func(value);                                                          \

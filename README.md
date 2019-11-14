@@ -2,8 +2,8 @@
 
 [![Npm](https://img.shields.io/npm/v/xprofiler)](https://www.npmjs.com/package/xprofiler)
 [![Codecov branch](https://img.shields.io/codecov/c/github/hyj1991/xprofiler/master)](https://codecov.io/gh/hyj1991/xprofiler/branch/master)
-[![Linux/osX build status](https://travis-ci.org/hyj1991/xprofiler.svg?branch=master)](https://travis-ci.org/hyj1991/xprofiler)
-[![Windows build status](https://ci.appveyor.com/api/projects/status/f2wsq37va9d35vw4/branch/master?svg=true)](https://ci.appveyor.com/project/hyj1991/xprofiler/branch/master)
+[![Linux/osx build status](https://travis-ci.org/hyj1991/xprofiler.svg?branch=master)](https://travis-ci.org/hyj1991/xprofiler)
+[![Windows build status](https://ci.appveyor.com/api/projects/status/c6y7jtux1m5jabgc/branch/master?svg=true)](https://ci.appveyor.com/project/hyj1991/xprofiler/branch/master)
 [![Npm](https://img.shields.io/npm/dm/xprofiler)](https://www.npmjs.com/package/xprofiler)
 [![License](https://img.shields.io/npm/l/xprofiler)](LICENSE)
 

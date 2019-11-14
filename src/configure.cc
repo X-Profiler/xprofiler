@@ -1,4 +1,4 @@
-#include "common.h"
+#include "library/common.h"
 #include "nan.h"
 
 namespace xprofiler {
