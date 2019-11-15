@@ -1,4 +1,5 @@
 #include "gc.h"
+
 #include "../library/common.h"
 #include "../logger.h"
 
@@ -25,7 +26,7 @@ NAN_GC_CALLBACK(GCEpilogueCallback) {
   uv_mutex_lock(&gc_mutex);
   gc_statistics->total_gc_times++;
   unsigned int duration =
-      (uv_hrtime() - gc_statistics->start()) / 10e5; // cost, ms
+      (uv_hrtime() - gc_statistics->start()) / 10e5;  // cost, ms
   gc_statistics->total_gc_duration += duration;
   gc_statistics->gc_time_during_last_record += duration;
 
@@ -76,7 +77,7 @@ void WriteGcStatusToLog(bool log_format_alinode) {
          "scavange_duration_last_record: %lu, "
          "marksweep_duration_last_record: %lu, "
          "incremental_marking_duration_last_record: %lu",
-         GetUptime(), // uptime, s
+         GetUptime(),  // uptime, s
          // total
          gc_statistics->total_gc_times, gc_statistics->total_gc_duration,
          gc_statistics->total_scavange_duration,
@@ -91,4 +92,4 @@ void WriteGcStatusToLog(bool log_format_alinode) {
   gc_statistics->reset();
   uv_mutex_unlock(&gc_mutex);
 }
-} // namespace xprofiler
+}  // namespace xprofiler

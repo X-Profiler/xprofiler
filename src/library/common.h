@@ -19,9 +19,9 @@ void InitGlobalVariables();
 unsigned long GetUptime();
 
 // commands
-#define COMMAND_CALLBACK(cb)                                                   \
-  void cb(json command, string (*format)(const char *, ...),                   \
+#define COMMAND_CALLBACK(cb)                                 \
+  void cb(json command, string (*format)(const char *, ...), \
           function<void(json)> success, function<void(string)> error)
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

@@ -17,6 +17,6 @@ void Debug(const char *log_type, const char *format, ...);
 void JsInfo(const FunctionCallbackInfo<Value> &info);
 void JsError(const FunctionCallbackInfo<Value> &info);
 void JsDebug(const FunctionCallbackInfo<Value> &info);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

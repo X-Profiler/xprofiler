@@ -7,6 +7,6 @@ namespace xprofiler {
 
 COMMAND_CALLBACK(GetXprofilerConfig);
 COMMAND_CALLBACK(SetXprofilerConfig);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

@@ -24,6 +24,6 @@ typedef struct {
 } uv_timeval64_t;
 int uv_gettimeofday(uv_timeval64_t *tv);
 #endif
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

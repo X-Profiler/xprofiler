@@ -1,9 +1,9 @@
-#include "nan.h"
-#include "uv.h"
+#include "heap.h"
 
 #include "../library/utils.h"
 #include "../logger.h"
-#include "heap.h"
+#include "nan.h"
+#include "uv.h"
 
 namespace xprofiler {
 using Nan::GetHeapStatistics;
@@ -19,8 +19,7 @@ static heap_space_statistics_t *heap_space_statistics =
 
 void SetRss() {
   int err = uv_resident_set_memory(&rss);
-  if (err != 0)
-    rss = 0;
+  if (err != 0) rss = 0;
 }
 
 void SetHeapStatistics() {
@@ -39,12 +38,12 @@ void SetHeapSpaceStatistics() {
   for (size_t i = 0; i < number_of_heap_spaces; i++) {
     isolate->GetHeapSpaceStatistics(&s, i);
     // todo: read_only_space, large_object_space, code_large_object_space
-#define V(name)                                                                \
-  if (strcmp(s.space_name(), #name) == 0) {                                    \
-    heap_space_statistics->name##_size = s.space_size();                       \
-    heap_space_statistics->name##_used = s.space_used_size();                  \
-    heap_space_statistics->name##_available = s.space_used_size();             \
-    heap_space_statistics->name##_committed = s.physical_space_size();         \
+#define V(name)                                                        \
+  if (strcmp(s.space_name(), #name) == 0) {                            \
+    heap_space_statistics->name##_size = s.space_size();               \
+    heap_space_statistics->name##_used = s.space_used_size();          \
+    heap_space_statistics->name##_available = s.space_used_size();     \
+    heap_space_statistics->name##_committed = s.physical_space_size(); \
   }
     // new space
     V(new_space)
@@ -80,10 +79,10 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
   uv_async_send(&memory_statistics_trigger);
   // sleep 1s for executing async callback
   Sleep(1);
-#define V(name)                                                                \
-  heap_space_statistics->name##_space_size,                                    \
-      heap_space_statistics->name##_space_used,                                \
-      heap_space_statistics->name##_space_available,                           \
+#define V(name)                                      \
+  heap_space_statistics->name##_space_size,          \
+      heap_space_statistics->name##_space_used,      \
+      heap_space_statistics->name##_space_available, \
       heap_space_statistics->name##_space_committed
   if (log_format_alinode) {
     Info("heap",
@@ -189,4 +188,4 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
   }
 #undef V
 }
-} // namespace xprofiler
+}  // namespace xprofiler

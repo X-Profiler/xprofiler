@@ -23,5 +23,5 @@ double GetNowCpuUsage() {
 
   return cpu_now_;
 }
-} // namespace xprofiler
+}  // namespace xprofiler
 #endif

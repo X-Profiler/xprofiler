@@ -1,5 +1,6 @@
-#include "../platform/platform.h"
 #include <stdarg.h>
+
+#include "../platform/platform.h"
 
 namespace xprofiler {
 using std::string;
@@ -15,4 +16,4 @@ string FmtMessage(const char *format, ...) {
   return string(message);
 }
 
-}; // namespace xprofiler
+};  // namespace xprofiler

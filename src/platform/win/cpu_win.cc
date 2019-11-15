@@ -3,24 +3,24 @@
 #include "windows.h"
 
 namespace xprofiler {
-#define GET_CURRENT_TIME(curtime)                                              \
-  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, getpid());   \
-  BOOL bRetCode = FALSE;                                                       \
-  FILETIME CreateTime, ExitTime, KernelTime, UserTime;                         \
-  LARGE_INTEGER lgKernelTime;                                                  \
-  LARGE_INTEGER lgUserTime;                                                    \
-  LARGE_INTEGER lgCurTimeTmp;                                                  \
-  bRetCode = GetProcessTimes(hProcess, &CreateTime, &ExitTime, &KernelTime,    \
-                             &UserTime);                                       \
-  if (!bRetCode) {                                                             \
-    return -1;                                                                 \
-  }                                                                            \
-  lgKernelTime.HighPart = KernelTime.dwHighDateTime;                           \
-  lgKernelTime.LowPart = KernelTime.dwLowDateTime;                             \
-  lgUserTime.HighPart = UserTime.dwHighDateTime;                               \
-  lgUserTime.LowPart = UserTime.dwLowDateTime;                                 \
-  lgCurTimeTmp.QuadPart =                                                      \
-      (lgKernelTime.QuadPart + lgUserTime.QuadPart) / 10000;                   \
+#define GET_CURRENT_TIME(curtime)                                            \
+  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, getpid()); \
+  BOOL bRetCode = FALSE;                                                     \
+  FILETIME CreateTime, ExitTime, KernelTime, UserTime;                       \
+  LARGE_INTEGER lgKernelTime;                                                \
+  LARGE_INTEGER lgUserTime;                                                  \
+  LARGE_INTEGER lgCurTimeTmp;                                                \
+  bRetCode = GetProcessTimes(hProcess, &CreateTime, &ExitTime, &KernelTime,  \
+                             &UserTime);                                     \
+  if (!bRetCode) {                                                           \
+    return -1;                                                               \
+  }                                                                          \
+  lgKernelTime.HighPart = KernelTime.dwHighDateTime;                         \
+  lgKernelTime.LowPart = KernelTime.dwLowDateTime;                           \
+  lgUserTime.HighPart = UserTime.dwHighDateTime;                             \
+  lgUserTime.LowPart = UserTime.dwLowDateTime;                               \
+  lgCurTimeTmp.QuadPart =                                                    \
+      (lgKernelTime.QuadPart + lgUserTime.QuadPart) / 10000;                 \
   curtime = lgCurTimeTmp;
 
 double GetNowCpuUsage() {
@@ -45,5 +45,5 @@ double GetNowCpuUsage() {
 
   return cpu_now_;
 }
-} // namespace xprofiler
+}  // namespace xprofiler
 #endif
