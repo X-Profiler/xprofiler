@@ -43,6 +43,7 @@ for (let i = 0; i < testConfig.length; i++) {
       let pid = 0;
       before(async function () {
         mm(os, 'homedir', () => tmphome);
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'start fork.');
         const p = cp.fork(jspath, {
           env: Object.assign({}, process.env, {
             XPROFILER_LOG_DIR: logdir,
