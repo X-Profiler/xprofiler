@@ -2,8 +2,8 @@
 #define _SRC_LIBRARY_WRITER_H
 
 #include <fstream>
-#include <string>
 #include <limits>
+#include <string>
 
 namespace xprofiler {
 using std::ostream;
