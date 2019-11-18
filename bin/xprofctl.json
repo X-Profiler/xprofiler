@@ -1,6 +1,8 @@
 [
   {
-    "actions": [],
+    "actions": [
+      "start_cpu_profiling"
+    ],
     "opts": {
       "profiling_time": "number"
     }

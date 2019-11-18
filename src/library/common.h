@@ -1,5 +1,5 @@
-#ifndef _SRC_COMMON_H
-#define _SRC_COMMON_H
+#ifndef _SRC_LIBRARY_COMMON_H
+#define _SRC_LIBRARY_COMMON_H
 
 #include "json.hpp"
 
