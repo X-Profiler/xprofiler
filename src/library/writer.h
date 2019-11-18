@@ -1,7 +1,7 @@
 #ifndef _SRC_LIBRARY_WRITER_H
 #define _SRC_LIBRARY_WRITER_H
 
-#include <iostream>
+#include <fstream>
 
 namespace xprofiler {
 using std::ostream;
