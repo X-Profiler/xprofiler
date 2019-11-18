@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <string>
+#include <limits>
 
 namespace xprofiler {
 using std::ostream;
