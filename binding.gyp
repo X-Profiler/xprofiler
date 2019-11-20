@@ -70,6 +70,7 @@
       ],
       "defines": [
         'XPROFILER_VERSION="<!(node -p \"require(\'./package.json\').version\")"',
+        'WIN32_LEAN_AND_MEAN=1',
       ],
     },
   ],

@@ -1,6 +1,8 @@
-#include "uv.h"
-#include <fstream>
 #include <stdarg.h>
+
+#include <fstream>
+
+#include "uv.h"
 
 #ifdef _WIN32
 #include <time.h>
@@ -27,9 +29,9 @@ static std::ofstream info_stream;
 static std::ofstream error_stream;
 static std::ofstream debug_stream;
 
-#define WRITET_TO_FILE(type)                                                   \
-  type##_stream.open(filepath, std::ios::app);                                 \
-  type##_stream << log;                                                        \
+#define WRITET_TO_FILE(type)                   \
+  type##_stream.open(filepath, std::ios::app); \
+  type##_stream << log;                        \
   type##_stream.close();
 
 void WriteToFile(const LOG_LEVEL output_level, char *log) {
@@ -44,32 +46,32 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
   string filepath = log_dir + GetSep();
   bool log_format_alinode = GetFormatAsAlinode();
   switch (output_level) {
-  case LOG_LEVEL::LOG_INFO:
-    if (log_format_alinode) {
-      filepath = filepath + "node-" + time_string_day + ".log";
-    } else {
-      filepath = filepath + "xprofiler-" + time_string_day + ".log";
-    }
-    WRITET_TO_FILE(info)
-    break;
-  case LOG_LEVEL::LOG_ERROR:
-    if (log_format_alinode) {
-      filepath = filepath + "node-error-" + time_string_day + ".log";
-    } else {
-      filepath = filepath + "xprofiler-error-" + time_string_day + ".log";
-    }
-    WRITET_TO_FILE(error)
-    break;
-  case LOG_LEVEL::LOG_DEBUG:
-    if (log_format_alinode) {
-      filepath = filepath + "node-debug-" + time_string_day + ".log";
-    } else {
-      filepath = filepath + "xprofiler-debug-" + time_string_day + ".log";
-    }
-    WRITET_TO_FILE(debug)
-    break;
-  default:
-    break;
+    case LOG_LEVEL::LOG_INFO:
+      if (log_format_alinode) {
+        filepath = filepath + "node-" + time_string_day + ".log";
+      } else {
+        filepath = filepath + "xprofiler-" + time_string_day + ".log";
+      }
+      WRITET_TO_FILE(info)
+      break;
+    case LOG_LEVEL::LOG_ERROR:
+      if (log_format_alinode) {
+        filepath = filepath + "node-error-" + time_string_day + ".log";
+      } else {
+        filepath = filepath + "xprofiler-error-" + time_string_day + ".log";
+      }
+      WRITET_TO_FILE(error)
+      break;
+    case LOG_LEVEL::LOG_DEBUG:
+      if (log_format_alinode) {
+        filepath = filepath + "node-debug-" + time_string_day + ".log";
+      } else {
+        filepath = filepath + "xprofiler-debug-" + time_string_day + ".log";
+      }
+      WRITET_TO_FILE(debug)
+      break;
+    default:
+      break;
   }
 }
 
@@ -99,18 +101,18 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   // log level
   string level_string = "";
   switch (output_level) {
-  case LOG_LEVEL::LOG_INFO:
-    level_string = "info";
-    break;
-  case LOG_LEVEL::LOG_ERROR:
-    level_string = "error";
-    break;
-  case LOG_LEVEL::LOG_DEBUG:
-    level_string = "debug";
-    break;
-  default:
-    level_string = "unknown";
-    break;
+    case LOG_LEVEL::LOG_INFO:
+      level_string = "info";
+      break;
+    case LOG_LEVEL::LOG_ERROR:
+      level_string = "error";
+      break;
+    case LOG_LEVEL::LOG_DEBUG:
+      level_string = "debug";
+      break;
+    default:
+      level_string = "unknown";
+      break;
   }
 
   // get pid
@@ -150,10 +152,10 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
   }
 }
 
-#define V(level)                                                               \
-  va_list args;                                                                \
-  va_start(args, format);                                                      \
-  Log(LOG_LEVEL::level, log_type, format, args);                               \
+#define V(level)                                 \
+  va_list args;                                  \
+  va_start(args, format);                        \
+  Log(LOG_LEVEL::level, log_type, format, args); \
   va_end(args);
 void Info(const char *log_type, const char *format, ...) { V(LOG_INFO) }
 void Error(const char *log_type, const char *format, ...) { V(LOG_ERROR) }
@@ -176,4 +178,4 @@ void JsError(const FunctionCallbackInfo<Value> &info) { V(LOG_ERROR) }
 void JsDebug(const FunctionCallbackInfo<Value> &info) { V(LOG_DEBUG) }
 #undef V
 
-}; // namespace xprofiler
+};  // namespace xprofiler

@@ -10,4 +10,4 @@ unsigned long GetUptime() {
   time(&current_time);
   return static_cast<unsigned long>(difftime(current_time, load_time));
 }
-} // namespace xprofiler
+}  // namespace xprofiler

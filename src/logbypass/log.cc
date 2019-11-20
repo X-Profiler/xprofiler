@@ -1,5 +1,3 @@
-#include "uv.h"
-
 #include "../configure.h"
 #include "../library/utils.h"
 #include "../logger.h"
@@ -7,6 +5,7 @@
 #include "gc.h"
 #include "heap.h"
 #include "libuv.h"
+#include "uv.h"
 
 namespace xprofiler {
 using Nan::False;
@@ -76,4 +75,4 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
 
   info.GetReturnValue().Set(True());
 }
-} // namespace xprofiler
+}  // namespace xprofiler

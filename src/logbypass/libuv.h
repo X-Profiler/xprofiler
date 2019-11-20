@@ -25,6 +25,6 @@ typedef struct {
 } uv_handle_statistics_t;
 
 void WriteLibuvHandleInfoToLog(bool log_format_alinode);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

@@ -16,9 +16,9 @@ static const char module_type[] = "ipc";
 
 #define CLIENT_BUFFER_SIZE 4096
 
-#define TEARDOWN(message)                                                      \
-  Error(module_type, message);                                                 \
-  error_closed = true;                                                         \
+#define TEARDOWN(message)      \
+  Error(module_type, message); \
+  error_closed = true;         \
   close(new_client_fd);
 
 void CreateIpcServer(void (*parsecmd)(char *)) {
@@ -122,6 +122,6 @@ void CreateIpcClient(char *message) {
 
   close(client_fd);
 }
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

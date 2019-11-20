@@ -5,10 +5,10 @@ namespace xprofiler {
 using nlohmann::json;
 using std::string;
 
-#define V(ok, res)                                                             \
-  result["ok"] = ok;                                                           \
-  result["traceid"] = traceid;                                                 \
-  result[#res] = res;                                                          \
+#define V(ok, res)             \
+  result["ok"] = ok;           \
+  result["traceid"] = traceid; \
+  result[#res] = res;          \
   CreateIpcClient(const_cast<char *>(result.dump().c_str()));
 
 void ErrorValue(string traceid, string message) {
@@ -22,4 +22,4 @@ void SuccessValue(string traceid, json data) {
 }
 
 #undef V
-} // namespace xprofiler
+}  // namespace xprofiler

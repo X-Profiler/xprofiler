@@ -1,9 +1,8 @@
-#include "nan.h"
-#include "uv.h"
-
 #include "../logger.h"
 #include "../platform/platform.h"
 #include "./parser.h"
+#include "nan.h"
+#include "uv.h"
 
 namespace xprofiler {
 using Nan::False;
@@ -30,4 +29,4 @@ void RunCommandsListener(const FunctionCallbackInfo<Value> &info) {
 
   info.GetReturnValue().Set(True());
 }
-} // namespace xprofiler
+}  // namespace xprofiler

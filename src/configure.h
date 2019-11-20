@@ -11,8 +11,8 @@ using std::string;
 using v8::Value;
 
 // normal external
-#define V(ret, func)                                                           \
-  ret Get##func();                                                             \
+#define V(ret, func) \
+  ret Get##func();   \
   void Set##func(ret value);
 V(string, LogDir)
 V(uint32_t, LogInterval)
@@ -25,6 +25,6 @@ V(LOG_TYPE, LogType)
 // javascript accessible
 void Configure(const FunctionCallbackInfo<Value> &info);
 void GetConfig(const FunctionCallbackInfo<Value> &info);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

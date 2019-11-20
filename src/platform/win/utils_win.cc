@@ -1,7 +1,8 @@
 #ifdef _WIN32
+#include <windows.h>
+
 #include "../platform.h"
 #include "uv.h"
-#include <windows.h>
 
 namespace xprofiler {
 void SleepCrossPlatform(int seconds) { Sleep(seconds * 1000); }
@@ -17,8 +18,7 @@ int uv_gettimeofday(uv_timeval64_t *tv) {
   FILETIME file_time;
   ULARGE_INTEGER ularge;
 
-  if (tv == NULL)
-    return UV_EINVAL;
+  if (tv == NULL) return UV_EINVAL;
 
   GetSystemTimeAsFileTime(&file_time);
   ularge.LowPart = file_time.dwLowDateTime;
@@ -28,6 +28,6 @@ int uv_gettimeofday(uv_timeval64_t *tv) {
   return 0;
 }
 #endif
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

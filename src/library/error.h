@@ -7,7 +7,7 @@ namespace xprofiler {
 using std::string;
 // common error
 class XpfError {
-public:
+ public:
   XpfError() : failed_(false), msg_("") {}
   XpfError(bool failed, string msg) : failed_(failed), msg_(msg) {}
   static XpfError Failure(const char *format, ...);
@@ -16,11 +16,11 @@ public:
   inline bool Success() const { return !Fail(); }
   inline bool Fail() const { return failed_; }
 
-private:
+ private:
   bool failed_;
   string msg_;
   static const size_t kMaxMessageLength = 256;
 };
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

@@ -6,4 +6,4 @@ COMMAND_CALLBACK(GetXprofilerVersion) {
   data["version"] = format("%s", XPROFILER_VERSION);
   success(data);
 }
-} // namespace xprofiler
+}  // namespace xprofiler
