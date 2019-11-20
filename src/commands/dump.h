@@ -13,10 +13,10 @@ using std::vector;
 
 enum DumpAction { START_CPU_PROFILING, STOP_CPU_PROFILING };
 
-typedef unordered_map<DumpAction, bool> ActionMap;
+typedef unordered_map<int, bool> ActionMap;
 typedef unordered_map<string, bool> RequestMap;
-typedef unordered_map<DumpAction, vector<DumpAction>> ConflictMap;
-typedef unordered_map<DumpAction, DumpAction> DependentMap;
+typedef unordered_map<int, vector<DumpAction>> ConflictMap;
+typedef unordered_map<int, DumpAction> DependentMap;
 
 typedef struct BaseDumpData {
   string traceid;
