@@ -25,6 +25,7 @@ const args = yargs
   .usage('$0 <action> -p <pid> [-t profiling_time]')
   // commands
   .command('start_cpu_profiling', '生成 cpuprofile', profilingYargs)
+  .command('stop_cpu_profiling', '生成 cpuprofile', normalYargs)
   .command('start_heap_profiling', '生成 heapprofile', profilingYargs)
   .command('heapdump', '生成 heapsnapshot', normalYargs)
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
@@ -81,6 +82,19 @@ xctl(pid, action, options.data)
         break;
       case 'set_config':
         console.log(`X-Profiler 配置(pid ${pid})成功:\n${utils.printConfig(data)}`);
+        break;
+      case 'start_cpu_profiling': {
+        const profiling_time = options.data.profiling_time;
+        if (profiling_time) {
+          console.log(`CPU profiling 文件路径: ${data.filepath}`);
+          console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 cpu profiling 结果.`);
+        } else {
+          console.log(`进程 (pid ${pid}) 开始进行 CPU 采样.`);
+        }
+        break;
+      }
+      case 'stop_cpu_profiling':
+        console.log(`CPU profiling 文件路径: ${data.filepath}`);
         break;
       default:
         console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);

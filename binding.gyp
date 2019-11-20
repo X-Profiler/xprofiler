@@ -20,6 +20,7 @@
         "src/commands/listener.cc",
         "src/commands/send.cc",
         "src/commands/parser.cc",
+        "src/commands/dump.cc",
         "src/commands/simple/version.cc",
         "src/commands/simple/config.cc",
         "src/commands/cpuprofiler/cpu_profiler.cc",

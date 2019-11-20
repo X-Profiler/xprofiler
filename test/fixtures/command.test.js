@@ -1,11 +1,40 @@
 'use strict';
 
+const os = require('os');
+const moment = require('moment');
 const pkg = require('../../package.json');
 
 function escape(str) {
   str = JSON.stringify(str);
   return str.slice(1, str.length - 1);
 }
+
+let sep = '/';
+if (os.platform() === 'win32') {
+  sep = '\\';
+}
+
+const isArray = value => Array.isArray(value);
+
+const cpuprofile = {
+  typeId: /^xprofiler-cpu-profile$/,
+  title: /^xprofiler$/,
+  head: {
+    functionName: /^[\w()]+$/,
+    url: /^([\w()/\\]+|)$/,
+    lineNumber: /^\d+$/,
+    columnNumber: /^\d+$/,
+    bailoutReason: /^([\w\s]+|)$/,
+    id: /^\d+$/,
+    scriptId: /^\d+$/,
+    hitCount: /^\d+$/,
+    children: isArray
+  },
+  startTime: /^\d+$/,
+  endTime: /^\d+$/,
+  samples: isArray,
+  timestamps: isArray
+};
 
 module.exports = function (logdir) {
   return [
@@ -58,7 +87,7 @@ module.exports = function (logdir) {
       errored: true,
       xctlRules: [],
       xprofctlRules() {
-        return [/^set_config 参数不正确，执行 xprofctl set_config 查看正确用法$/];
+        return [/^set_config 缺少必须参数，执行 xprofctl set_config 查看正确用法$/];
       }
     },
     {
@@ -66,8 +95,28 @@ module.exports = function (logdir) {
       options: { enable_log_uv_handles: 1 },
       errored: true,
       /* eslint-disable */
-      xctlRules: [{ key: 'message', rule: /<enable_log_uv_handles> type error: \[json.exception.type_error.302\] type must be boolean, but is number/ }],
+      xctlRules: [{ key: 'message', rule: /^<enable_log_uv_handles> type error: \[json.exception.type_error.302\] type must be boolean, but is number$/ }],
       xprofctlRules() { return []; }
+    },
+    {
+      cmd: 'start_cpu_profiling',
+      options: { profiling_time: 3000 },
+      profileRules: cpuprofile,
+      xctlRules(data) {
+        return [{
+          key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
+            `x-cpuprofile-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).cpuprofile`)
+        }];
+      },
+      xprofctlRules() { return [/^执行命令失败: start_cpu_profiling is running.$/]; }
+    },
+    {
+      cmd: 'stop_cpu_profiling',
+      errored: true,
+      xctlRules() {
+        return [{ key: 'message', rule: /^stop_cpu_profiling dependent action start_cpu_profiling not running.$/ }];
+      },
+      xprofctlRules() { return [/^执行命令失败: stop_cpu_profiling dependent action start_cpu_profiling not running.$/]; }
     }
   ];
 };

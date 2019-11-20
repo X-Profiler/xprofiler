@@ -1,6 +1,7 @@
 'use strict';
 
 const os = require('os');
+const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 const promisify = require('util').promisify;
@@ -32,8 +33,29 @@ function convertOptions(options) {
   return extra;
 }
 
+function checkProfile(rules, obj) {
+  for (const [key, rule] of Object.entries(rules)) {
+    const value = obj[key];
+    if (rule instanceof RegExp) {
+      it(`${key}: ${value} shoule be ${rule}`, function () {
+        expect(rule.test(value)).to.be.ok();
+      });
+    } else if (typeof rule === 'function') {
+      let label = value;
+      if (Array.isArray(value)) {
+        label = `Array [${value[0]}, ${value[1]}, ${value[2]}, ...] length: ${value.length}`;
+      }
+      it(`${key}: ${label} shoule be ${rule}`, function () {
+        expect(rule(value)).to.be.ok();
+      });
+    } else if (typeof rule === 'object') {
+      checkProfile(rule, value);
+    }
+  }
+}
+
 for (let i = 0; i < testConfig.length; i++) {
-  const { cmd, options = {}, errored = false, xctlRules, xprofctlRules } = testConfig[i];
+  const { cmd, options = {}, profileRules, errored = false, xctlRules, xprofctlRules } = testConfig[i];
   for (let j = 0; j < testFiles.length; j++) {
     const { jspath, desc } = testFiles[j];
     const title = `execute [${cmd}] with options: ${JSON.stringify(options)} ${desc}`;
@@ -66,11 +88,7 @@ for (let i = 0; i < testConfig.length; i++) {
             XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
           })
         });
-        if (errored) {
-          resByXprofctl = resByXprofctl.stderr.trim();
-        } else {
-          resByXprofctl = resByXprofctl.stdout.trim();
-        }
+        resByXprofctl = resByXprofctl.stderr.trim() + resByXprofctl.stdout.trim();
         await new Promise(resolve => p.on('close', resolve));
       });
 
@@ -102,14 +120,21 @@ for (let i = 0; i < testConfig.length; i++) {
 
       it(`response value should be ok`, function () {
         describe(title, function () {
-          for (const rule of xctlRules) {
+          const data = { pid, logdir };
+          const rules = typeof xctlRules === 'function' ? xctlRules(data) : xctlRules;
+          for (const rule of rules) {
             const value = utils.getNestingValue(resByXctl, rule.key);
             it(`response.${rule.key}: ${value} should be ${rule.rule.label || rule.rule}`, function () {
               expect(rule.rule.test(value)).to.be.ok();
             });
+
+            // check dump file
+            if (profileRules && typeof profileRules === 'object') {
+              const profile = JSON.parse(fs.readFileSync(resByXctl.data.filepath, 'utf8'));
+              checkProfile(profileRules, profile);
+            }
           }
 
-          const data = { pid };
           for (const rule of xprofctlRules(data)) {
             const value = resByXprofctl;
             it(`${JSON.stringify(value)} should be ${rule}`, function () {

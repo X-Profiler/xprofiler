@@ -3,6 +3,7 @@
 #include "../library/utils.h"
 #include "../logger.h"
 #include "../platform/platform.h"
+#include "./dump.h"
 #include "./send.h"
 #include "./simple/config.h"
 #include "./simple/version.h"
@@ -48,6 +49,9 @@ void ParseCmd(char *command) {
   // get/set config
   V(get_config, GetXprofilerConfig)
   V(set_config, SetXprofilerConfig)
+  // dump actions
+  V(start_cpu_profiling, StartCpuProfiling)
+  V(stop_cpu_profiling, StopCpuProfiling)
 #undef V
 
   // not match any commands
