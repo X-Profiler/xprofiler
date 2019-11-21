@@ -100,7 +100,7 @@ module.exports = function (logdir) {
     },
     {
       cmd: 'start_cpu_profiling',
-      options: { profiling_time: 3000 },
+      options: { profiling_time: 1500 },
       profileRules: cpuprofile,
       xctlRules(data) {
         return [{
