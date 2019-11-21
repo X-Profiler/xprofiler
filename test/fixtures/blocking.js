@@ -28,3 +28,4 @@ while (Date.now() - start < 6000) {
 }
 
 mm.restore();
+process.exit(0);
