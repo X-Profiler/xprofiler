@@ -28,4 +28,5 @@ while (Date.now() - start < 6000) {
 }
 
 mm.restore();
+console.log('blocking done.');
 process.exit(0);
