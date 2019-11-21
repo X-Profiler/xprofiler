@@ -91,6 +91,8 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
         Error(module_type, "peek error code: %d.", err_code);
         break;
       }
+      if (total_bytes == 0)
+        break;
       if (read_bytes != 0 && read_bytes >= total_bytes) {
         need_read = true;
         break;
