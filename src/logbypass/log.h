@@ -9,6 +9,6 @@ using v8::Value;
 
 // javascript-accessible
 void RunLogBypass(const FunctionCallbackInfo<Value> &info);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

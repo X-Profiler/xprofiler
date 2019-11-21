@@ -1,9 +1,9 @@
 #ifdef _WIN32
+#include <windows.h>
+
 #include "../../configure.h"
 #include "../../logger.h"
-
 #include "uv.h"
-#include <windows.h>
 
 namespace xprofiler {
 using std::string;
@@ -13,16 +13,16 @@ static const char module_type[] = "ipc";
 
 #define IN_AND_OUT_BUFFER_SIZE 4096
 
-#define TEARDOWN(message)                                                      \
-  Error(module_type, message);                                                 \
-  error_closed = true;                                                         \
+#define TEARDOWN(message)      \
+  Error(module_type, message); \
+  error_closed = true;         \
   CloseHandle(named_pipe);
 
-#define CREATE_NAMED_PIPE                                                      \
-  named_pipe = CreateNamedPipeW(                                               \
-      lp_name, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | WRITE_DAC,          \
-      PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,                         \
-      PIPE_UNLIMITED_INSTANCES, IN_AND_OUT_BUFFER_SIZE,                        \
+#define CREATE_NAMED_PIPE                                             \
+  named_pipe = CreateNamedPipeW(                                      \
+      lp_name, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | WRITE_DAC, \
+      PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,                \
+      PIPE_UNLIMITED_INSTANCES, IN_AND_OUT_BUFFER_SIZE,               \
       IN_AND_OUT_BUFFER_SIZE, 0, NULL);
 
 wstring String2LPCWSTR(const string &s) {
@@ -86,8 +86,7 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
           module_type,
           "check should read file: peek (%d), read_bytes (%d), total_bytes(%d)",
           peek, read_bytes, total_bytes);
-      if (!peek)
-        break;
+      if (!peek) break;
       if (read_bytes != 0 && read_bytes >= total_bytes) {
         need_read = true;
         break;
@@ -152,6 +151,6 @@ void CreateIpcClient(char *message) {
 
   CloseHandle(named_pipe_client);
 }
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

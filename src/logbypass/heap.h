@@ -8,7 +8,7 @@ using v8::HeapStatistics;
 
 // heap statistics struct
 typedef struct {
-public:
+ public:
   HeapStatistics *handle() { return &heap_statistics_; }
   size_t total_heap_size() { return heap_statistics_.total_heap_size(); }
   size_t used_heap_size() { return heap_statistics_.used_heap_size(); }
@@ -29,7 +29,7 @@ public:
   size_t &external_memory() { return external_memory_; }
 #endif
 
-private:
+ private:
 #if (NODE_MODULE_VERSION < 72)
   // external memory
   size_t external_memory_ = 0;
@@ -39,10 +39,10 @@ private:
 
 // heap space statistics struct
 typedef struct {
-#define V(name)                                                                \
-  size_t name##_space_size = 0;                                                \
-  size_t name##_space_used = 0;                                                \
-  size_t name##_space_available = 0;                                           \
+#define V(name)                      \
+  size_t name##_space_size = 0;      \
+  size_t name##_space_used = 0;      \
+  size_t name##_space_available = 0; \
   size_t name##_space_committed = 0;
   // new space
   V(new)
@@ -60,6 +60,6 @@ typedef struct {
 int InitMemoryAsyncCallback();
 void UnrefAsyncHandle();
 void WriteMemoryInfoToLog(bool log_format_alinode);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

@@ -24,24 +24,22 @@ static bool log_format_alinode = false;
 static LOG_LEVEL log_level = LOG_ERROR;
 static LOG_TYPE log_type = LOG_TO_FILE;
 
-#define COVERT_STRING(key)                                                     \
-  if (key##_value->IsString()) {                                               \
-    Local<String> key##_string = To<String>(key##_value).ToLocalChecked();     \
-    Utf8String key##_utf8string(key##_string);                                 \
-    key = *key##_utf8string;                                                   \
+#define COVERT_STRING(key)                                                 \
+  if (key##_value->IsString()) {                                           \
+    Local<String> key##_string = To<String>(key##_value).ToLocalChecked(); \
+    Utf8String key##_utf8string(key##_string);                             \
+    key = *key##_utf8string;                                               \
   }
 
-#define CONVERT_UINT32(key)                                                    \
-  if (key##_value->IsUint32())                                                 \
-    key = To<uint32_t>(key##_value).ToChecked();
+#define CONVERT_UINT32(key) \
+  if (key##_value->IsUint32()) key = To<uint32_t>(key##_value).ToChecked();
 
-#define CONVERT_UINT32_V2(key, type)                                           \
-  if (key##_value->IsUint32())                                                 \
+#define CONVERT_UINT32_V2(key, type) \
+  if (key##_value->IsUint32())       \
     key = static_cast<type>(To<uint32_t>(key##_value).ToChecked());
 
-#define CONVERT_BOOL(key)                                                      \
-  if (key##_value->IsBoolean())                                                \
-    key = To<bool>(key##_value).ToChecked();
+#define CONVERT_BOOL(key) \
+  if (key##_value->IsBoolean()) key = To<bool>(key##_value).ToChecked();
 
 void Configure(const FunctionCallbackInfo<Value> &info) {
   if (!info[0]->IsObject()) {
@@ -49,8 +47,8 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
     return;
   }
   Local<Object> config = To<Object>(info[0]).ToLocalChecked();
-#define S(key)                                                                 \
-  Local<Value> key##_value =                                                   \
+#define S(key)               \
+  Local<Value> key##_value = \
       Get(config, New<String>(#key).ToLocalChecked()).ToLocalChecked();
 #define V(key, cvrt) S(key) cvrt(key)
 #define W(key, cvrt, type) S(key) cvrt(key, type)
@@ -79,10 +77,10 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
 
 void GetConfig(const FunctionCallbackInfo<Value> &info) {
   Local<Object> config = New<Object>();
-#define V(key, type)                                                           \
-  Set(config, New<String>(#key).ToLocalChecked(),                              \
+#define V(key, type)                              \
+  Set(config, New<String>(#key).ToLocalChecked(), \
       New<type>(key).ToLocalChecked());
-#define W(key, type)                                                           \
+#define W(key, type) \
   Set(config, New<String>(#key).ToLocalChecked(), New<type>(key));
   V(log_dir, String)
   W(log_interval, Number)
@@ -95,8 +93,8 @@ void GetConfig(const FunctionCallbackInfo<Value> &info) {
   info.GetReturnValue().Set(config);
 }
 
-#define V(ret, func, vari)                                                     \
-  ret Get##func() { return vari; }                                             \
+#define V(ret, func, vari)         \
+  ret Get##func() { return vari; } \
   void Set##func(ret value) { vari = value; }
 V(string, LogDir, log_dir)
 V(uint32_t, LogInterval, log_interval)
@@ -105,4 +103,4 @@ V(bool, EnableLogUvHandles, enable_log_uv_handles)
 V(LOG_LEVEL, LogLevel, log_level)
 V(LOG_TYPE, LogType, log_type)
 #undef V
-} // namespace xprofiler
+}  // namespace xprofiler

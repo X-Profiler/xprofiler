@@ -14,7 +14,8 @@ void Sleep(int seconds);
 
 string FmtMessage(const char *format, ...);
 
-template <typename T> T GetJsonValue(json data, string key, XpfError &err) {
+template <typename T>
+T GetJsonValue(json data, string key, XpfError &err) {
   T result = T();
   try {
     result = data[key].get<T>();
@@ -25,6 +26,6 @@ template <typename T> T GetJsonValue(json data, string key, XpfError &err) {
   }
   return result;
 }
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

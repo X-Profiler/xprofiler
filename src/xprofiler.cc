@@ -1,10 +1,9 @@
-#include "nan.h"
-
 #include "commands/listener.h"
 #include "configure.h"
 #include "library/common.h"
 #include "logbypass/log.h"
 #include "logger.h"
+#include "nan.h"
 
 namespace xprofiler {
 using Nan::GetFunction;
@@ -17,8 +16,8 @@ NAN_MODULE_INIT(Initialize) {
   // init global variables
   InitGlobalVariables();
 
-#define V(js_func, native_func)                                                \
-  Set(target, New<String>(#js_func).ToLocalChecked(),                          \
+#define V(js_func, native_func)                       \
+  Set(target, New<String>(#js_func).ToLocalChecked(), \
       GetFunction(New<FunctionTemplate>(native_func)).ToLocalChecked());
   // config
   V(configure, Configure)
@@ -38,4 +37,4 @@ NAN_MODULE_INIT(Initialize) {
 }
 
 NODE_MODULE(xprofiler, Initialize)
-} // namespace xprofiler
+}  // namespace xprofiler

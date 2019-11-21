@@ -9,6 +9,6 @@ using std::string;
 
 void ErrorValue(string traceid, string message);
 void SuccessValue(string traceid, json data);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

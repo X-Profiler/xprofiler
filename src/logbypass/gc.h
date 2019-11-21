@@ -5,7 +5,7 @@
 
 namespace xprofiler {
 typedef struct {
-public:
+ public:
   // total gc times
   unsigned int total_gc_times = 0;
   // total gc duration
@@ -31,12 +31,12 @@ public:
     incremental_marking_duration_last_record = 0;
   }
 
-private:
+ private:
   uint64_t start_ = 0;
 } gc_statistics_t;
 
 int InitGcStatusHooks();
 void WriteGcStatusToLog(bool log_format_alinode);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

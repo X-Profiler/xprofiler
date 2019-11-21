@@ -1,4 +1,5 @@
 #include "error.h"
+
 #include <stdarg.h>
 
 namespace xprofiler {
@@ -10,4 +11,4 @@ XpfError XpfError::Failure(const char *format, ...) {
   va_end(arglist);
   return XpfError(true, string(tmp));
 }
-} // namespace xprofiler
+}  // namespace xprofiler

@@ -8,6 +8,6 @@ namespace xprofiler {
 using nlohmann::json;
 
 COMMAND_CALLBACK(GetXprofilerVersion);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif
