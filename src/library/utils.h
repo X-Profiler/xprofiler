@@ -1,5 +1,5 @@
-#ifndef _SRC_UTILS_H
-#define _SRC_UTILS_H
+#ifndef _SRC_LIBRARY_UTILS_H
+#define _SRC_LIBRARY_UTILS_H
 
 #include "../logger.h"
 #include "error.h"
@@ -13,6 +13,10 @@ using std::string;
 void Sleep(int seconds);
 
 string FmtMessage(const char *format, ...);
+
+string RandNum();
+
+string GetDate();
 
 template <typename T>
 T GetJsonValue(json data, string key, XpfError &err) {

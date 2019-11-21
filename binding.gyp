@@ -11,6 +11,7 @@
         "src/library/error.cc",
         "src/library/common.cc",
         "src/library/utils.cc",
+        "src/library/writer.cc",
         "src/logbypass/log.cc",
         "src/logbypass/cpu.cc",
         "src/logbypass/heap.cc",
@@ -19,8 +20,12 @@
         "src/commands/listener.cc",
         "src/commands/send.cc",
         "src/commands/parser.cc",
+        "src/commands/dump.cc",
         "src/commands/simple/version.cc",
         "src/commands/simple/config.cc",
+        "src/commands/cpuprofiler/cpu_profiler.cc",
+        "src/commands/cpuprofiler/cpu_profile.cc",
+        "src/commands/cpuprofiler/cpu_profile_node.cc",
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       'cflags_cc!': [ '-fno-exceptions' ],
@@ -60,6 +65,7 @@
           },
           "defines": [
             'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.win32\")"',
+            'WIN32_LEAN_AND_MEAN=1',
           ],
           "sources": [
             "src/platform/win/cpu_win.cc",
@@ -70,7 +76,6 @@
       ],
       "defines": [
         'XPROFILER_VERSION="<!(node -p \"require(\'./package.json\').version\")"',
-        'WIN32_LEAN_AND_MEAN=1',
       ],
     },
   ],

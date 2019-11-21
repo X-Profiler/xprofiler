@@ -1,6 +1,9 @@
 [
   {
-    "actions": [],
+    "actions": [
+      "start_cpu_profiling"
+    ],
+    "opt_required": false,
     "opts": {
       "profiling_time": "number"
     }
@@ -9,6 +12,7 @@
     "actions": [
       "set_config"
     ],
+    "opt_required": true,
     "opts": {
       "disable_log_uv_handles": "boolean",
       "enable_log_uv_handles": "boolean",

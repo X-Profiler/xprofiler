@@ -1,8 +1,8 @@
 'use strict';
 
-
-const mm = require('mm');
 const os = require('os');
+const mm = require('mm');
+const moment = require('moment');
 const xprofiler = require('../../');
 
 if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
@@ -28,3 +28,5 @@ while (Date.now() - start < 6000) {
 }
 
 mm.restore();
+console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'blocking done.');
+process.exit(0);

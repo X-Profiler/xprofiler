@@ -1,7 +1,8 @@
 #include "../logger.h"
 #include "../platform/platform.h"
-#include "./parser.h"
+#include "dump.h"
 #include "nan.h"
+#include "parser.h"
 #include "uv.h"
 
 namespace xprofiler {
@@ -26,6 +27,16 @@ void RunCommandsListener(const FunctionCallbackInfo<Value> &info) {
     return;
   }
   Info("init", "commands listener: listener thread created.");
+
+  // init dump action node isolate
+  rc = InitDumpAction();
+  if (rc != 0) {
+    ThrowTypeError("xprofiler: init dump action failed!");
+    info.GetReturnValue().Set(False());
+    return;
+  }
+  UnrefDumpActionAsyncHandle();
+  Info("init", "commands listener: dump action init succeed.");
 
   info.GetReturnValue().Set(True());
 }
