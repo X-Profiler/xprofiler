@@ -108,7 +108,7 @@ module.exports = function (logdir) {
             `x-cpuprofile-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).cpuprofile`)
         }];
       },
-      xprofctlRules() { return [/^执行命令失败: start_cpu_profiling is running.$/]; }
+      xprofctlRules() { return []; }
     },
     {
       cmd: 'stop_cpu_profiling',
