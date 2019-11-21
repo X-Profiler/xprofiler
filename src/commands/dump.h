@@ -1,11 +1,10 @@
 #ifndef _SRC_COMMANDS_DUMP_H
 #define _SRC_COMMANDS_DUMP_H
 
-#include "unordered_map"
-#include "vector"
-
 #include "../library/common.h"
 #include "../library/utils.h"
+#include "unordered_map"
+#include "vector"
 
 namespace xprofiler {
 using std::unordered_map;
@@ -36,6 +35,6 @@ void UnrefDumpActionAsyncHandle();
 
 COMMAND_CALLBACK(StartCpuProfiling);
 COMMAND_CALLBACK(StopCpuProfiling);
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

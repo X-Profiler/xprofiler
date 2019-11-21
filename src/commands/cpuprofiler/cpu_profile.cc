@@ -1,4 +1,5 @@
 #include "cpu_profile.h"
+
 #include "../../library/writer.h"
 #include "../../logger.h"
 #include "cpu_profile_node.h"
@@ -54,4 +55,4 @@ void Profile::Serialize(const CpuProfile *node, std::string filename) {
   writer.json_end();
   outfile.close();
 }
-} // namespace xprofiler
+}  // namespace xprofiler

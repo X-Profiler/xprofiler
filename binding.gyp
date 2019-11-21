@@ -65,6 +65,7 @@
           },
           "defines": [
             'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.win32\")"',
+            'WIN32_LEAN_AND_MEAN=1',
           ],
           "sources": [
             "src/platform/win/cpu_win.cc",
@@ -75,7 +76,6 @@
       ],
       "defines": [
         'XPROFILER_VERSION="<!(node -p \"require(\'./package.json\').version\")"',
-        'WIN32_LEAN_AND_MEAN=1',
       ],
     },
   ],

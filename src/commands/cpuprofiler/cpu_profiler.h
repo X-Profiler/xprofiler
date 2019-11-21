@@ -8,13 +8,13 @@ namespace xprofiler {
 using std::string;
 
 class Profiler {
-public:
+ public:
   Profiler();
   virtual ~Profiler();
   static void StartProfiling(string title);
   static void StopProfiling(string title, string filename);
   static void SetSamplingInterval(uint32_t sample);
 };
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

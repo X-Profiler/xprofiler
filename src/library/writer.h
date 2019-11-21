@@ -13,19 +13,17 @@ using std::string;
 string EscapeJsonChars(const string &str);
 
 class JSONWriter {
-public:
+ public:
   explicit JSONWriter(ostream &out) : out_(out) {}
 
   inline void indent() { indent_ += 2; }
   inline void deindent() { indent_ -= 2; }
   inline void advance() {
-    for (int i = 0; i < indent_; i++)
-      out_ << ' ';
+    for (int i = 0; i < indent_; i++) out_ << ' ';
   }
 
   inline void json_start() {
-    if (state_ == kAfterValue)
-      out_ << ',';
+    if (state_ == kAfterValue) out_ << ',';
     out_ << '\n';
     advance();
     out_ << '{';
@@ -40,9 +38,9 @@ public:
     out_ << '}';
     state_ = kAfterValue;
   }
-  template <typename T> inline void json_objectstart(T key) {
-    if (state_ == kAfterValue)
-      out_ << ',';
+  template <typename T>
+  inline void json_objectstart(T key) {
+    if (state_ == kAfterValue) out_ << ',';
     out_ << '\n';
     advance();
     write_string(key);
@@ -51,9 +49,9 @@ public:
     state_ = kObjectStart;
   }
 
-  template <typename T> inline void json_arraystart(T key) {
-    if (state_ == kAfterValue)
-      out_ << ',';
+  template <typename T>
+  inline void json_arraystart(T key) {
+    if (state_ == kAfterValue) out_ << ',';
     out_ << '\n';
     advance();
     write_string(key);
@@ -78,8 +76,7 @@ public:
   }
   template <typename T, typename U>
   inline void json_keyvalue(const T &key, const U &value) {
-    if (state_ == kAfterValue)
-      out_ << ',';
+    if (state_ == kAfterValue) out_ << ',';
     out_ << '\n';
     advance();
     write_string(key);
@@ -88,18 +85,18 @@ public:
     state_ = kAfterValue;
   }
 
-  template <typename U> inline void json_element(const U &value) {
-    if (state_ == kAfterValue)
-      out_ << ',';
+  template <typename U>
+  inline void json_element(const U &value) {
+    if (state_ == kAfterValue) out_ << ',';
     out_ << '\n';
     advance();
     write_value(value);
     state_ = kAfterValue;
   }
 
-  struct Null {}; // Usable as a JSON value.
+  struct Null {};  // Usable as a JSON value.
 
-private:
+ private:
   template <typename T, typename test_for_number = typename std::enable_if<
                             std::numeric_limits<T>::is_specialized, bool>::type>
   inline void write_value(T number) {
@@ -123,6 +120,6 @@ private:
   int indent_ = 0;
   int state_ = kObjectStart;
 };
-} // namespace xprofiler
+}  // namespace xprofiler
 
 #endif

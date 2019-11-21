@@ -1,6 +1,6 @@
-#include "../platform/platform.h"
-
 #include <stdarg.h>
+
+#include "../platform/platform.h"
 
 #ifdef _WIN32
 #include <time.h>
@@ -33,4 +33,4 @@ string GetDate() {
   return (string)time_string_day;
 }
 
-}; // namespace xprofiler
+};  // namespace xprofiler

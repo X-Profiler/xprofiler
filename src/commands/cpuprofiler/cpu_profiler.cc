@@ -1,4 +1,5 @@
 #include "cpu_profiler.h"
+
 #include "cpu_profile.h"
 
 namespace xprofiler {
@@ -50,4 +51,4 @@ void Profiler::SetSamplingInterval(uint32_t sample) {
   Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(sample);
 #endif
 }
-} // namespace xprofiler
+}  // namespace xprofiler

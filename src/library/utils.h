@@ -18,7 +18,8 @@ string RandNum();
 
 string GetDate();
 
-template <typename T> T GetJsonValue(json data, string key, XpfError &err) {
+template <typename T>
+T GetJsonValue(json data, string key, XpfError &err) {
   T result = T();
   try {
     result = data[key].get<T>();

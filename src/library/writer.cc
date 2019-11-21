@@ -25,8 +25,7 @@ string EscapeJsonChars(const string &str) {
       replace = "\\\"";
     } else {
       size_t num = static_cast<size_t>(ch);
-      if (num < 0x20)
-        replace = control_symbols[num];
+      if (num < 0x20) replace = control_symbols[num];
     }
     if (!replace.empty()) {
       if (pos > last_pos) {
@@ -42,4 +41,4 @@ string EscapeJsonChars(const string &str) {
   }
   return ret;
 }
-} // namespace xprofiler
+}  // namespace xprofiler

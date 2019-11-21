@@ -1,10 +1,9 @@
-#include "nan.h"
-#include "uv.h"
-
 #include "../logger.h"
 #include "../platform/platform.h"
 #include "dump.h"
+#include "nan.h"
 #include "parser.h"
+#include "uv.h"
 
 namespace xprofiler {
 using Nan::False;

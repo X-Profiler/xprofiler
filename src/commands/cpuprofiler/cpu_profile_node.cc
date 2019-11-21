@@ -31,4 +31,4 @@ void ProfileNode::SerializeNode(const CpuProfileNode *node,
   writer->json_arrayend();
 }
 
-} // namespace xprofiler
+}  // namespace xprofiler

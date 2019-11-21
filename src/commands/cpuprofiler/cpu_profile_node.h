@@ -9,9 +9,9 @@ namespace xprofiler {
 using v8::CpuProfileNode;
 
 class ProfileNode {
-public:
+ public:
   static void SerializeNode(const CpuProfileNode *node, JSONWriter *writer);
 };
 
-} // namespace xprofiler
+}  // namespace xprofiler
 #endif

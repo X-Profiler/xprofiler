@@ -9,9 +9,9 @@ using std::string;
 using v8::CpuProfile;
 
 class Profile {
-public:
+ public:
   static void Serialize(const CpuProfile *node, string filename);
 };
 
-} // namespace xprofiler
+}  // namespace xprofiler
 #endif
