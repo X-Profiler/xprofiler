@@ -69,7 +69,7 @@ static void DependentActionRunning(DumpAction action, XpfError &err) {
   }
 }
 
-static void TransactionDone(const string thread_name, string unique_key,
+static void TransactionDone(string thread_name, string unique_key,
                             XpfError &err) {
   if (request_map.find(unique_key) != request_map.end()) {
     err = XpfError::Failure("<%s> %s has been executed by other thread.",
@@ -77,78 +77,107 @@ static void TransactionDone(const string thread_name, string unique_key,
   }
 }
 
-#define PROFILING(data_type, type, func)                         \
-  {                                                              \
-    data_type##_dump_data_t *data_type##_dump_data =             \
-        static_cast<data_type##_dump_data_t *>(dump_data);       \
-    func;                                                        \
-    Debug(module_type, "<" #type "> %s " #data_type " started.", \
-          unique_key.c_str());                                   \
-    break;                                                       \
-  }
+template <typename T>
+T *GetProfilingData(void *data, string notify_type, string unique_key) {
+  T *dump_data = static_cast<T *>(data);
+  Debug(module_type, "<%s> %s action start.", notify_type.c_str(),
+        unique_key.c_str());
+  return dump_data;
+}
 
-#define DUMP_FILE(data_type, type, func, action)                      \
-  data_type##_dump_data_t *data_type##_dump_data =                    \
-      static_cast<data_type##_dump_data_t *>(dump_data);              \
-  func;                                                               \
-  Debug(module_type, "<" #type "> %s " #data_type ": %s created.",    \
-        unique_key.c_str(), data_type##_dump_data->filepath.c_str()); \
-  if (!dump_data->run_once) dump_data->run_once = true;               \
+template <typename T>
+T *GetDumpData(void *data, string notify_type, string unique_key,
+               DumpAction action) {
+  T *dump_data = static_cast<T *>(data);
+  Debug(module_type, "<%s> %s dump file: %s created.", notify_type.c_str(),
+        unique_key.c_str(), dump_data->filepath.c_str());
+
+  // reset clear dump data flag
+  if (!dump_data->run_once) dump_data->run_once = true;
+
+  // rest action flah
   action_map.erase(action);
 
-#define V(data, type)                                                    \
-  dump_data_t *dump_data = static_cast<dump_data_t *>(data);             \
-  string traceid = dump_data->traceid;                                   \
-  DumpAction action = dump_data->action;                                 \
-  XpfError err;                                                          \
-  string unique_key = traceid + "::" + Action2String(action);            \
-  TransactionDone(#type, unique_key, err);                               \
-  if (err.Fail()) {                                                      \
-    Debug(module_type, "%s", err.GetErrMessage());                       \
-    request_map.erase(unique_key);                                       \
-    if (dump_data->run_once) {                                           \
-      Debug(module_type, "<" #type "> %s dump_data cleared.",            \
-            unique_key.c_str());                                         \
-      delete dump_data;                                                  \
-    }                                                                    \
-    return;                                                              \
-  }                                                                      \
-  request_map.insert(make_pair(unique_key, true));                       \
-  Debug(module_type, "<" #type "> %s handled.", unique_key.c_str());     \
-  DependentActionRunning(action, err);                                   \
-  if (err.Fail()) {                                                      \
-    Debug(module_type, "<" #type "> %s error: %s", unique_key.c_str(),   \
-          err.GetErrMessage());                                          \
-    return;                                                              \
-  }                                                                      \
-  switch (action) {                                                      \
-    case START_CPU_PROFILING:                                            \
-      PROFILING(cpuprofile, type,                                        \
-                Profiler::StartProfiling(cpuprofile_dump_data->title))   \
-    case STOP_CPU_PROFILING: {                                           \
-      DUMP_FILE(cpuprofile, type,                                        \
-                Profiler::StopProfiling(cpuprofile_dump_data->title,     \
-                                        cpuprofile_dump_data->filepath), \
-                STOP_CPU_PROFILING)                                      \
-      action_map.erase(START_CPU_PROFILING);                             \
-      break;                                                             \
-    }                                                                    \
-    default:                                                             \
-      Error(module_type, "not support dump action: %d", action);         \
-      break;                                                             \
+  return dump_data;
+}
+
+#define CHECK(func)                                              \
+  func;                                                          \
+  if (err.Fail()) {                                              \
+    Debug(module_type, "<%s> %s error: %s", notify_type.c_str(), \
+          unique_key.c_str(), err.GetErrMessage());              \
+    return;                                                      \
   }
 
+void HandleAction(void *data, string notify_type) {
+  dump_data_t *dump_data = static_cast<dump_data_t *>(data);
+  string traceid = dump_data->traceid;
+  DumpAction action = dump_data->action;
+
+  // check transaction has been done
+  XpfError err;
+  string unique_key = traceid + "::" + Action2String(action);
+  TransactionDone(notify_type, unique_key, err);
+  if (err.Fail()) {
+    Debug(module_type, "%s", err.GetErrMessage());
+    request_map.erase(unique_key);
+    // clear dump_data
+    if (dump_data->run_once) {
+      Debug(module_type, "<%s> %s dump_data cleared.", notify_type.c_str(),
+            unique_key.c_str());
+      delete dump_data;
+    }
+    return;
+  }
+
+  // set action executing flag
+  request_map.insert(make_pair(unique_key, true));
+  Debug(module_type, "<%s> %s handled.", notify_type.c_str(),
+        unique_key.c_str());
+
+  // check conflict action running
+  CHECK(ConflictActionRunning(action, err))
+
+  // check dependent action running
+  CHECK(DependentActionRunning(action, err))
+
+  // start run action
+  switch (action) {
+#define V(data_type) \
+  data_type *tmp = GetProfilingData<data_type>(data, notify_type, unique_key);
+#define W(data_type, action) \
+  data_type *tmp =           \
+      GetDumpData<data_type>(data, notify_type, unique_key, action);
+
+    case START_CPU_PROFILING: {
+      V(cpuprofile_dump_data_t)
+      Profiler::StartProfiling(tmp->title);
+      break;
+    }
+    case STOP_CPU_PROFILING: {
+      W(cpuprofile_dump_data_t, STOP_CPU_PROFILING)
+      Profiler::StopProfiling(tmp->title, tmp->filepath);
+      action_map.erase(START_CPU_PROFILING);
+      break;
+    }
+
+#undef V
+#undef W
+    default:
+      Error(module_type, "not support dump action: %d", action);
+      break;
+  }
+}
+
+#undef CHECK
+
 static void RequestInterruptCallback(Isolate *isolate, void *data) {
-  V(data, v8_request_interrupt)
+  HandleAction(data, "v8_request_interrupt");
 }
 
 static void AsyncSendCallback(uv_async_t *handle) {
-  V(handle->data, uv_async_send)
+  HandleAction(handle->data, "uv_async_send");
 }
-
-#undef PROFILING
-#undef DUMP_FILE
-#undef V
 
 static void ProfilingTime(uint64_t profiling_time) {
   uint64_t start = uv_hrtime();
@@ -159,39 +188,35 @@ static void ProfilingTime(uint64_t profiling_time) {
 }
 
 static void NoticeMainJsThread(void *data) {
-  // request interrupt
   uv_mutex_lock(&node_isolate_mutex);
   node_isolate->RequestInterrupt(RequestInterruptCallback, data);
   uv_mutex_unlock(&node_isolate_mutex);
 
-  // uv async send
   async_send_callback.data = data;
   uv_async_send(&async_send_callback);
 }
 
-#define V(data_type, action_type)                          \
-  case START_##action_type: {                              \
-    data_type##_dump_data_t *data_type##_dump_data =       \
-        static_cast<data_type##_dump_data_t *>(dump_data); \
-    ProfilingTime(data_type##_dump_data->profiling_time);  \
-    data_type##_dump_data->action = STOP_##action_type;    \
-    NoticeMainJsThread((void *)data_type##_dump_data);     \
-    break;                                                 \
-  }
+template <typename T>
+void StopProfiling(void *data, DumpAction stop_action) {
+  T *dump_data = static_cast<T *>(data);
+  ProfilingTime(dump_data->profiling_time);
+  dump_data->action = stop_action;
+  NoticeMainJsThread(data);
+}
 
 static void ProfilingWatchDog(void *data) {
   dump_data_t *dump_data = static_cast<dump_data_t *>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
   switch (action) {
-    V(cpuprofile, CPU_PROFILING)
+    case START_CPU_PROFILING:
+      StopProfiling<cpuprofile_dump_data_t>(data, STOP_CPU_PROFILING);
+      break;
     default:
       Error(module_type, "watch dog not support dump action: %s", action);
       break;
   }
 }
-
-#undef V
 
 int InitDumpAction() {
   node_isolate = Isolate::GetCurrent();
@@ -259,24 +284,28 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   return result;
 }
 
-#define V(func_name, action, data_type, ext, extra)              \
-  COMMAND_CALLBACK(func_name) {                                  \
-    XpfError err;                                                \
-    data_type##_dump_data_t *data = new data_type##_dump_data_t; \
-    extra;                                                       \
-    json result = DoDumpAction<data_type##_dump_data_t>(         \
-        command, action, #data_type, #ext, data, err);           \
-    if (err.Fail()) {                                            \
-      error(format("%s", err.GetErrMessage()));                  \
-      return;                                                    \
-    }                                                            \
-    success(result);                                             \
-  }
+#define ACTION_HANDLE(action, prefix, ext)                                     \
+  XpfError err;                                                                \
+  json result = DoDumpAction<cpuprofile_dump_data_t>(command, action, #prefix, \
+                                                     #ext, data, err);         \
+  if (err.Fail()) {                                                            \
+    error(format("%s", err.GetErrMessage()));                                  \
+    return;                                                                    \
+  }                                                                            \
+  success(result);
 
-// cpu profiling
-V(StartCpuProfiling, START_CPU_PROFILING, cpuprofile, cpuprofile,
-  data->title = "xprofiler")
-V(StopCpuProfiling, STOP_CPU_PROFILING, cpuprofile, cpuprofile, {})
+COMMAND_CALLBACK(StartCpuProfiling) {
+  cpuprofile_dump_data_t *data = new cpuprofile_dump_data_t;
+  data->title = "xprofiler";
+  ACTION_HANDLE(START_CPU_PROFILING, cpuprofile, cpuprofile)
+}
+
+COMMAND_CALLBACK(StopCpuProfiling) {
+  cpuprofile_dump_data_t *data = new cpuprofile_dump_data_t;
+  ACTION_HANDLE(STOP_CPU_PROFILING, cpuprofile, cpuprofile)
+}
+
+#undef ACTION_HANDLE
 
 #undef CHECK
 }  // namespace xprofiler
