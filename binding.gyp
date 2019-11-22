@@ -26,6 +26,8 @@
         "src/commands/cpuprofiler/cpu_profiler.cc",
         "src/commands/cpuprofiler/cpu_profile.cc",
         "src/commands/cpuprofiler/cpu_profile_node.cc",
+        "src/commands/heapdump/heap_profiler.cc",
+        "src/commands/heapdump/heap_snapshot.cc",
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       'cflags_cc!': [ '-fno-exceptions' ],
