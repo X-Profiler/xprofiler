@@ -96,6 +96,10 @@ xctl(pid, action, options.data)
       case 'stop_cpu_profiling':
         console.log(`CPU profiling 文件路径: ${data.filepath}`);
         break;
+      case 'heapdump':
+        console.log(`Heapdump 文件路径：${data.filepath}`);
+        console.log(`生成 heapsnapshot 视堆序列化耗费需要数秒至数分钟.`);
+        break;
       default:
         console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);
       }

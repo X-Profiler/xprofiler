@@ -1,6 +1,7 @@
 #include <stdarg.h>
 
 #include "../platform/platform.h"
+#include "uv.h"
 
 #ifdef _WIN32
 #include <time.h>
@@ -21,8 +22,8 @@ string FmtMessage(const char *format, ...) {
 }
 
 string RandNum() {
-  srand(time(0));
-  return std::to_string(rand() % 1000000);
+  srand(uv_hrtime() + rand());
+  return std::to_string(rand() % 900000 + 100000);
 }
 
 string GetDate() {
