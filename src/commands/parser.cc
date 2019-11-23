@@ -52,6 +52,7 @@ void ParseCmd(char *command) {
   // dump actions
   V(start_cpu_profiling, StartCpuProfiling)
   V(stop_cpu_profiling, StopCpuProfiling)
+  V(heapdump, Heapdump)
 #undef V
 
   // not match any commands

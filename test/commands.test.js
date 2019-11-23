@@ -40,10 +40,18 @@ function checkProfile(rules, obj) {
       it(`${key}: ${value} shoule be ${rule}`, function () {
         expect(rule.test(value)).to.be.ok();
       });
+    } else if (Array.isArray(rule)) {
+      for (const v of value) {
+        checkProfile(rule[0], v);
+      }
     } else if (typeof rule === 'function') {
       let label = value;
       if (Array.isArray(value)) {
-        label = `Array [${value[0]}, ${value[1]}, ${value[2]}, ...] length: ${value.length}`;
+        if (value.length < 10) {
+          label = `${JSON.stringify(value)} length: ${value.length}`;
+        } else {
+          label = `Array [${value[0]}, ${value[1]}, ${value[2]}, ...] length: ${value.length}`;
+        }
       }
       it(`${key}: ${label} shoule be ${rule}`, function () {
         expect(rule(value)).to.be.ok();

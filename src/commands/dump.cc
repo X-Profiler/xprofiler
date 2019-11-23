@@ -4,6 +4,7 @@
 #include "../logger.h"
 #include "../platform/platform.h"
 #include "cpuprofiler/cpu_profiler.h"
+#include "heapdump/heap_profiler.h"
 #include "uv.h"
 #include "v8.h"
 
@@ -22,8 +23,8 @@ static uv_thread_t uv_profiling_callback_thread;
 static ActionMap action_map;
 static RequestMap request_map;
 
-static ConflictMap conflict_map = {{START_CPU_PROFILING, {}},
-                                   {STOP_CPU_PROFILING, {}}};
+static ConflictMap conflict_map = {
+    {START_CPU_PROFILING, {}}, {STOP_CPU_PROFILING, {}}, {HEAPDUMP, {}}};
 
 static DependentMap dependent_map = {{STOP_CPU_PROFILING, START_CPU_PROFILING}};
 
@@ -35,6 +36,9 @@ static string Action2String(DumpAction action) {
       break;
     case STOP_CPU_PROFILING:
       name = "stop_cpu_profiling";
+      break;
+    case HEAPDUMP:
+      name = "heapdump";
       break;
     default:
       name = "unknown";
@@ -86,19 +90,16 @@ T *GetProfilingData(void *data, string notify_type, string unique_key) {
 }
 
 template <typename T>
-T *GetDumpData(void *data, string notify_type, string unique_key,
-               DumpAction action) {
+T *GetDumpData(void *data) {
   T *dump_data = static_cast<T *>(data);
-  Debug(module_type, "<%s> %s dump file: %s created.", notify_type.c_str(),
-        unique_key.c_str(), dump_data->filepath.c_str());
-
-  // reset clear dump data flag
   if (!dump_data->run_once) dump_data->run_once = true;
-
-  // rest action flah
-  action_map.erase(action);
-
   return dump_data;
+}
+
+template <typename T>
+void AfterDumpFile(T *data, string notify_type, string unique_key) {
+  Debug(module_type, "<%s> %s dump file: %s creating.", notify_type.c_str(),
+        unique_key.c_str(), data->filepath.c_str());
 }
 
 #define CHECK(func)                                              \
@@ -143,26 +144,27 @@ void HandleAction(void *data, string notify_type) {
 
   // start run action
   switch (action) {
-#define V(data_type) \
-  data_type *tmp = GetProfilingData<data_type>(data, notify_type, unique_key);
-#define W(data_type, action) \
-  data_type *tmp =           \
-      GetDumpData<data_type>(data, notify_type, unique_key, action);
-
     case START_CPU_PROFILING: {
-      V(cpuprofile_dump_data_t)
+      cpuprofile_dump_data_t *tmp = GetProfilingData<cpuprofile_dump_data_t>(
+          data, notify_type, unique_key);
       Profiler::StartProfiling(tmp->title);
       break;
     }
     case STOP_CPU_PROFILING: {
-      W(cpuprofile_dump_data_t, STOP_CPU_PROFILING)
+      cpuprofile_dump_data_t *tmp = GetDumpData<cpuprofile_dump_data_t>(data);
       Profiler::StopProfiling(tmp->title, tmp->filepath);
+      AfterDumpFile<cpuprofile_dump_data_t>(tmp, notify_type, unique_key);
       action_map.erase(START_CPU_PROFILING);
+      action_map.erase(STOP_CPU_PROFILING);
       break;
     }
-
-#undef V
-#undef W
+    case HEAPDUMP: {
+      heapdump_data_t *tmp = GetDumpData<heapdump_data_t>(data);
+      HeapProfiler::TakeSnapshot(tmp->filepath);
+      AfterDumpFile<heapdump_data_t>(tmp, notify_type, unique_key);
+      action_map.erase(HEAPDUMP);
+      break;
+    }
     default:
       Error(module_type, "not support dump action: %d", action);
       break;
@@ -237,7 +239,7 @@ void UnrefDumpActionAsyncHandle() {
 
 template <typename T>
 static json DoDumpAction(json command, DumpAction action, string prefix,
-                         string ext, T *data, XpfError &err) {
+                         string ext, T *data, bool profliling, XpfError &err) {
   json result;
 
   // get traceid
@@ -269,6 +271,8 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   // send data
   NoticeMainJsThread(data);
 
+  if (!profliling) return result;
+
   // get profiling time
   json options = command["options"];
   int profiling_time = GetJsonValue<int>(options, "profiling_time", err);
@@ -284,25 +288,30 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   return result;
 }
 
-#define ACTION_HANDLE(action, prefix, ext)                                     \
-  XpfError err;                                                                \
-  json result = DoDumpAction<cpuprofile_dump_data_t>(command, action, #prefix, \
-                                                     #ext, data, err);         \
-  if (err.Fail()) {                                                            \
-    error(format("%s", err.GetErrMessage()));                                  \
-    return;                                                                    \
-  }                                                                            \
+#define ACTION_HANDLE(action, data_type, profliling, prefix, ext) \
+  XpfError err;                                                   \
+  json result = DoDumpAction<data_type##dump_data_t>(             \
+      command, action, #prefix, #ext, data, profliling, err);     \
+  if (err.Fail()) {                                               \
+    error(format("%s", err.GetErrMessage()));                     \
+    return;                                                       \
+  }                                                               \
   success(result);
 
 COMMAND_CALLBACK(StartCpuProfiling) {
   cpuprofile_dump_data_t *data = new cpuprofile_dump_data_t;
   data->title = "xprofiler";
-  ACTION_HANDLE(START_CPU_PROFILING, cpuprofile, cpuprofile)
+  ACTION_HANDLE(START_CPU_PROFILING, cpuprofile_, true, cpuprofile, cpuprofile)
 }
 
 COMMAND_CALLBACK(StopCpuProfiling) {
   cpuprofile_dump_data_t *data = new cpuprofile_dump_data_t;
-  ACTION_HANDLE(STOP_CPU_PROFILING, cpuprofile, cpuprofile)
+  ACTION_HANDLE(STOP_CPU_PROFILING, cpuprofile_, false, cpuprofile, cpuprofile)
+}
+
+COMMAND_CALLBACK(Heapdump) {
+  heapdump_data_t *data = new heapdump_data_t;
+  ACTION_HANDLE(HEAPDUMP, heap, false, heapdump, heapsnapshot)
 }
 
 #undef ACTION_HANDLE

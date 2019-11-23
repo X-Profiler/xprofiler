@@ -20,20 +20,57 @@ const cpuprofile = {
   typeId: /^xprofiler-cpu-profile$/,
   title: /^xprofiler$/,
   head: {
-    functionName: /^[\w()]+$/,
-    url: /^([\w()/\\]+|)$/,
+    functionName: /^([\w\s()]+|)$/,
+    url: /^([.\w()/\\]+|)$/,
     lineNumber: /^\d+$/,
     columnNumber: /^\d+$/,
     bailoutReason: /^([\w\s]+|)$/,
     id: /^\d+$/,
     scriptId: /^\d+$/,
     hitCount: /^\d+$/,
-    children: isArray
+    children: [
+      {
+        functionName: /^([\w\s()]+|)$/,
+        url: /^([.\w()/\\]+|)$/,
+        lineNumber: /^\d+$/,
+        columnNumber: /^\d+$/,
+        bailoutReason: /^([\w\s]+|)$/,
+        id: /^\d+$/,
+        scriptId: /^\d+$/,
+        hitCount: /^\d+$/,
+        children: isArray
+      }
+    ]
   },
   startTime: /^\d+$/,
   endTime: /^\d+$/,
   samples: isArray,
   timestamps: isArray
+};
+
+const heapsnapshot = {
+  snapshot: {
+    meta: {
+      node_fields: isArray,
+      node_types: isArray,
+      edge_fields: isArray,
+      edge_types: isArray,
+      trace_function_info_fields: isArray,
+      trace_node_fields: isArray,
+      sample_fields: isArray,
+      // location_fields: isArray
+    },
+    node_count: /^\d+$/,
+    edge_count: /^\d+$/,
+    trace_function_count: /^\d+$/
+  },
+  nodes: isArray,
+  edges: isArray,
+  trace_function_infos: isArray,
+  trace_tree: isArray,
+  samples: isArray,
+  // locations: isArray,
+  strings: isArray
 };
 
 module.exports = function (logdir) {
@@ -117,6 +154,17 @@ module.exports = function (logdir) {
         return [{ key: 'message', rule: /^stop_cpu_profiling dependent action start_cpu_profiling not running.$/ }];
       },
       xprofctlRules() { return [/^执行命令失败: stop_cpu_profiling dependent action start_cpu_profiling not running.$/]; }
-    }
+    },
+    {
+      cmd: 'heapdump',
+      profileRules: heapsnapshot,
+      xctlRules(data) {
+        return [{
+          key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
+            `x-heapdump-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).heapsnapshot`)
+        }];
+      },
+      xprofctlRules() { return []; }
+    },
   ];
 };
