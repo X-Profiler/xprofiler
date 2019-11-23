@@ -28,19 +28,7 @@ const cpuprofile = {
     id: /^\d+$/,
     scriptId: /^\d+$/,
     hitCount: /^\d+$/,
-    children: [
-      {
-        functionName: /^([\w\s()]+|)$/,
-        url: /^([.\w()/\\]+|)$/,
-        lineNumber: /^\d+$/,
-        columnNumber: /^\d+$/,
-        bailoutReason: /^([\w\s]+|)$/,
-        id: /^\d+$/,
-        scriptId: /^\d+$/,
-        hitCount: /^\d+$/,
-        children: isArray
-      }
-    ]
+    children: isArray
   },
   startTime: /^\d+$/,
   endTime: /^\d+$/,
@@ -71,6 +59,20 @@ const heapsnapshot = {
   samples: isArray,
   // locations: isArray,
   strings: isArray
+};
+
+const heapprofile = {
+  head: {
+    callFrame: {
+      functionName: /^([\w\s()]+|)$/,
+      scriptId: /^\d+$/,
+      url: /^([.\w()/\\]+|)$/,
+      lineNumber: /^\d+$/,
+      columnNumber: /^\d+$/
+    },
+    selfSize: /^\d+$/,
+    children: isArray
+  }
 };
 
 module.exports = function (logdir) {
@@ -151,9 +153,9 @@ module.exports = function (logdir) {
       cmd: 'stop_cpu_profiling',
       errored: true,
       xctlRules() {
-        return [{ key: 'message', rule: /^stop_cpu_profiling dependent action start_cpu_profiling not running.$/ }];
+        return [{ key: 'message', rule: /^stop_cpu_profiling dependent action start_cpu_profiling is not running.$/ }];
       },
-      xprofctlRules() { return [/^执行命令失败: stop_cpu_profiling dependent action start_cpu_profiling not running.$/]; }
+      xprofctlRules() { return [/^执行命令失败: stop_cpu_profiling dependent action start_cpu_profiling is not running.$/]; }
     },
     {
       cmd: 'heapdump',
@@ -165,6 +167,26 @@ module.exports = function (logdir) {
         }];
       },
       xprofctlRules() { return []; }
+    },
+    {
+      cmd: 'start_heap_profiling',
+      options: { profiling_time: 1000 },
+      profileRules: heapprofile,
+      xctlRules(data) {
+        return [{
+          key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
+            `x-heapprofile-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).heapprofile`)
+        }];
+      },
+      xprofctlRules() { return []; }
+    },
+    {
+      cmd: 'stop_heap_profiling',
+      errored: true,
+      xctlRules() {
+        return [{ key: 'message', rule: /^stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/ }];
+      },
+      xprofctlRules() { return [/^执行命令失败: stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/]; }
     },
   ];
 };

@@ -10,7 +10,13 @@ namespace xprofiler {
 using std::unordered_map;
 using std::vector;
 
-enum DumpAction { START_CPU_PROFILING, STOP_CPU_PROFILING, HEAPDUMP };
+enum DumpAction {
+  START_CPU_PROFILING,
+  STOP_CPU_PROFILING,
+  HEAPDUMP,
+  START_SAMPLING_HEAP_PROFILING,
+  STOP_SAMPLING_HEAP_PROFILING
+};
 
 typedef unordered_map<int, bool> ActionMap;
 typedef unordered_map<string, bool> RequestMap;
@@ -32,6 +38,9 @@ typedef struct CpuProfilerDumpData : BaseDumpData {
 typedef struct HeapdumpData : BaseDumpData {
 } heapdump_data_t;
 
+typedef struct SamplingHeapProfilerDumpData : BaseDumpData {
+} sampling_heapprofiler_dump_data_t;
+
 int InitDumpAction();
 
 void UnrefDumpActionAsyncHandle();
@@ -39,6 +48,8 @@ void UnrefDumpActionAsyncHandle();
 COMMAND_CALLBACK(StartCpuProfiling);
 COMMAND_CALLBACK(StopCpuProfiling);
 COMMAND_CALLBACK(Heapdump);
+COMMAND_CALLBACK(StartSamplingHeapProfiling);
+COMMAND_CALLBACK(StopSamplingHeapProfiling);
 }  // namespace xprofiler
 
 #endif

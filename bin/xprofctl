@@ -24,9 +24,10 @@ const normalYargs = yargs => yargs
 const args = yargs
   .usage('$0 <action> -p <pid> [-t profiling_time]')
   // commands
-  .command('start_cpu_profiling', '生成 cpuprofile', profilingYargs)
+  .command('start_cpu_profiling', '启动 cpu 采样', profilingYargs)
   .command('stop_cpu_profiling', '生成 cpuprofile', normalYargs)
-  .command('start_heap_profiling', '生成 heapprofile', profilingYargs)
+  .command('start_heap_profiling', '启动 heap 采样', profilingYargs)
+  .command('stop_heap_profiling', '生成 heapprofile', normalYargs)
   .command('heapdump', '生成 heapsnapshot', normalYargs)
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
@@ -99,6 +100,19 @@ xctl(pid, action, options.data)
       case 'heapdump':
         console.log(`Heapdump 文件路径：${data.filepath}`);
         console.log(`生成 heapsnapshot 视堆序列化耗费需要数秒至数分钟.`);
+        break;
+      case 'start_heap_profiling': {
+        const profiling_time = options.data.profiling_time;
+        if (profiling_time) {
+          console.log(`Heap profiling 文件路径：${data.filepath}`);
+          console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 heap profiling 结果.`);
+        } else {
+          console.log(`进程 (pid ${pid}) 开始进行 Heap 采样.`);
+        }
+        break;
+      }
+      case 'stop_heap_profiling':
+        console.log(`Heap profiling 文件路径: ${data.filepath}`);
         break;
       default:
         console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);

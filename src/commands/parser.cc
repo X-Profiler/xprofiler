@@ -49,10 +49,14 @@ void ParseCmd(char *command) {
   // get/set config
   V(get_config, GetXprofilerConfig)
   V(set_config, SetXprofilerConfig)
-  // dump actions
+  // cpu profiling
   V(start_cpu_profiling, StartCpuProfiling)
   V(stop_cpu_profiling, StopCpuProfiling)
+  // heapdump
   V(heapdump, Heapdump)
+  // sampling heap profiling
+  V(start_heap_profiling, StartSamplingHeapProfiling)
+  V(stop_heap_profiling, StopSamplingHeapProfiling)
 #undef V
 
   // not match any commands

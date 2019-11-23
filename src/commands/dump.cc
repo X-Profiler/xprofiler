@@ -5,6 +5,7 @@
 #include "../platform/platform.h"
 #include "cpuprofiler/cpu_profiler.h"
 #include "heapdump/heap_profiler.h"
+#include "heapprofiler/sampling_heap_profiler.h"
 #include "uv.h"
 #include "v8.h"
 
@@ -24,9 +25,19 @@ static ActionMap action_map;
 static RequestMap request_map;
 
 static ConflictMap conflict_map = {
-    {START_CPU_PROFILING, {}}, {STOP_CPU_PROFILING, {}}, {HEAPDUMP, {}}};
+    {START_CPU_PROFILING,
+     {START_SAMPLING_HEAP_PROFILING, STOP_SAMPLING_HEAP_PROFILING}},
+    {STOP_CPU_PROFILING,
+     {START_SAMPLING_HEAP_PROFILING, STOP_SAMPLING_HEAP_PROFILING}},
+    {HEAPDUMP, {START_SAMPLING_HEAP_PROFILING, STOP_SAMPLING_HEAP_PROFILING}},
+    {START_SAMPLING_HEAP_PROFILING,
+     {START_CPU_PROFILING, STOP_CPU_PROFILING, HEAPDUMP}},
+    {STOP_SAMPLING_HEAP_PROFILING,
+     {START_CPU_PROFILING, STOP_CPU_PROFILING, HEAPDUMP}}};
 
-static DependentMap dependent_map = {{STOP_CPU_PROFILING, START_CPU_PROFILING}};
+static DependentMap dependent_map = {
+    {STOP_CPU_PROFILING, START_CPU_PROFILING},
+    {STOP_SAMPLING_HEAP_PROFILING, START_SAMPLING_HEAP_PROFILING}};
 
 static string Action2String(DumpAction action) {
   string name = "";
@@ -39,6 +50,12 @@ static string Action2String(DumpAction action) {
       break;
     case HEAPDUMP:
       name = "heapdump";
+      break;
+    case START_SAMPLING_HEAP_PROFILING:
+      name = "start_sampling_heap_profiling";
+      break;
+    case STOP_SAMPLING_HEAP_PROFILING:
+      name = "stop_sampling_heap_profiling";
       break;
     default:
       name = "unknown";
@@ -55,8 +72,15 @@ static void ActionRunning(DumpAction action, XpfError &err) {
 
 static void ConflictActionRunning(DumpAction action, XpfError &err) {
   if (conflict_map.find(action) != conflict_map.end()) {
-    for (DumpAction confilct : conflict_map.at(action))
+    for (DumpAction confilct : conflict_map.at(action)) {
       ActionRunning(confilct, err);
+      if (err.Fail()) {
+        err = XpfError::Failure(
+            "%s conflict action %s is running, please wait for done.",
+            Action2String(action).c_str(), Action2String(confilct).c_str());
+        break;
+      }
+    }
   }
 }
 
@@ -65,7 +89,7 @@ static void DependentActionRunning(DumpAction action, XpfError &err) {
     DumpAction dependent_action = dependent_map.at(action);
     ActionRunning(dependent_action, err);
     if (err.Success())
-      err = XpfError::Failure("%s dependent action %s not running.",
+      err = XpfError::Failure("%s dependent action %s is not running.",
                               Action2String(action).c_str(),
                               Action2String(dependent_action).c_str());
     else
@@ -165,6 +189,20 @@ void HandleAction(void *data, string notify_type) {
       action_map.erase(HEAPDUMP);
       break;
     }
+    case START_SAMPLING_HEAP_PROFILING: {
+      SamplingHeapProfile::StartSamplingHeapProfiling();
+      break;
+    }
+    case STOP_SAMPLING_HEAP_PROFILING: {
+      sampling_heapprofiler_dump_data_t *tmp =
+          GetDumpData<sampling_heapprofiler_dump_data_t>(data);
+      SamplingHeapProfile::StopSamplingHeapProfiling(tmp->filepath);
+      AfterDumpFile<sampling_heapprofiler_dump_data_t>(tmp, notify_type,
+                                                       unique_key);
+      action_map.erase(START_SAMPLING_HEAP_PROFILING);
+      action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
+      break;
+    }
     default:
       Error(module_type, "not support dump action: %d", action);
       break;
@@ -213,6 +251,10 @@ static void ProfilingWatchDog(void *data) {
   switch (action) {
     case START_CPU_PROFILING:
       StopProfiling<cpuprofile_dump_data_t>(data, STOP_CPU_PROFILING);
+      break;
+    case START_SAMPLING_HEAP_PROFILING:
+      StopProfiling<sampling_heapprofiler_dump_data_t>(
+          data, STOP_SAMPLING_HEAP_PROFILING);
       break;
     default:
       Error(module_type, "watch dog not support dump action: %s", action);
@@ -312,6 +354,20 @@ COMMAND_CALLBACK(StopCpuProfiling) {
 COMMAND_CALLBACK(Heapdump) {
   heapdump_data_t *data = new heapdump_data_t;
   ACTION_HANDLE(HEAPDUMP, heap, false, heapdump, heapsnapshot)
+}
+
+COMMAND_CALLBACK(StartSamplingHeapProfiling) {
+  sampling_heapprofiler_dump_data_t *data =
+      new sampling_heapprofiler_dump_data_t;
+  ACTION_HANDLE(START_SAMPLING_HEAP_PROFILING, sampling_heapprofiler_, true,
+                heapprofile, heapprofile)
+}
+
+COMMAND_CALLBACK(StopSamplingHeapProfiling) {
+  sampling_heapprofiler_dump_data_t *data =
+      new sampling_heapprofiler_dump_data_t;
+  ACTION_HANDLE(STOP_SAMPLING_HEAP_PROFILING, sampling_heapprofiler_, false,
+                heapprofile, heapprofile)
 }
 
 #undef ACTION_HANDLE
