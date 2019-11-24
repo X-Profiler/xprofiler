@@ -1,7 +1,8 @@
 [
   {
     "actions": [
-      "start_cpu_profiling"
+      "start_cpu_profiling",
+      "start_heap_profiling"
     ],
     "opt_required": false,
     "opts": {
