@@ -15,7 +15,9 @@ enum DumpAction {
   STOP_CPU_PROFILING,
   HEAPDUMP,
   START_SAMPLING_HEAP_PROFILING,
-  STOP_SAMPLING_HEAP_PROFILING
+  STOP_SAMPLING_HEAP_PROFILING,
+  START_GC_PROFILING,
+  STOP_GC_PROFILING
 };
 
 typedef unordered_map<int, bool> ActionMap;
@@ -41,6 +43,9 @@ typedef struct HeapdumpData : BaseDumpData {
 typedef struct SamplingHeapProfilerDumpData : BaseDumpData {
 } sampling_heapprofiler_dump_data_t;
 
+typedef struct GcProfilerDumpData : BaseDumpData {
+} gcprofiler_dump_data_t;
+
 int InitDumpAction();
 
 void UnrefDumpActionAsyncHandle();
@@ -50,6 +55,8 @@ COMMAND_CALLBACK(StopCpuProfiling);
 COMMAND_CALLBACK(Heapdump);
 COMMAND_CALLBACK(StartSamplingHeapProfiling);
 COMMAND_CALLBACK(StopSamplingHeapProfiling);
+COMMAND_CALLBACK(StartGcProfiling);
+COMMAND_CALLBACK(StopGcProfiling);
 }  // namespace xprofiler
 
 #endif
