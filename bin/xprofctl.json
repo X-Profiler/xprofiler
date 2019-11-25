@@ -2,7 +2,8 @@
   {
     "actions": [
       "start_cpu_profiling",
-      "start_heap_profiling"
+      "start_heap_profiling",
+      "start_gc_profiling"
     ],
     "opt_required": false,
     "opts": {

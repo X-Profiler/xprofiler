@@ -37,6 +37,8 @@ typedef struct {
 
 int InitGcStatusHooks();
 void WriteGcStatusToLog(bool log_format_alinode);
+unsigned int TotalGcTimes();
+unsigned int TotalGcDuration();
 }  // namespace xprofiler
 
 #endif

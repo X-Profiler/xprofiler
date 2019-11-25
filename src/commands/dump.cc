@@ -4,6 +4,7 @@
 #include "../logger.h"
 #include "../platform/platform.h"
 #include "cpuprofiler/cpu_profiler.h"
+#include "gcprofiler/gc_profiler.h"
 #include "heapdump/heap_profiler.h"
 #include "heapprofiler/sampling_heap_profiler.h"
 #include "uv.h"
@@ -37,7 +38,8 @@ static ConflictMap conflict_map = {
 
 static DependentMap dependent_map = {
     {STOP_CPU_PROFILING, START_CPU_PROFILING},
-    {STOP_SAMPLING_HEAP_PROFILING, START_SAMPLING_HEAP_PROFILING}};
+    {STOP_SAMPLING_HEAP_PROFILING, START_SAMPLING_HEAP_PROFILING},
+    {STOP_GC_PROFILING, START_GC_PROFILING}};
 
 static string Action2String(DumpAction action) {
   string name = "";
@@ -56,6 +58,12 @@ static string Action2String(DumpAction action) {
       break;
     case STOP_SAMPLING_HEAP_PROFILING:
       name = "stop_sampling_heap_profiling";
+      break;
+    case START_GC_PROFILING:
+      name = "start_gc_profiling";
+      break;
+    case STOP_GC_PROFILING:
+      name = "stop_gc_profiling";
       break;
     default:
       name = "unknown";
@@ -203,6 +211,19 @@ void HandleAction(void *data, string notify_type) {
       action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
       break;
     }
+    case START_GC_PROFILING: {
+      gcprofiler_dump_data_t *tmp = GetProfilingData<gcprofiler_dump_data_t>(
+          data, notify_type, unique_key);
+      GcProfiler::StartGCProfiling(tmp->filepath);
+      break;
+    }
+    case STOP_GC_PROFILING: {
+      gcprofiler_dump_data_t *tmp = GetDumpData<gcprofiler_dump_data_t>(data);
+      GcProfiler::StopGCProfiling();
+      AfterDumpFile<gcprofiler_dump_data_t>(tmp, notify_type, unique_key);
+      action_map.erase(START_GC_PROFILING);
+      action_map.erase(STOP_GC_PROFILING);
+    }
     default:
       Error(module_type, "not support dump action: %d", action);
       break;
@@ -255,6 +276,9 @@ static void ProfilingWatchDog(void *data) {
     case START_SAMPLING_HEAP_PROFILING:
       StopProfiling<sampling_heapprofiler_dump_data_t>(
           data, STOP_SAMPLING_HEAP_PROFILING);
+      break;
+    case START_GC_PROFILING:
+      StopProfiling<gcprofiler_dump_data_t>(data, STOP_GC_PROFILING);
       break;
     default:
       Error(module_type, "watch dog not support dump action: %s", action);
@@ -368,6 +392,16 @@ COMMAND_CALLBACK(StopSamplingHeapProfiling) {
       new sampling_heapprofiler_dump_data_t;
   ACTION_HANDLE(STOP_SAMPLING_HEAP_PROFILING, sampling_heapprofiler_, false,
                 heapprofile, heapprofile)
+}
+
+COMMAND_CALLBACK(StartGcProfiling) {
+  gcprofiler_dump_data_t *data = new gcprofiler_dump_data_t;
+  ACTION_HANDLE(START_GC_PROFILING, gcprofiler_, true, gcprofile, gcprofile)
+}
+
+COMMAND_CALLBACK(StopGcProfiling) {
+  gcprofiler_dump_data_t *data = new gcprofiler_dump_data_t;
+  ACTION_HANDLE(STOP_GC_PROFILING, gcprofiler_, false, gcprofile, gcprofile)
 }
 
 #undef ACTION_HANDLE

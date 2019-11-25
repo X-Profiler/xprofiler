@@ -75,6 +75,12 @@ const heapprofile = {
   }
 };
 
+const gcprofile = {
+  startTime: /^\d+$/,
+  gc: isArray,
+  stopTime: /^\d+$/,
+};
+
 module.exports = function (logdir) {
   return [
     {
@@ -187,6 +193,26 @@ module.exports = function (logdir) {
         return [{ key: 'message', rule: /^stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/ }];
       },
       xprofctlRules() { return [/^执行命令失败: stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/]; }
+    },
+    {
+      cmd: 'start_gc_profiling',
+      options: { profiling_time: 1000 },
+      profileRules: gcprofile,
+      xctlRules(data) {
+        return [{
+          key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
+            `x-gcprofile-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).gcprofile`)
+        }];
+      },
+      xprofctlRules() { return []; }
+    },
+    {
+      cmd: 'stop_gc_profiling',
+      errored: true,
+      xctlRules() {
+        return [{ key: 'message', rule: /^stop_gc_profiling dependent action start_gc_profiling is not running.$/ }];
+      },
+      xprofctlRules() { return [/^执行命令失败: stop_gc_profiling dependent action start_gc_profiling is not running.$/]; }
     },
   ];
 };

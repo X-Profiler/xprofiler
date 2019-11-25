@@ -57,6 +57,9 @@ void ParseCmd(char *command) {
   // sampling heap profiling
   V(start_heap_profiling, StartSamplingHeapProfiling)
   V(stop_heap_profiling, StopSamplingHeapProfiling)
+  // gc profiling
+  V(start_gc_profiling, StartGcProfiling)
+  V(stop_gc_profiling, StopGcProfiling)
 #undef V
 
   // not match any commands
