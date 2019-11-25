@@ -41,6 +41,11 @@ static DependentMap dependent_map = {
     {STOP_SAMPLING_HEAP_PROFILING, START_SAMPLING_HEAP_PROFILING},
     {STOP_GC_PROFILING, START_GC_PROFILING}};
 
+static string cpuprofile_filepath = "";
+static string sampling_heapprofile_filepath = "";
+static string heapsnapshot_filepath = "";
+static string gcprofile_filepath = "";
+
 static string Action2String(DumpAction action) {
   string name = "";
   switch (action) {
@@ -114,7 +119,7 @@ static void TransactionDone(string thread_name, string unique_key,
 }
 
 template <typename T>
-T *GetProfilingData(void *data, string notify_type, string unique_key) {
+static T *GetProfilingData(void *data, string notify_type, string unique_key) {
   T *dump_data = static_cast<T *>(data);
   Debug(module_type, "<%s> %s action start.", notify_type.c_str(),
         unique_key.c_str());
@@ -122,16 +127,16 @@ T *GetProfilingData(void *data, string notify_type, string unique_key) {
 }
 
 template <typename T>
-T *GetDumpData(void *data) {
+static T *GetDumpData(void *data) {
   T *dump_data = static_cast<T *>(data);
   if (!dump_data->run_once) dump_data->run_once = true;
   return dump_data;
 }
 
-template <typename T>
-void AfterDumpFile(T *data, string notify_type, string unique_key) {
+static void AfterDumpFile(string filepath, string notify_type,
+                          string unique_key) {
   Debug(module_type, "<%s> %s dump file: %s creating.", notify_type.c_str(),
-        unique_key.c_str(), data->filepath.c_str());
+        unique_key.c_str(), filepath.c_str());
 }
 
 #define CHECK(func)                                              \
@@ -184,16 +189,15 @@ void HandleAction(void *data, string notify_type) {
     }
     case STOP_CPU_PROFILING: {
       cpuprofile_dump_data_t *tmp = GetDumpData<cpuprofile_dump_data_t>(data);
-      Profiler::StopProfiling(tmp->title, tmp->filepath);
-      AfterDumpFile<cpuprofile_dump_data_t>(tmp, notify_type, unique_key);
+      Profiler::StopProfiling(tmp->title, cpuprofile_filepath);
+      AfterDumpFile(cpuprofile_filepath, notify_type, unique_key);
       action_map.erase(START_CPU_PROFILING);
       action_map.erase(STOP_CPU_PROFILING);
       break;
     }
     case HEAPDUMP: {
-      heapdump_data_t *tmp = GetDumpData<heapdump_data_t>(data);
-      HeapProfiler::TakeSnapshot(tmp->filepath);
-      AfterDumpFile<heapdump_data_t>(tmp, notify_type, unique_key);
+      HeapProfiler::TakeSnapshot(heapsnapshot_filepath);
+      AfterDumpFile(heapsnapshot_filepath, notify_type, unique_key);
       action_map.erase(HEAPDUMP);
       break;
     }
@@ -202,25 +206,20 @@ void HandleAction(void *data, string notify_type) {
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
-      sampling_heapprofiler_dump_data_t *tmp =
-          GetDumpData<sampling_heapprofiler_dump_data_t>(data);
-      SamplingHeapProfile::StopSamplingHeapProfiling(tmp->filepath);
-      AfterDumpFile<sampling_heapprofiler_dump_data_t>(tmp, notify_type,
-                                                       unique_key);
+      SamplingHeapProfile::StopSamplingHeapProfiling(
+          sampling_heapprofile_filepath);
+      AfterDumpFile(sampling_heapprofile_filepath, notify_type, unique_key);
       action_map.erase(START_SAMPLING_HEAP_PROFILING);
       action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
       break;
     }
     case START_GC_PROFILING: {
-      gcprofiler_dump_data_t *tmp = GetProfilingData<gcprofiler_dump_data_t>(
-          data, notify_type, unique_key);
-      GcProfiler::StartGCProfiling(tmp->filepath);
+      GcProfiler::StartGCProfiling(gcprofile_filepath);
       break;
     }
     case STOP_GC_PROFILING: {
-      gcprofiler_dump_data_t *tmp = GetDumpData<gcprofiler_dump_data_t>(data);
       GcProfiler::StopGCProfiling();
-      AfterDumpFile<gcprofiler_dump_data_t>(tmp, notify_type, unique_key);
+      AfterDumpFile(gcprofile_filepath, notify_type, unique_key);
       action_map.erase(START_GC_PROFILING);
       action_map.erase(STOP_GC_PROFILING);
     }
@@ -286,6 +285,11 @@ static void ProfilingWatchDog(void *data) {
   }
 }
 
+static string CreateFilepath(string prefix, string ext) {
+  return GetLogDir() + GetSep() + "x-" + prefix + "-" + to_string(GetPid()) +
+         "-" + GetDate() + "-" + RandNum() + "." + ext;
+}
+
 int InitDumpAction() {
   node_isolate = Isolate::GetCurrent();
   int rc =
@@ -324,15 +328,39 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   action_map.insert(make_pair(action, true));
 
   // get file name
-  string filepath = GetLogDir() + GetSep() + "x-" + prefix + "-" +
-                    to_string(GetPid()) + "-" + GetDate() + "-" + RandNum() +
-                    "." + ext;
-  result["filepath"] = filepath;
+  switch (action) {
+    case START_CPU_PROFILING:
+      cpuprofile_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = cpuprofile_filepath;
+      break;
+    case STOP_CPU_PROFILING:
+      result["filepath"] = cpuprofile_filepath;
+      break;
+    case HEAPDUMP:
+      heapsnapshot_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = heapsnapshot_filepath;
+      break;
+    case START_SAMPLING_HEAP_PROFILING:
+      sampling_heapprofile_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = sampling_heapprofile_filepath;
+      break;
+    case STOP_SAMPLING_HEAP_PROFILING:
+      result["filepath"] = sampling_heapprofile_filepath;
+      break;
+    case START_GC_PROFILING:
+      gcprofile_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = gcprofile_filepath;
+      break;
+    case STOP_GC_PROFILING:
+      result["filepath"] = gcprofile_filepath;
+      break;
+    default:
+      break;
+  }
 
   // set action callback data
   data->traceid = traceid;
   data->action = action;
-  data->filepath = filepath;
 
   // send data
   NoticeMainJsThread(data);

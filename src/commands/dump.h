@@ -28,7 +28,6 @@ typedef unordered_map<int, DumpAction> DependentMap;
 typedef struct BaseDumpData {
   string traceid;
   DumpAction action;
-  string filepath;
   int profiling_time;
   bool run_once = true;
 } dump_data_t;
