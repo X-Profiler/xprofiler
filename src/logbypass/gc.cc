@@ -11,6 +11,20 @@ using v8::GCType;
 static gc_statistics_t *gc_statistics = new gc_statistics_t;
 static uv_mutex_t gc_mutex;
 
+unsigned int TotalGcTimes() {
+  if (gc_statistics == nullptr) {
+    return 0;
+  }
+  return gc_statistics->total_gc_times;
+}
+
+unsigned int TotalGcDuration() {
+  if (gc_statistics == nullptr) {
+    return 0;
+  }
+  return gc_statistics->total_gc_duration;
+}
+
 // gc prologue hook
 NAN_GC_CALLBACK(GCPrologueCallback) {
   uv_mutex_lock(&gc_mutex);

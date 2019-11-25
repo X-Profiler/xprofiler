@@ -29,6 +29,7 @@
         "src/commands/heapdump/heap_profiler.cc",
         "src/commands/heapdump/heap_snapshot.cc",
         "src/commands/heapprofiler/sampling_heap_profiler.cc",
+        "src/commands/gcprofiler/gc_profiler.cc",
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       'cflags_cc!': [ '-fno-exceptions' ],
