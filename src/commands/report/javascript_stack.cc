@@ -4,7 +4,7 @@
 #include "nan.h"
 
 static const unsigned kMaxFramesCount = 255;
-#if (NODE_MODULE_VERSION > 0x0039)
+#if (NODE_MODULE_VERSION >= 0x003b)
 static const char* v8_states[] = {
     "JS",       "GC",    "PARSER",   "BYTECODE_COMPILER",
     "COMPILER", "OTHER", "EXTERNAL", "IDLE"};
@@ -60,7 +60,7 @@ void SetJavaScriptStack(JSONWriter* writer) {
     else
       writer->json_keyvalue("pcAddress", "nullptr");
 
-#if (NODE_MODULE_VERSION > 0x0039)
+#if (NODE_MODULE_VERSION >= 0x0040)
     Local<StackFrame> frame = stack->GetFrame(isolate, i);
 #else
     Local<StackFrame> frame = stack->GetFrame(i);
