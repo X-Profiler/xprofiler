@@ -17,6 +17,7 @@ void InitGlobalVariables();
 
 // uptime
 unsigned long GetUptime();
+string GetStartTime(string format);
 
 // commands
 #define COMMAND_CALLBACK(cb)                                 \

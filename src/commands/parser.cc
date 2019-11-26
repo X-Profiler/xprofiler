@@ -60,6 +60,8 @@ void ParseCmd(char *command) {
   // gc profiling
   V(start_gc_profiling, StartGcProfiling)
   V(stop_gc_profiling, StopGcProfiling)
+  // node report
+  V(diag_report, GetNodeReport)
 #undef V
 
   // not match any commands

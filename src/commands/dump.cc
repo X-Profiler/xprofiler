@@ -7,6 +7,7 @@
 #include "gcprofiler/gc_profiler.h"
 #include "heapdump/heap_profiler.h"
 #include "heapprofiler/sampling_heap_profiler.h"
+#include "report/node_report.h"
 #include "uv.h"
 #include "v8.h"
 
@@ -45,6 +46,7 @@ static string cpuprofile_filepath = "";
 static string sampling_heapprofile_filepath = "";
 static string heapsnapshot_filepath = "";
 static string gcprofile_filepath = "";
+static string node_report_filepath = "";
 
 static string Action2String(DumpAction action) {
   string name = "";
@@ -69,6 +71,9 @@ static string Action2String(DumpAction action) {
       break;
     case STOP_GC_PROFILING:
       name = "stop_gc_profiling";
+      break;
+    case NODE_REPORT:
+      name = "node_report";
       break;
     default:
       name = "unknown";
@@ -223,6 +228,12 @@ void HandleAction(void *data, string notify_type) {
       action_map.erase(START_GC_PROFILING);
       action_map.erase(STOP_GC_PROFILING);
     }
+    case NODE_REPORT: {
+      NodeReport::GetNodeReport(node_report_filepath);
+      AfterDumpFile(node_report_filepath, notify_type, unique_key);
+      action_map.erase(NODE_REPORT);
+      break;
+    }
     default:
       Error(module_type, "not support dump action: %d", action);
       break;
@@ -287,7 +298,7 @@ static void ProfilingWatchDog(void *data) {
 
 static string CreateFilepath(string prefix, string ext) {
   return GetLogDir() + GetSep() + "x-" + prefix + "-" + to_string(GetPid()) +
-         "-" + GetDate() + "-" + RandNum() + "." + ext;
+         "-" + ConvertTime("%Y%m%d") + "-" + RandNum() + "." + ext;
 }
 
 int InitDumpAction() {
@@ -353,6 +364,10 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
       break;
     case STOP_GC_PROFILING:
       result["filepath"] = gcprofile_filepath;
+      break;
+    case NODE_REPORT:
+      node_report_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = node_report_filepath;
       break;
     default:
       break;
@@ -430,6 +445,11 @@ COMMAND_CALLBACK(StartGcProfiling) {
 COMMAND_CALLBACK(StopGcProfiling) {
   gcprofiler_dump_data_t *data = new gcprofiler_dump_data_t;
   ACTION_HANDLE(STOP_GC_PROFILING, gcprofiler_, false, gcprofile, gcprofile)
+}
+
+COMMAND_CALLBACK(GetNodeReport) {
+  node_report_dump_data_t *data = new node_report_dump_data_t;
+  ACTION_HANDLE(NODE_REPORT, node_report_, false, diagreport, diag)
 }
 
 #undef ACTION_HANDLE

@@ -16,7 +16,7 @@ string FmtMessage(const char *format, ...);
 
 string RandNum();
 
-string GetDate();
+string ConvertTime(string format);
 
 template <typename T>
 T GetJsonValue(json data, string key, XpfError &err) {
