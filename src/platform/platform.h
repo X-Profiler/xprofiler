@@ -24,6 +24,9 @@ typedef struct {
 } uv_timeval64_t;
 int uv_gettimeofday(uv_timeval64_t *tv);
 #endif
+
+// node report
+string GetPcAddress(void *pc);
 }  // namespace xprofiler
 
 #endif

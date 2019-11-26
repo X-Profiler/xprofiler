@@ -83,7 +83,9 @@ const gcprofile = {
 
 const diag = {
   dumpTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
-  loadTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
+  loadTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
+  vmState: /^[A-Z]+$/,
+  jsStacks: isArray
 };
 
 module.exports = function (logdir) {
