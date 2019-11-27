@@ -2,6 +2,8 @@
 #define _SRC_PLATFORM_H
 #include <string>
 
+#include "../library/writer.h"
+
 namespace xprofiler {
 using std::string;
 
@@ -27,6 +29,7 @@ int uv_gettimeofday(uv_timeval64_t *tv);
 
 // node report
 string GetPcAddress(void *pc);
+void PrintNativeStack(JSONWriter *writer);
 }  // namespace xprofiler
 
 #endif

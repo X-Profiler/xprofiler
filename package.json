@@ -8,7 +8,7 @@
   "main": "xprofiler.js",
   "scripts": {
     "build": "npm run lint && node-gyp rebuild",
-    "format": "clang-format -i --glob=\"src/**/*[.h|.cc]\"",
+    "format": "clang-format -i --glob=\"src/**/!(report_win)[.h|.cc]\"",
     "lint": "npm run format && eslint --fix xprofiler.js \"test/**/*.js\" lib/*.js bin/xprofctl",
     "test": "mocha -t 10000 -R spec test/*.test.js",
     "test-single": "mocha -t 10000 -R spec",
