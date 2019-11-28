@@ -140,7 +140,7 @@ static T *GetDumpData(void *data) {
 
 static void AfterDumpFile(string filepath, string notify_type,
                           string unique_key) {
-  Debug(module_type, "<%s> %s dump file: %s creating.", notify_type.c_str(),
+  Debug(module_type, "<%s> %s dump file: %s.", notify_type.c_str(),
         unique_key.c_str(), filepath.c_str());
 }
 
