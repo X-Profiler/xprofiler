@@ -10,6 +10,7 @@
 #include "heap_statistics.h"
 #include "javascript_stack.h"
 #include "native_stack.h"
+#include "system_statistics.h"
 #include "uv_statistics.h"
 
 namespace xprofiler {
@@ -28,12 +29,10 @@ static void WriteNodeReport(JSONWriter *writer) {
   writer->json_keyvalue("dumpTime", ConvertTime("%Y-%m-%d %H:%M:%S"));
 
   SetJavaScriptStack(writer);
-
   SetNativeStack(writer);
-
   SetHeapStatistics(writer);
-
   SetUvStatistics(writer);
+  SetSystemStatistics(writer);
 
   writer->json_end();
 }

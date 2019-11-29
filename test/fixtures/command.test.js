@@ -97,7 +97,10 @@ const diag = {
     heapLimit: /^\d+$/
   },
   heapSpaceStatistics: isArray,
-  libuvHandles: isArray
+  libuvHandles: isArray,
+  system: {
+    env: isArray
+  }
 };
 
 module.exports = function (logdir) {

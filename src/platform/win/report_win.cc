@@ -61,6 +61,25 @@ void PrintNativeStack(JSONWriter* writer) {
   writer->json_arrayend();
 }
 
+void PrintSystemEnv(JSONWriter* writer) {
+  writer->json_arraystart("env");
+
+  LPTSTR lpszVariable;
+  LPTCH lpvEnv;
+
+  lpvEnv = GetEnvironmentStrings();
+  if (lpvEnv != nullptr) {
+    lpszVariable = reinterpret_cast<LPTSTR>(lpvEnv);
+    while (*lpszVariable) {
+      writer->json_element(lpszVariable);
+      lpszVariable += lstrlen(lpszVariable) + 1;
+    }
+    FreeEnvironmentStrings(lpvEnv);
+  }
+
+  writer->json_arrayend();
+}
+
 }  // namespace xprofiler
 
 #endif

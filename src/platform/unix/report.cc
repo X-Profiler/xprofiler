@@ -8,6 +8,8 @@
 
 #include "../../library/writer.h"
 
+extern char** environ;
+
 namespace xprofiler {
 using std::string;
 
@@ -54,6 +56,19 @@ void PrintNativeStack(JSONWriter* writer) {
   writer->json_arrayend();
 }
 #endif
+
+void PrintSystemEnv(JSONWriter* writer) {
+  writer->json_arraystart("env");
+
+  int index = 1;
+  char* env_var = *environ;
+  while (env_var != nullptr) {
+    writer->json_element(env_var);
+    env_var = *(environ + index++);
+  }
+
+  writer->json_arrayend();
+}
 }  // namespace xprofiler
 
 #endif

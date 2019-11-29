@@ -30,6 +30,7 @@ int uv_gettimeofday(uv_timeval64_t *tv);
 // node report
 string GetPcAddress(void *pc);
 void PrintNativeStack(JSONWriter *writer);
+void PrintSystemEnv(JSONWriter *writer);
 }  // namespace xprofiler
 
 #endif
