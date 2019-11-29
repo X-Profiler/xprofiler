@@ -99,7 +99,8 @@ const diag = {
   heapSpaceStatistics: isArray,
   libuvHandles: isArray,
   system: {
-    env: isArray
+    env: isArray,
+    resourceLimits: isArray
   }
 };
 
