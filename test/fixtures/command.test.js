@@ -88,7 +88,15 @@ const diag = {
   loadTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
   vmState: /^[A-Z]+$/,
   jsStacks: isArray,
-  nativeStacks: isArray
+  nativeStacks: isArray,
+  heapStatistics: {
+    heapTotal: /^\d+$/,
+    heapTotalCommitted: /^\d+$/,
+    heapTotalUsed: /^\d+$/,
+    heapTotalAvailable: /^\d+$/,
+    heapLimit: /^\d+$/
+  },
+  heapSpaceStatistics: isArray
 };
 
 module.exports = function (logdir) {
