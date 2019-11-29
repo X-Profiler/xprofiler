@@ -10,6 +10,7 @@
 #include "heap_statistics.h"
 #include "javascript_stack.h"
 #include "native_stack.h"
+#include "uv_statistics.h"
 
 namespace xprofiler {
 using std::ios;
@@ -31,6 +32,8 @@ static void WriteNodeReport(JSONWriter *writer) {
   SetNativeStack(writer);
 
   SetHeapStatistics(writer);
+
+  SetUvStatistics(writer);
 
   writer->json_end();
 }

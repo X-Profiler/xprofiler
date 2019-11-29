@@ -34,6 +34,7 @@
         "src/commands/report/javascript_stack.cc",
         "src/commands/report/native_stack.cc",
         "src/commands/report/heap_statistics.cc",
+        "src/commands/report/uv_statistics.cc",
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       'cflags_cc!': [ '-fno-exceptions' ],
