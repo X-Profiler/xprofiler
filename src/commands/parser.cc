@@ -36,12 +36,13 @@ void ParseCmd(char *command) {
     return;
   }
 
-#define V(cmd_str, handle)                                               \
-  if (strcmp(cmd.c_str(), #cmd_str) == 0) {                              \
-    handle(parsed, FmtMessage,                                           \
-           [traceid](json data) { SuccessValue(traceid, data); },        \
-           [traceid](string message) { ErrorValue(traceid, message); }); \
-    handled = true;                                                      \
+#define V(cmd_str, handle)                                            \
+  if (strcmp(cmd.c_str(), #cmd_str) == 0) {                           \
+    handle(                                                           \
+        parsed, FmtMessage,                                           \
+        [traceid](json data) { SuccessValue(traceid, data); },        \
+        [traceid](string message) { ErrorValue(traceid, message); }); \
+    handled = true;                                                   \
   }
   // get version
   V(check_version, GetXprofilerVersion)

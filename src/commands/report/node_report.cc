@@ -7,6 +7,7 @@
 #include "../../library/writer.h"
 #include "../../logger.h"
 #include "../../platform/platform.h"
+#include "heap_statistics.h"
 #include "javascript_stack.h"
 #include "native_stack.h"
 
@@ -28,6 +29,8 @@ static void WriteNodeReport(JSONWriter *writer) {
   SetJavaScriptStack(writer);
 
   SetNativeStack(writer);
+
+  SetHeapStatistics(writer);
 
   writer->json_end();
 }
