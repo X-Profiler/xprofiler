@@ -1,7 +1,10 @@
 #include "system_statistics.h"
 
 #include <inttypes.h>
+
+#ifndef _WIN32
 #include <sys/resource.h>
+#endif
 
 #include "../../platform/platform.h"
 
