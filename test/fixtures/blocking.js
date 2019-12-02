@@ -23,7 +23,7 @@ xprofiler.runCommandsListener();
 
 /*eslint no-empty: "off"*/
 const start = Date.now();
-while (Date.now() - start < 6000) {
+while (Date.now() - start < 8000) {
 
 }
 

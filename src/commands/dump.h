@@ -17,7 +17,8 @@ enum DumpAction {
   START_SAMPLING_HEAP_PROFILING,
   STOP_SAMPLING_HEAP_PROFILING,
   START_GC_PROFILING,
-  STOP_GC_PROFILING
+  STOP_GC_PROFILING,
+  NODE_REPORT
 };
 
 typedef unordered_map<int, bool> ActionMap;
@@ -45,6 +46,9 @@ typedef struct SamplingHeapProfilerDumpData : BaseDumpData {
 typedef struct GcProfilerDumpData : BaseDumpData {
 } gcprofiler_dump_data_t;
 
+typedef struct NodeReportDumpData : BaseDumpData {
+} node_report_dump_data_t;
+
 int InitDumpAction();
 
 void UnrefDumpActionAsyncHandle();
@@ -56,6 +60,7 @@ COMMAND_CALLBACK(StartSamplingHeapProfiling);
 COMMAND_CALLBACK(StopSamplingHeapProfiling);
 COMMAND_CALLBACK(StartGcProfiling);
 COMMAND_CALLBACK(StopGcProfiling);
+COMMAND_CALLBACK(GetNodeReport);
 }  // namespace xprofiler
 
 #endif

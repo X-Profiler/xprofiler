@@ -2,6 +2,8 @@
 #define _SRC_PLATFORM_H
 #include <string>
 
+#include "../library/writer.h"
+
 namespace xprofiler {
 using std::string;
 
@@ -24,6 +26,13 @@ typedef struct {
 } uv_timeval64_t;
 int uv_gettimeofday(uv_timeval64_t *tv);
 #endif
+
+// node report
+string GetPcAddress(void *pc);
+void PrintNativeStack(JSONWriter *writer);
+void PrintSystemEnv(JSONWriter *writer);
+void PrintResourceLimits(JSONWriter *writer);
+void PrintLoadedLibraries(JSONWriter *writer);
 }  // namespace xprofiler
 
 #endif

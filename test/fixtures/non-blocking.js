@@ -23,4 +23,4 @@ setInterval(() => { }, 1000);
 setTimeout(() => {
   mm.restore();
   process.exit(0);
-}, 6000);
+}, 8000);

@@ -14,9 +14,11 @@ enum LOG_TYPE { LOG_TO_FILE, LOG_TO_TTL };
 
 // global variables
 void InitGlobalVariables();
+string GetGlobalNodeVersion();
 
 // uptime
 unsigned long GetUptime();
+string GetStartTime(string format);
 
 // commands
 #define COMMAND_CALLBACK(cb)                                 \

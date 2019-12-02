@@ -26,11 +26,11 @@ string RandNum() {
   return std::to_string(rand() % 900000 + 100000);
 }
 
-string GetDate() {
+string ConvertTime(string format) {
   char time_string_day[32];
   time_t tt = time(NULL);
   struct tm *ptm = localtime(&tt);
-  strftime(time_string_day, sizeof(time_string_day), "%Y%m%d", ptm);
+  strftime(time_string_day, sizeof(time_string_day), format.c_str(), ptm);
   return (string)time_string_day;
 }
 

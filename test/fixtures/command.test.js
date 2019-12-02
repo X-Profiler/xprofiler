@@ -81,6 +81,30 @@ const gcprofile = {
   stopTime: /^\d+$/,
 };
 
+const diag = {
+  pid: /^\d+$/,
+  nodeVersion: new RegExp(`^${process.version}$`),
+  dumpTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
+  loadTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
+  vmState: /^[A-Z]+$/,
+  jsStacks: isArray,
+  nativeStacks: isArray,
+  heapStatistics: {
+    heapTotal: /^\d+$/,
+    heapTotalCommitted: /^\d+$/,
+    heapTotalUsed: /^\d+$/,
+    heapTotalAvailable: /^\d+$/,
+    heapLimit: /^\d+$/
+  },
+  heapSpaceStatistics: isArray,
+  libuvHandles: isArray,
+  system: {
+    env: isArray,
+    resourceLimits: isArray,
+    loadedLibraries: isArray
+  }
+};
+
 module.exports = function (logdir) {
   return [
     {
@@ -213,6 +237,17 @@ module.exports = function (logdir) {
         return [{ key: 'message', rule: /^stop_gc_profiling dependent action start_gc_profiling is not running.$/ }];
       },
       xprofctlRules() { return [/^执行命令失败: stop_gc_profiling dependent action start_gc_profiling is not running.$/]; }
+    },
+    {
+      cmd: 'diag_report',
+      profileRules: diag,
+      xctlRules(data) {
+        return [{
+          key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
+            `x-diagreport-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).diag`)
+        }];
+      },
+      xprofctlRules() { return []; }
     },
   ];
 };

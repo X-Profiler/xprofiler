@@ -30,6 +30,12 @@
         "src/commands/heapdump/heap_snapshot.cc",
         "src/commands/heapprofiler/sampling_heap_profiler.cc",
         "src/commands/gcprofiler/gc_profiler.cc",
+        "src/commands/report/node_report.cc",
+        "src/commands/report/javascript_stack.cc",
+        "src/commands/report/native_stack.cc",
+        "src/commands/report/heap_statistics.cc",
+        "src/commands/report/uv_statistics.cc",
+        "src/commands/report/system_statistics.cc",
       ],
       "include_dirs": [ '<!(node -e "require(\'nan\')")' ],
       'cflags_cc!': [ '-fno-exceptions' ],
@@ -44,6 +50,7 @@
             "src/platform/unix/cpu.cc",
             "src/platform/unix/utils.cc",
             "src/platform/unix/ipc.cc",
+            "src/platform/unix/report.cc",
           ]
         }],
         ["OS == 'mac'", {
@@ -57,6 +64,7 @@
             "src/platform/unix/cpu.cc",
             "src/platform/unix/utils.cc",
             "src/platform/unix/ipc.cc",
+            "src/platform/unix/report.cc",
           ]
         }],
         ["OS == 'win'", {
@@ -75,6 +83,7 @@
             "src/platform/win/cpu_win.cc",
             "src/platform/win/utils_win.cc",
             "src/platform/win/ipc_win.cc",
+            "src/platform/win/report_win.cc",
           ]
         }],
       ],
