@@ -1,6 +1,7 @@
 #include "system_statistics.h"
 
 #include <inttypes.h>
+#include <sys/resource.h>
 
 #include "../../platform/platform.h"
 
