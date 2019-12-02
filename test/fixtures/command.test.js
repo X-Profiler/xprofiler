@@ -100,7 +100,8 @@ const diag = {
   libuvHandles: isArray,
   system: {
     env: isArray,
-    resourceLimits: isArray
+    resourceLimits: isArray,
+    loadedLibraries: isArray
   }
 };
 

@@ -31,6 +31,8 @@ int uv_gettimeofday(uv_timeval64_t *tv);
 string GetPcAddress(void *pc);
 void PrintNativeStack(JSONWriter *writer);
 void PrintSystemEnv(JSONWriter *writer);
+void PrintResourceLimits(JSONWriter *writer);
+void PrintLoadedLibraries(JSONWriter *writer);
 }  // namespace xprofiler
 
 #endif

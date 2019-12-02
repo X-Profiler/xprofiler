@@ -1,6 +1,7 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <dbghelp.h>
+#include <psapi.h>
 #include <string>
 
 #include "../../library/writer.h"
@@ -75,6 +76,39 @@ void PrintSystemEnv(JSONWriter* writer) {
       lpszVariable += lstrlen(lpszVariable) + 1;
     }
     FreeEnvironmentStrings(lpvEnv);
+  }
+
+  writer->json_arrayend();
+}
+
+void PrintResourceLimits(JSONWriter* writer) {
+  writer->json_arraystart("resourceLimits");
+  writer->json_arrayend();
+}
+
+void PrintLoadedLibraries(JSONWriter* writer) {
+  writer->json_arraystart("loadedLibraries");
+
+  HANDLE process_handle =
+      OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE,
+                  GetCurrentProcessId());
+  if (process_handle == NULL) return;
+  DWORD size_1 = 0, size_2 = 0;
+  if (EnumProcessModules(process_handle, NULL, 0, &size_1)) {
+    HMODULE* modules = (HMODULE*)malloc(size_1);
+    if (modules == NULL) return;
+    if (EnumProcessModules(process_handle, modules, size_1, &size_2)) {
+      for (int i = 0;
+           i < (size_1 / sizeof(HMODULE)) && i < (size_2 / sizeof(HMODULE));
+           i++) {
+        TCHAR module_name[MAX_PATH];
+        if (GetModuleFileNameEx(process_handle, modules[i], module_name,
+                                sizeof(module_name) / sizeof(TCHAR))) {
+          writer->json_element(module_name);
+        }
+      }
+    }
+    free(modules);
   }
 
   writer->json_arrayend();
