@@ -27,7 +27,8 @@
     "lib",
     "src",
     "binding.gyp",
-    "xprofiler.js"
+    "xprofiler.js",
+    "xprofiler.json"
   ],
   "author": "yeekwanvong@gmail.com",
   "license": "BSD-2-Clause",
