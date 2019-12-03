@@ -1,3 +1,7 @@
+# use x86_64, default is ia32
+platform:
+  - x64
+
 # Test against the latest version of this Node.js version
 environment:
   matrix:
