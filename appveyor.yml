@@ -1,3 +1,7 @@
+# use x86_64, default is ia32
+platform:
+  - x64
+
 # Test against the latest version of this Node.js version
 environment:
   matrix:
@@ -12,7 +16,7 @@ environment:
 # Install scripts. (runs after repo cloning)
 install:
   # Get the latest stable version of Node.js or io.js
-  - ps: Install-Product node $env:nodejs_version
+  - ps: Install-Product node $env:nodejs_version x64
   # install modules
   - npm install
 
