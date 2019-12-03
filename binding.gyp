@@ -73,6 +73,7 @@
           'msvs_settings': {
               'VCCLCompilerTool': {
               'ExceptionHandling': '2',
+              'Optimization': '2',
             },
           },
           "defines": [
