@@ -134,7 +134,41 @@ const xprofilerConfig = Object.assign({}, defaultConfig, envConfig, userConfig);
 
 ### 运行时状态采样
 
-// TODO，尚未实现
+如果全局安装 xprofiler 则可以使用 `xprofctl` 命令，如下所示:
+
+```bash
+npm i xprofiler -g
+```
+
+此命令可以对安装并启用了 xprofiler 插件的 node.js 进程进行一些操作，安装后执行 `xprofctl -h` 可以查看其用法:
+
+```bash
+xprofctl <action> -p <pid> [-t profiling_time]
+
+命令：
+  xprofctl start_cpu_profiling   启动 cpu 采样
+  xprofctl stop_cpu_profiling    生成 cpuprofile
+  xprofctl start_heap_profiling  启动 heap 采样
+  xprofctl stop_heap_profiling   生成 heapprofile
+  xprofctl start_gc_profiling    启动 gc 采样
+  xprofctl stop_gc_profiling     生成 gcprofile
+  xprofctl heapdump              生成 heapsnapshot
+  xprofctl diag_report           生成诊断报告
+  xprofctl check_version         获取 xprofiler 版本号
+  xprofctl get_config            获取 xprofiler 配置
+  xprofctl set_config            设置 xprofiler 配置
+
+选项：
+  -p, --pid      进程 pid                                                [必需]
+  -h, --help     显示帮助信息                                              [布尔]
+  -v, --version  显示版本号                                               [布尔]
+
+示例：
+  xprofctl start_cpu_profiling -p 29156  触发进程 29156 开始进行 cpu 采样
+  xprofctl check_version -p 29156        获取进程 29156 使用的插件版本
+
+copyright 2019
+```
 
 
 ## III. 插件架构和实现原理

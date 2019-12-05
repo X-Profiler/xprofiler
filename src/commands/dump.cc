@@ -138,10 +138,11 @@ static T *GetDumpData(void *data) {
   return dump_data;
 }
 
-static void AfterDumpFile(string filepath, string notify_type,
+static void AfterDumpFile(string &filepath, string notify_type,
                           string unique_key) {
   Debug(module_type, "<%s> %s dump file: %s.", notify_type.c_str(),
         unique_key.c_str(), filepath.c_str());
+  filepath = "";
 }
 
 #define CHECK(func)                                              \

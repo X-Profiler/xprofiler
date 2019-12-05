@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "1.0.0-prepare",
+  "version": "1.0.1-prepare",
   "description": "",
   "bin": {
     "xprofctl": "bin/xprofctl"

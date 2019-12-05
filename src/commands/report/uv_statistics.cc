@@ -377,6 +377,9 @@ static void walkHandle(uv_handle_t *h, void *arg) {
          << (uv_is_writable(&handle->stream) ? ", writable" : "");
   }
 
+  // for empty string
+  data << "";
+
   writer->json_keyvalue("type", type);
   writer->json_keyvalue("address", GetPcAddress(static_cast<void *>(h)));
   writer->json_keyvalue("hasRed", uv_has_ref(h));
