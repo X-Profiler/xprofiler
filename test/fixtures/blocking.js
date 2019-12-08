@@ -3,6 +3,8 @@
 const os = require('os');
 const mm = require('mm');
 const moment = require('moment');
+console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'blocking start.');
+
 const xprofiler = require('../../');
 
 if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
