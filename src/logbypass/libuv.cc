@@ -5,6 +5,9 @@
 #include "uv.h"
 
 namespace xprofiler {
+static uv_async_t uv_statistics_trigger;
+// libuv handles statistics
+unsigned int active_handles = 0;
 static uv_handle_statistics_t *uv_handle_statistics =
     new uv_handle_statistics_t;
 
@@ -58,16 +61,29 @@ void LibuvWalkHandle(uv_handle_t *h, void *unused) {
   }
 }
 
-void WriteLibuvHandleInfoToLog(bool log_format_alinode) {
-  // get total active handles
-  unsigned int active_handles = uv_default_loop()->active_handles;
-
-  // check need walk around all handles
+void GetLibuvHandles(uv_async_t *handle) {
+  active_handles = uv_default_loop()->active_handles;
   bool enable_log_uv_handles = GetEnableLogUvHandles();
   if (enable_log_uv_handles) {
     uv_handle_statistics->reset();
     uv_walk(uv_default_loop(), LibuvWalkHandle, nullptr);
   }
+}
+
+int InitLibuvAsyncCallback() {
+  int rc =
+      uv_async_init(uv_default_loop(), &uv_statistics_trigger, GetLibuvHandles);
+  return rc;
+}
+
+void UnrefLibuvAsyncHandle() {
+  uv_unref(reinterpret_cast<uv_handle_t *>(&uv_statistics_trigger));
+}
+
+void GetLibuvHandles() { uv_async_send(&uv_statistics_trigger); }
+
+void WriteLibuvHandleInfoToLog(bool log_format_alinode) {
+  bool enable_log_uv_handles = GetEnableLogUvHandles();
 
   if (log_format_alinode)
     Info("timer", "total_timer: %d, active_handles: %d",

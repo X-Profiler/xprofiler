@@ -28,6 +28,15 @@ static void CreateLogThread(void *unused) {
       last_loop_time = uv_hrtime();
       bool log_format_alinode = GetFormatAsAlinode();
 
+      // get heap memory info
+      GetMemoryInfo();
+
+      // get libuv handles info
+      GetLibuvHandles();
+
+      // sleep 1s for executing async callback
+      Sleep(1);
+
       // write cpu info
       WriteCpuUsageInPeriod(log_format_alinode);
 
@@ -43,25 +52,30 @@ static void CreateLogThread(void *unused) {
   }
 }
 
+#define CHECK(fn, log)                  \
+  rc = fn();                            \
+  if (rc != 0) {                        \
+    ThrowTypeError("xprofiler: " log);  \
+    info.GetReturnValue().Set(False()); \
+    return;                             \
+  }
+
 void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
   int rc = 0;
   // init memory statistics callback
-  rc = InitMemoryAsyncCallback();
-  if (rc != 0) {
-    ThrowTypeError("xprofiler: init memory statistics async callback failed!");
-    info.GetReturnValue().Set(False());
-    return;
-  }
-  UnrefAsyncHandle();
+  CHECK(InitMemoryAsyncCallback,
+        "init memory statistics async callback failed!")
+  UnrefMemoryAsyncHandle();
   Info("init", "logbypass: memory statistics async callback setted.");
 
+  // init libuv handle statistics callback
+  CHECK(InitLibuvAsyncCallback,
+        "init libuv handle statistics async callback failed!")
+  UnrefLibuvAsyncHandle();
+  Info("init", "logbypass: libuv handle statistics async callback setted.");
+
   // init gc hooks
-  rc = InitGcStatusHooks();
-  if (rc != 0) {
-    ThrowTypeError("xprofiler: init gc hooks failed!");
-    info.GetReturnValue().Set(False());
-    return;
-  }
+  CHECK(InitGcStatusHooks, "init gc hooks failed!")
   Info("init", "logbypass: gc hooks setted.");
 
   // init log thread
@@ -75,4 +89,6 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
 
   info.GetReturnValue().Set(True());
 }
+
+#undef CHECK
 }  // namespace xprofiler
