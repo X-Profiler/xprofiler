@@ -233,11 +233,8 @@ static void reportEndpoints(uv_handle_t *h, ostringstream &out) {
 
 static void walkHandle(uv_handle_t *h, void *arg) {
   string type;
-  JSONWriter *writer = reinterpret_cast<JSONWriter *>(arg);
   uv_any_handle *handle = (uv_any_handle *)h;
   ostringstream data;
-
-  writer->json_start();
 
   switch (h->type) {
     case UV_UNKNOWN_HANDLE:
@@ -380,12 +377,14 @@ static void walkHandle(uv_handle_t *h, void *arg) {
   // for empty string
   data << "";
 
+  JSONWriter *writer = reinterpret_cast<JSONWriter *>(arg);
+
+  writer->json_start();
   writer->json_keyvalue("type", type);
   writer->json_keyvalue("address", GetPcAddress(static_cast<void *>(h)));
-  writer->json_keyvalue("hasRed", uv_has_ref(h));
+  writer->json_keyvalue("hasRef", uv_has_ref(h));
   writer->json_keyvalue("isActive", uv_is_active(h));
   writer->json_keyvalue("detail", data.str());
-
   writer->json_end();
 }
 
