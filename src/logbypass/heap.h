@@ -58,7 +58,8 @@ typedef struct {
 } heap_space_statistics_t;
 
 int InitMemoryAsyncCallback();
-void UnrefAsyncHandle();
+void UnrefMemoryAsyncHandle();
+void GetMemoryInfo();
 void WriteMemoryInfoToLog(bool log_format_alinode);
 }  // namespace xprofiler
 

@@ -24,6 +24,9 @@ typedef struct {
   }
 } uv_handle_statistics_t;
 
+int InitLibuvAsyncCallback();
+void UnrefLibuvAsyncHandle();
+void GetLibuvHandles();
 void WriteLibuvHandleInfoToLog(bool log_format_alinode);
 }  // namespace xprofiler
 

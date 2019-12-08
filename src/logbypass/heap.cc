@@ -71,14 +71,13 @@ int InitMemoryAsyncCallback() {
   return rc;
 }
 
-void UnrefAsyncHandle() {
+void UnrefMemoryAsyncHandle() {
   uv_unref(reinterpret_cast<uv_handle_t *>(&memory_statistics_trigger));
 }
 
+void GetMemoryInfo() { uv_async_send(&memory_statistics_trigger); }
+
 void WriteMemoryInfoToLog(bool log_format_alinode) {
-  uv_async_send(&memory_statistics_trigger);
-  // sleep 1s for executing async callback
-  Sleep(1);
 #define V(name)                                      \
   heap_space_statistics->name##_space_size,          \
       heap_space_statistics->name##_space_used,      \
