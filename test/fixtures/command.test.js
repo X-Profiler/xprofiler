@@ -21,7 +21,7 @@ const cpuprofile = {
   title: /^xprofiler$/,
   head: {
     functionName: /^([\w\s()]+|)$/,
-    url: /^([.\w()/\\]+|)$/,
+    url: /^([.\w()/\\:]+|)$/,
     lineNumber: /^\d+$/,
     columnNumber: /^\d+$/,
     bailoutReason: /^([\w\s]+|)$/,
@@ -66,7 +66,7 @@ const heapprofile = {
     callFrame: {
       functionName: /^([\w\s()]+|)$/,
       scriptId: /^\d+$/,
-      url: /^([.\w()/\\]+|)$/,
+      url: /^([.\w()/\\:]+|)$/,
       lineNumber: /^\d+$/,
       columnNumber: /^\d+$/
     },
