@@ -1,7 +1,6 @@
 'use strict';
 
 const fs = require('fs');
-const os = require('os');
 const mm = require('mm');
 const expect = require('expect.js');
 const xprofiler = require('../xprofiler');
@@ -15,7 +14,6 @@ function cleanDir(key, dir) {
   }
 }
 
-const tmphome = utils.createLogDir('tmphome');
 
 describe('xprofiler config', function () {
   const message = 'must run "require(\'xprofiler\')()" to set xprofiler config first!';
@@ -23,12 +21,10 @@ describe('xprofiler config', function () {
 
   before(function () {
     mm(process.env, 'XPROFILER_UNIT_TEST_SINGLE_MODULE', 'YES');
-    mm(os, 'homedir', () => tmphome);
   });
 
   after(function () {
     mm.restore();
-    utils.cleanDir(tmphome);
   });
 
   it(`should throw error if not init config: ${message}`, function () {
