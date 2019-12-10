@@ -228,6 +228,7 @@ void HandleAction(void *data, string notify_type) {
       AfterDumpFile(gcprofile_filepath, notify_type, unique_key);
       action_map.erase(START_GC_PROFILING);
       action_map.erase(STOP_GC_PROFILING);
+      break;
     }
     case NODE_REPORT: {
       NodeReport::GetNodeReport(node_report_filepath);
