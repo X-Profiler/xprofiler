@@ -11,9 +11,10 @@ unsigned int active_handles = 0;
 static uv_handle_statistics_t *uv_handle_statistics =
     new uv_handle_statistics_t;
 
-#define UV_ADD(name)                    \
-  if (uv_is_active(h) && uv_has_ref(h)) \
-    uv_handle_statistics->active_##name##_handles++;
+#define UV_ADD(name)                                                    \
+  if (uv_is_active(h)) uv_handle_statistics->active_##name##_handles++; \
+  if (uv_is_active(h) && uv_has_ref(h))                                 \
+    uv_handle_statistics->active_and_ref_##name##_handles++;
 
 void LibuvWalkHandle(uv_handle_t *h, void *unused) {
   switch (h->type) {
@@ -92,13 +93,21 @@ void WriteLibuvHandleInfoToLog(bool log_format_alinode) {
     Info("uv",
          "active_handles: %d, "
          "active_file_handles: %d, "
+         "active_and_ref_file_handles: %d, "
          "active_tcp_handles: %d, "
+         "active_and_ref_tcp_handles: %d, "
          "active_udp_handles: %d, "
-         "active_timer_handles: %d",
+         "active_and_ref_udp_handles: %d, "
+         "active_timer_handles: %d, "
+         "active_and_ref_timer_handles: %d",
          active_handles, uv_handle_statistics->active_file_handles,
+         uv_handle_statistics->active_and_ref_file_handles,
          uv_handle_statistics->active_tcp_handles,
+         uv_handle_statistics->active_and_ref_tcp_handles,
          uv_handle_statistics->active_udp_handles,
-         uv_handle_statistics->active_timer_handles);
+         uv_handle_statistics->active_and_ref_udp_handles,
+         uv_handle_statistics->active_timer_handles,
+         uv_handle_statistics->active_and_ref_timer_handles);
   else
     Info("uv", "active_handles: %d", active_handles);
 }

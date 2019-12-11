@@ -6,7 +6,9 @@ namespace xprofiler {
 #define HANDLE_DEFAULT_VALUE 0
 
 typedef struct {
-#define V(name) int active_##name##_handles = HANDLE_DEFAULT_VALUE;
+#define V(name)                                       \
+  int active_##name##_handles = HANDLE_DEFAULT_VALUE; \
+  int active_and_ref_##name##_handles = HANDLE_DEFAULT_VALUE;
   V(file)
   V(tcp)
   V(udp)
@@ -15,7 +17,9 @@ typedef struct {
 
   // reset record
   void reset() {
-#define V(name) active_##name##_handles = HANDLE_DEFAULT_VALUE;
+#define V(name)                                   \
+  active_##name##_handles = HANDLE_DEFAULT_VALUE; \
+  active_and_ref_##name##_handles = HANDLE_DEFAULT_VALUE;
     V(file)
     V(tcp)
     V(udp)

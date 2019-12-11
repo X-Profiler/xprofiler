@@ -73,8 +73,9 @@ const xprofilerLogStructure = {
   gc: getGcRules(['uptime', 'total_gc_times', 'total_gc_duration', 'total_scavange_duration',
     'total_marksweep_duration', 'total_incremental_marking_duration', 'gc_time_during_last_record',
     'scavange_duration_last_record', 'marksweep_duration_last_record', 'incremental_marking_duration_last_record']),
-  uv: getUvRules(['active_handles', 'active_file_handles', 'active_tcp_handles',
-    'active_udp_handles', 'active_timer_handles'])
+  uv: getUvRules(['active_handles', 'active_file_handles', 'active_and_ref_file_handles', 'active_tcp_handles',
+    'active_and_ref_tcp_handles', 'active_udp_handles', 'active_and_ref_udp_handles',
+    'active_timer_handles', 'active_and_ref_timer_handles'])
 };
 
 function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, structure, alinode) {
