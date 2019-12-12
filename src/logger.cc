@@ -45,29 +45,21 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
   string log_dir = GetLogDir();
   string filepath = log_dir + GetSep();
   bool log_format_alinode = GetFormatAsAlinode();
+  string file_prefix = "xprofiler-";
+  if (log_format_alinode) {
+    file_prefix = "node-";
+  }
   switch (output_level) {
     case LOG_LEVEL::LOG_INFO:
-      if (log_format_alinode) {
-        filepath = filepath + "node-" + time_string_day + ".log";
-      } else {
-        filepath = filepath + "xprofiler-" + time_string_day + ".log";
-      }
+      filepath += file_prefix + time_string_day + ".log";
       WRITET_TO_FILE(info)
       break;
     case LOG_LEVEL::LOG_ERROR:
-      if (log_format_alinode) {
-        filepath = filepath + "node-error-" + time_string_day + ".log";
-      } else {
-        filepath = filepath + "xprofiler-error-" + time_string_day + ".log";
-      }
+      filepath += file_prefix + "error-" + time_string_day + ".log";
       WRITET_TO_FILE(error)
       break;
     case LOG_LEVEL::LOG_DEBUG:
-      if (log_format_alinode) {
-        filepath = filepath + "node-debug-" + time_string_day + ".log";
-      } else {
-        filepath = filepath + "xprofiler-debug-" + time_string_day + ".log";
-      }
+      filepath += file_prefix + "debug-" + time_string_day + ".log";
       WRITET_TO_FILE(debug)
       break;
     default:
@@ -138,17 +130,17 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
     snprintf(tmp_log, sizeof(tmp_log), "%s", tmp_format);
 
   // get log type
-  LOG_TYPE log_type = GetLogType();
-
-  // ttl
-  if (log_type == LOG_TO_TTL) {
-    printf("%s", tmp_log);
-    return;
-  }
-
-  // file
-  if (log_type == LOG_TYPE::LOG_TO_FILE) {
-    WriteToFile(output_level, tmp_log);
+  switch (GetLogType()) {
+    // ttl
+    case LOG_TYPE::LOG_TO_TTL:
+      printf("%s", tmp_log);
+      break;
+    // file
+    case LOG_TYPE::LOG_TO_FILE:
+      WriteToFile(output_level, tmp_log);
+      break;
+    default:
+      break;
   }
 }
 
