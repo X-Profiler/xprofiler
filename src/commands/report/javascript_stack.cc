@@ -86,7 +86,7 @@ void SetJavaScriptStack(JSONWriter* writer) {
     } else if (frame->IsWasm()) {
       writer->json_keyvalue("frameType", "wasm");
     }
-#if (NODE_MODULE_VERSION >= 0x0048)
+#if (NODE_VERSION_AT_LEAST(12, 9, 0))
     else if (frame->IsUserJavaScript()) {
       writer->json_keyvalue("frameType", "userjs");
     }
