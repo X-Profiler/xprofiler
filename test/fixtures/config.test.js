@@ -38,7 +38,10 @@ function getTestKey(configKey, defaultValue, envKey, envValue, userValue, envExt
       key: envKey, value: envValue,
       expected: booleanEnvValue.includes(envValue) ? envValue === 'YES' : envValue
     }].concat(envExtra),
-    user: [{ key: configKey, value: userValue, expected: userValue }].concat(userExtra),
+    user: [
+      { key: configKey, value: userValue, expected: userValue },
+      { key: configKey, value: defaultValue, expected: defaultValue }
+    ].concat(userExtra),
   };
 }
 
