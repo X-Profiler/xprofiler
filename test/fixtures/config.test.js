@@ -90,6 +90,12 @@ const configure = {
     envKey: 'XPROFILER_LOG_TYPE',
     envValue: 1,
     userValue: 1
+  },
+  enable_fatal_error_hook: {
+    defaultValue: true,
+    envKey: 'XPROFILER_ENABLE_FATAL_ERROR_HOOK',
+    envValue: 'NO',
+    userValue: false
   }
 };
 

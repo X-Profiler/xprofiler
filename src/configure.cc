@@ -23,6 +23,7 @@ static bool enable_log_uv_handles = true;
 static bool log_format_alinode = false;
 static LOG_LEVEL log_level = LOG_ERROR;
 static LOG_TYPE log_type = LOG_TO_FILE;
+static bool enable_fatal_error_hook = true;
 
 #define COVERT_STRING(key)                                                 \
   if (key##_value->IsString()) {                                           \
@@ -69,6 +70,9 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
 
   // log type: 0 file, 1 ttl
   W(log_type, CONVERT_UINT32_V2, LOG_TYPE)
+
+  // enable fatal error hook
+  V(enable_fatal_error_hook, CONVERT_BOOL)
 #undef S
 #undef V
 #undef W
@@ -88,6 +92,7 @@ void GetConfig(const FunctionCallbackInfo<Value> &info) {
   W(log_format_alinode, Boolean)
   W(log_level, Number)
   W(log_type, Number)
+  W(enable_fatal_error_hook, Boolean)
 #undef V
 #undef W
   info.GetReturnValue().Set(config);
@@ -102,5 +107,6 @@ V(bool, FormatAsAlinode, log_format_alinode)
 V(bool, EnableLogUvHandles, enable_log_uv_handles)
 V(LOG_LEVEL, LogLevel, log_level)
 V(LOG_TYPE, LogType, log_type)
+V(bool, EnableFatalErrorHook, enable_fatal_error_hook)
 #undef V
 }  // namespace xprofiler

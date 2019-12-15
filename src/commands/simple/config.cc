@@ -14,6 +14,7 @@ COMMAND_CALLBACK(GetXprofilerConfig) {
   data["log_format_alinode"] = GetFormatAsAlinode();
   data["log_level"] = GetLogLevel();
   data["log_type"] = GetLogType();
+  data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
   success(data);
 }
 
@@ -37,6 +38,7 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
   V(bool, enable_log_uv_handles, EnableLogUvHandles)
   V(LOG_LEVEL, log_level, LogLevel)
   V(LOG_TYPE, log_type, LogType)
+  V(bool, enable_fatal_error_hook, EnableFatalErrorHook)
 #undef V
   if (!setted)
     error(format("not support setting config %s", options.dump().c_str()));

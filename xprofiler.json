@@ -47,5 +47,12 @@
       "number"
     ],
     "format": "number"
+  },
+  {
+    "name": "enable_fatal_error_hook",
+    "env": "XPROFILER_ENABLE_FATAL_ERROR_HOOK",
+    "rules": [
+      "boolean"
+    ]
   }
 ]
