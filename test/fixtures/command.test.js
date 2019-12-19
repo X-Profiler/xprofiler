@@ -2,6 +2,7 @@
 
 const os = require('os');
 const moment = require('moment');
+const expect = require('expect.js');
 const pkg = require('../../package.json');
 
 function escape(str) {
@@ -12,6 +13,35 @@ function escape(str) {
 let sep = '/';
 if (os.platform() === 'win32') {
   sep = '\\';
+}
+
+function checkProfile(rules, obj) {
+  for (const [key, rule] of Object.entries(rules)) {
+    const value = obj[key];
+    if (rule instanceof RegExp) {
+      it(`${key}: ${value} shoule be ${rule}`, function () {
+        expect(rule.test(value)).to.be.ok();
+      });
+    } else if (Array.isArray(rule)) {
+      for (const v of value) {
+        checkProfile(rule[0], v);
+      }
+    } else if (typeof rule === 'function') {
+      let label = value;
+      if (Array.isArray(value)) {
+        if (value.length < 10) {
+          label = `${JSON.stringify(value)} length: ${value.length}`;
+        } else {
+          label = `Array [${value[0]}, ${value[1]}, ${value[2]}, ...] length: ${value.length}`;
+        }
+      }
+      it(`${key}: ${label} shoule be ${rule}`, function () {
+        expect(rule(value)).to.be.ok();
+      });
+    } else if (typeof rule === 'object') {
+      checkProfile(rule, value);
+    }
+  }
 }
 
 const isArray = value => Array.isArray(value);
@@ -83,6 +113,8 @@ const gcprofile = {
 
 const diag = {
   pid: /^\d+$/,
+  location: /^([\w\s()-]+|)$/,
+  message: /^([\w\s()-]+|)$/,
   nodeVersion: new RegExp(`^${process.version}$`),
   dumpTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
   loadTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
@@ -105,7 +137,7 @@ const diag = {
   }
 };
 
-module.exports = function (logdir) {
+exports = module.exports = function (logdir) {
   return [
     {
       cmd: 'check_version',
@@ -255,3 +287,7 @@ module.exports = function (logdir) {
     },
   ];
 };
+
+exports.profileRule = { diag };
+
+exports.checkProfile = checkProfile;

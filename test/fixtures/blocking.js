@@ -23,6 +23,10 @@ xprofiler.runLogBypass();
 xprofiler.runCommandsListener();
 xprofiler.runCommandsListener();
 
+// set v8 hooks
+xprofiler.setHooks();
+xprofiler.setHooks();
+
 /*eslint no-empty: "off"*/
 const start = Date.now();
 while (Date.now() - start < 8000) {

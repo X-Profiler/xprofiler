@@ -13,9 +13,11 @@ const xprofctl = path.join(__dirname, '../bin/xprofctl');
 const xctl = require('../lib/xctl');
 const utils = require('./fixtures/utils');
 
+const commandTestFixture = require('./fixtures/command.test');
+const { checkProfile } = commandTestFixture;
 const logdir = utils.createLogDir('logdir_command');
 const tmphome = utils.createLogDir('tmphome_command');
-const testConfig = require('./fixtures/command.test')(logdir);
+const testConfig = commandTestFixture(logdir);
 const testFiles = [
   { jspath: path.join(__dirname, './fixtures/blocking.js'), desc: 'when js main thread blocking' },
   { jspath: path.join(__dirname, './fixtures/non-blocking.js'), desc: 'when js main thread non blocking' }
@@ -31,35 +33,6 @@ function convertOptions(options) {
     }
   }
   return extra;
-}
-
-function checkProfile(rules, obj) {
-  for (const [key, rule] of Object.entries(rules)) {
-    const value = obj[key];
-    if (rule instanceof RegExp) {
-      it(`${key}: ${value} shoule be ${rule}`, function () {
-        expect(rule.test(value)).to.be.ok();
-      });
-    } else if (Array.isArray(rule)) {
-      for (const v of value) {
-        checkProfile(rule[0], v);
-      }
-    } else if (typeof rule === 'function') {
-      let label = value;
-      if (Array.isArray(value)) {
-        if (value.length < 10) {
-          label = `${JSON.stringify(value)} length: ${value.length}`;
-        } else {
-          label = `Array [${value[0]}, ${value[1]}, ${value[2]}, ...] length: ${value.length}`;
-        }
-      }
-      it(`${key}: ${label} shoule be ${rule}`, function () {
-        expect(rule(value)).to.be.ok();
-      });
-    } else if (typeof rule === 'object') {
-      checkProfile(rule, value);
-    }
-  }
 }
 
 for (let i = 0; i < testConfig.length; i++) {

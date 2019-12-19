@@ -20,10 +20,13 @@ using std::ofstream;
 NodeReport::NodeReport() {}
 NodeReport::~NodeReport() {}
 
-static void WriteNodeReport(JSONWriter *writer) {
+static void WriteNodeReport(JSONWriter *writer, string location,
+                            string message) {
   writer->json_start();
 
   writer->json_keyvalue("pid", GetPid());
+  writer->json_keyvalue("location", location);
+  writer->json_keyvalue("message", message);
   writer->json_keyvalue("nodeVersion", GetGlobalNodeVersion());
   writer->json_keyvalue("loadTime", GetStartTime("%Y-%m-%d %H:%M:%S"));
   writer->json_keyvalue("dumpTime", ConvertTime("%Y-%m-%d %H:%M:%S"));
@@ -37,7 +40,8 @@ static void WriteNodeReport(JSONWriter *writer) {
   writer->json_end();
 }
 
-void NodeReport::GetNodeReport(string filepath) {
+void NodeReport::GetNodeReport(string filepath, string location,
+                               string message) {
   ofstream outfile;
   outfile.open(filepath, ios::out | ios::binary);
   if (!outfile.is_open()) {
@@ -46,7 +50,7 @@ void NodeReport::GetNodeReport(string filepath) {
     return;
   }
   JSONWriter writer(outfile);
-  WriteNodeReport(&writer);
+  WriteNodeReport(&writer, location, message);
   outfile.close();
 }
 }  // namespace xprofiler
