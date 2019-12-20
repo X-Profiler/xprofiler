@@ -69,6 +69,7 @@ void GcProfiler::StartGCProfiling(string filename_) {
   outfile.open(filename_, ios::out | ios::binary);
   if (!outfile.is_open()) {
     Error("gc_profiler", "open file %s failed.", filename_.c_str());
+    outfile.close();
     return;
   }
   AddGCPrologueCallback(GCTracerPrologueCallback);

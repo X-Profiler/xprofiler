@@ -176,25 +176,19 @@ static void reportPath(uv_handle_t *h, ostringstream &out) {
 
 static void reportEndpoint(uv_handle_t *h, struct sockaddr *addr,
                            const char *prefix, ostringstream &out) {
-  uv_getnameinfo_t endpoint;
-  if (uv_getnameinfo(h->loop, &endpoint, nullptr, addr, NI_NUMERICSERV) == 0) {
-    out << prefix << endpoint.host << ":" << endpoint.service;
-  } else {
-    char host[INET6_ADDRSTRLEN];
-    const int family = addr->sa_family;
-    const void *src =
-        family == AF_INET
-            ? static_cast<void *>(
-                  &(reinterpret_cast<sockaddr_in *>(addr)->sin_addr))
-            : static_cast<void *>(
-                  &(reinterpret_cast<sockaddr_in6 *>(addr)->sin6_addr));
-    if (uv_inet_ntop(family, src, host, sizeof(host)) == 0) {
-      const int port =
-          ntohs(family == AF_INET
-                    ? reinterpret_cast<sockaddr_in *>(addr)->sin_port
-                    : reinterpret_cast<sockaddr_in6 *>(addr)->sin6_port);
-      out << prefix << host << ":" << port;
-    }
+  char host[INET6_ADDRSTRLEN];
+  const int family = addr->sa_family;
+  const void *src =
+      family == AF_INET
+          ? static_cast<void *>(
+                &(reinterpret_cast<sockaddr_in *>(addr)->sin_addr))
+          : static_cast<void *>(
+                &(reinterpret_cast<sockaddr_in6 *>(addr)->sin6_addr));
+  if (uv_inet_ntop(family, src, host, sizeof(host)) == 0) {
+    const int port = ntohs(
+        family == AF_INET ? reinterpret_cast<sockaddr_in *>(addr)->sin_port
+                          : reinterpret_cast<sockaddr_in6 *>(addr)->sin6_port);
+    out << prefix << host << ":" << port;
   }
 }
 
