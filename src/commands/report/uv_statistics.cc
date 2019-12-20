@@ -232,54 +232,40 @@ static void reportEndpoints(uv_handle_t *h, ostringstream &out) {
 }
 
 static void walkHandle(uv_handle_t *h, void *arg) {
-  string type;
-  uv_any_handle *handle = (uv_any_handle *)h;
+  uv_any_handle *handle = reinterpret_cast<uv_any_handle *>(h);
   ostringstream data;
 
   switch (h->type) {
     case UV_UNKNOWN_HANDLE:
-      type = "unknown";
       break;
     case UV_ASYNC:
-      type = "async";
       break;
     case UV_CHECK:
-      type = "check";
       break;
     case UV_FS_EVENT: {
-      type = "fs_event";
       reportPath(h, data);
       break;
     }
     case UV_FS_POLL: {
-      type = "fs_poll";
       reportPath(h, data);
       break;
     }
     case UV_HANDLE:
-      type = "handle";
       break;
     case UV_IDLE:
-      type = "idle";
       break;
     case UV_NAMED_PIPE:
-      type = "pipe";
       break;
     case UV_POLL:
-      type = "poll";
       break;
     case UV_PREPARE:
-      type = "prepare";
       break;
     case UV_PROCESS:
-      type = "process";
       data << "pid: " << handle->process.pid;
       break;
     case UV_STREAM:
-      type = "stream";
       break;
     case UV_TCP: {
-      type = "tcp";
       reportEndpoints(h, data);
       break;
     }
@@ -290,7 +276,6 @@ static void walkHandle(uv_handle_t *h, void *arg) {
       uint64_t due = handle->timer.timeout;
 #endif
       uint64_t now = uv_now(handle->timer.loop);
-      type = "timer";
       data << "repeat: " << uv_timer_get_repeat(&(handle->timer));
       if (due > now) {
         data << ", timeout in: " << (due - now) << " ms";
@@ -301,7 +286,6 @@ static void walkHandle(uv_handle_t *h, void *arg) {
     }
     case UV_TTY: {
       int height, width, rc;
-      type = "tty";
       rc = uv_tty_get_winsize(&(handle->tty), &width, &height);
       if (rc == 0) {
         data << "width: " << width << ", height: " << height;
@@ -309,21 +293,17 @@ static void walkHandle(uv_handle_t *h, void *arg) {
       break;
     }
     case UV_UDP: {
-      type = "udp";
       reportEndpoints(h, data);
       break;
     }
     case UV_SIGNAL: {
-      type = "signal";
       data << "signum: " << handle->signal.signum << " ("
            << SignoString(handle->signal.signum) << ")";
       break;
     }
     case UV_FILE:
-      type = "file";
       break;
     case UV_HANDLE_TYPE_MAX:
-      type = "max";
       break;
   }
 
@@ -374,17 +354,16 @@ static void walkHandle(uv_handle_t *h, void *arg) {
          << (uv_is_writable(&handle->stream) ? ", writable" : "");
   }
 
-  // for empty string
-  data << "";
-
-  JSONWriter *writer = reinterpret_cast<JSONWriter *>(arg);
+  JSONWriter *writer = static_cast<JSONWriter *>(arg);
+  const char *type = uv_handle_type_name(h->type);
+  string detail = data.str();
 
   writer->json_start();
   writer->json_keyvalue("type", type);
   writer->json_keyvalue("address", GetPcAddress(static_cast<void *>(h)));
   writer->json_keyvalue("hasRef", uv_has_ref(h));
   writer->json_keyvalue("isActive", uv_is_active(h));
-  writer->json_keyvalue("detail", data.str());
+  writer->json_keyvalue("detail", detail);
   writer->json_end();
 }
 
