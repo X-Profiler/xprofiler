@@ -20,6 +20,7 @@ static const char module_type[] = "dump_action";
 
 static Isolate *node_isolate;
 static uv_mutex_t node_isolate_mutex;
+static uv_mutex_t async_data_mutex;
 static uv_async_t async_send_callback;
 static uv_thread_t uv_profiling_callback_thread;
 
@@ -249,7 +250,13 @@ static void RequestInterruptCallback(Isolate *isolate, void *data) {
 }
 
 static void AsyncSendCallback(uv_async_t *handle) {
-  HandleAction(handle->data, "uv_async_send");
+  // get data from async handle
+  uv_mutex_lock(&async_data_mutex);
+  void *data = handle->data;
+  handle->data = nullptr;
+  uv_mutex_unlock(&async_data_mutex);
+
+  HandleAction(data, "uv_async_send");
 }
 
 static void ProfilingTime(uint64_t profiling_time) {
@@ -265,8 +272,10 @@ static void NoticeMainJsThread(void *data) {
   node_isolate->RequestInterrupt(RequestInterruptCallback, data);
   uv_mutex_unlock(&node_isolate_mutex);
 
+  uv_mutex_lock(&async_data_mutex);
   async_send_callback.data = data;
   uv_async_send(&async_send_callback);
+  uv_mutex_unlock(&async_data_mutex);
 }
 
 template <typename T>
@@ -304,11 +313,21 @@ static string CreateFilepath(string prefix, string ext) {
 }
 
 int InitDumpAction() {
+  // init global node isolate
   node_isolate = Isolate::GetCurrent();
+
+  // init async send
   int rc =
       uv_async_init(uv_default_loop(), &async_send_callback, AsyncSendCallback);
   if (rc != 0) return rc;
+
+  // init async data mutex
+  rc = uv_mutex_init(&async_data_mutex);
+  if (rc != 0) return rc;
+
+  // init isolate mutex
   rc = uv_mutex_init(&node_isolate_mutex);
+
   return rc;
 }
 
