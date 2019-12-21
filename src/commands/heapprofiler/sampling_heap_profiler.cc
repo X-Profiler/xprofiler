@@ -54,6 +54,7 @@ void SamplingHeapProfile::StopSamplingHeapProfiling(string filename) {
   outfile.open(filename, std::ios::out | std::ios::binary);
   if (!outfile.is_open()) {
     Error("sampling_heap_profiler", "open file %s failed.", filename.c_str());
+    outfile.close();
     return;
   }
   // get allocationProfile

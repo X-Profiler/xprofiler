@@ -144,7 +144,7 @@ void PrintResourceLimits(JSONWriter* writer) {
         snprintf(buf, sizeof(buf), "%lld", limit.rlim_max);
         writer->json_keyvalue("hardLimit", buf);
 #else
-        snprintf(buf, sizeof(buf), "%" PRIu64 "\n", limit.rlim_max);
+        snprintf(buf, sizeof(buf), "%" PRIu64, limit.rlim_max);
         writer->json_keyvalue("hardLimit", buf);
 #endif
       }

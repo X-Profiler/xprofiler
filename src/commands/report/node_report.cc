@@ -42,6 +42,7 @@ void NodeReport::GetNodeReport(string filepath) {
   outfile.open(filepath, ios::out | ios::binary);
   if (!outfile.is_open()) {
     Error("node_report", "open file %s failed.", filepath.c_str());
+    outfile.close();
     return;
   }
   JSONWriter writer(outfile);

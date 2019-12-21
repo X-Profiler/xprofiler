@@ -15,6 +15,7 @@ void Profile::Serialize(const CpuProfile *node, std::string filename) {
   outfile.open(filename, std::ios::out | std::ios::binary);
   if (!outfile.is_open()) {
     Error("cpu_profile", "open file %s failed.", filename.c_str());
+    outfile.close();
     return;
   }
 

@@ -16,9 +16,10 @@ static const char module_type[] = "ipc";
 
 #define CLIENT_BUFFER_SIZE 4096
 
-#define TEARDOWN(message)      \
-  Error(module_type, message); \
-  error_closed = true;         \
+#define TEARDOWN(message)             \
+  Error(module_type, message);        \
+  error_closed = true;                \
+  shutdown(new_client_fd, SHUT_RDWR); \
   close(new_client_fd);
 
 void CreateIpcServer(void (*parsecmd)(char *)) {
@@ -87,6 +88,7 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
 
     parsecmd(data_buffer);
 
+    shutdown(new_client_fd, SHUT_RDWR);
     close(new_client_fd);
   }
 }
@@ -120,6 +122,7 @@ void CreateIpcClient(char *message) {
   }
   Debug("ipc", "send message succeed: %s.", message);
 
+  shutdown(client_fd, SHUT_RDWR);
   close(client_fd);
 }
 }  // namespace xprofiler

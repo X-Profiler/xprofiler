@@ -18,9 +18,6 @@ xprofiler.runLogBypass();
 xprofiler.runCommandsListener();
 xprofiler.runCommandsListener();
 
-setInterval(() => { }, 1000);
-
 setTimeout(() => {
   mm.restore();
-  process.exit(0);
 }, 8000);
