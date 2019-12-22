@@ -63,14 +63,14 @@ for (let i = 0; i < testConfig.length; i++) {
         // send cmd with xprofctl (cli)
         const extra = convertOptions(options);
         const nodeExe = os.platform() === 'win32' ? 'node ' : '';
-        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}`, 'send xprofctl cmd.');
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xprofctl cmd.');
         resByXprofctl = await exec(`${nodeExe}${xprofctl} ${cmd} -p ${pid}${extra}`, {
           env: Object.assign({}, process.env, {
             XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
           })
         });
         resByXprofctl = resByXprofctl.stderr.trim() + resByXprofctl.stdout.trim();
-        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}`, 'wait for child process done.');
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'wait for child process done.');
         await new Promise(resolve => p.on('close', resolve));
       });
 
