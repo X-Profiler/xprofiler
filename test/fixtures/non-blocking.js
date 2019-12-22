@@ -18,6 +18,10 @@ xprofiler.runLogBypass();
 xprofiler.runCommandsListener();
 xprofiler.runCommandsListener();
 
+// set v8 hooks
+xprofiler.setHooks();
+xprofiler.setHooks();
+
 setTimeout(() => {
   mm.restore();
 }, 8000);

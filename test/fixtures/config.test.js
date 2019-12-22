@@ -38,7 +38,10 @@ function getTestKey(configKey, defaultValue, envKey, envValue, userValue, envExt
       key: envKey, value: envValue,
       expected: booleanEnvValue.includes(envValue) ? envValue === 'YES' : envValue
     }].concat(envExtra),
-    user: [{ key: configKey, value: userValue, expected: userValue }].concat(userExtra),
+    user: [
+      { key: configKey, value: userValue, expected: userValue },
+      { key: configKey, value: defaultValue, expected: defaultValue }
+    ].concat(userExtra),
   };
 }
 
@@ -90,6 +93,12 @@ const configure = {
     envKey: 'XPROFILER_LOG_TYPE',
     envValue: 1,
     userValue: 1
+  },
+  enable_fatal_error_hook: {
+    defaultValue: true,
+    envKey: 'XPROFILER_ENABLE_FATAL_ERROR_HOOK',
+    envValue: 'NO',
+    userValue: false
   }
 };
 

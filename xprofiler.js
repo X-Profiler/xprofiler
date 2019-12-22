@@ -8,7 +8,8 @@ const configList = require('./xprofiler.json');
 
 const runOnceStatus = {
   bypassLogThreadStarted: false,
-  commandsListenerThreadStarted: false
+  commandsListenerThreadStarted: false,
+  hooksSetted: false
 };
 
 let configured = false;
@@ -42,6 +43,8 @@ exports = module.exports = (config = {}) => {
     exports.runLogBypass();
     // start commands listener thread
     exports.runCommandsListener();
+    // set hooks
+    exports.setHooks();
   }
 };
 
@@ -67,3 +70,5 @@ exports.getXprofilerConfig = function () {
 exports.runLogBypass = runOnce.bind(null, 'bypassLogThreadStarted', xprofiler.runLogBypass);
 
 exports.runCommandsListener = runOnce.bind(null, 'commandsListenerThreadStarted', xprofiler.runCommandsListener);
+
+exports.setHooks = runOnce.bind(null, 'hooksSetted', xprofiler.setHooks);

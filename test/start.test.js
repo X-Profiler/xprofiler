@@ -33,7 +33,7 @@ describe(`xprofiler starting`, function () {
   });
 
   it(`invalid process ${invaidPid} not exists in ~/.xprofier`, function () {
-    const content = fs.readFileSync(xprofilerPath, 'utf8');
+    const content = fs.readFileSync(xprofilerPath, 'utf8').trim();
     const aliveProcessInfo = content.split('\n').map(line => line.split(SPLITTER));
     expect(aliveProcessInfo.length).to.be(1);
     const aliveProcess = aliveProcessInfo[0];

@@ -1,5 +1,6 @@
 #include "commands/listener.h"
 #include "configure.h"
+#include "hooks/set_hooks.h"
 #include "library/common.h"
 #include "logbypass/log.h"
 #include "logger.h"
@@ -33,6 +34,10 @@ NAN_MODULE_INIT(Initialize) {
 
   // commands listener
   V(runCommandsListener, RunCommandsListener)
+
+  // set hooks
+  V(setHooks, SetHooks)
+
 #undef V
 }
 

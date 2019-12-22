@@ -20,6 +20,7 @@ V(bool, FormatAsAlinode)
 V(bool, EnableLogUvHandles)
 V(LOG_LEVEL, LogLevel)
 V(LOG_TYPE, LogType)
+V(bool, EnableFatalErrorHook)
 #undef V
 
 // javascript accessible
