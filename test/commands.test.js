@@ -70,6 +70,7 @@ for (let i = 0; i < testConfig.length; i++) {
           })
         });
         resByXprofctl = resByXprofctl.stderr.trim() + resByXprofctl.stdout.trim();
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}`, 'wait for child process done.');
         await new Promise(resolve => p.on('close', resolve));
       });
 
