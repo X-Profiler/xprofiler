@@ -17,6 +17,10 @@ NAN_MODULE_INIT(Initialize) {
   // init global variables
   InitGlobalVariables();
 
+  // init logger
+  int rc = InitLogger();
+  if (rc != 0) return;
+
 #define V(js_func, native_func)                       \
   Set(target, New<String>(#js_func).ToLocalChecked(), \
       GetFunction(New<FunctionTemplate>(native_func)).ToLocalChecked());

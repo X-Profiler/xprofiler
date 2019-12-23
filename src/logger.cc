@@ -24,17 +24,22 @@ using v8::String;
 static const int kMaxMessageLength = 1024;
 static const int kMaxFormatLength = 1024;
 
+static uv_mutex_t logger_mutex;
+
 // output
 static std::ofstream info_stream;
 static std::ofstream error_stream;
 static std::ofstream debug_stream;
 
 #define WRITET_TO_FILE(type)                   \
+  uv_mutex_lock(&logger_mutex);                \
   type##_stream.open(filepath, std::ios::app); \
   type##_stream << log;                        \
-  type##_stream.close();
+  type##_stream.flush();                       \
+  type##_stream.close();                       \
+  uv_mutex_unlock(&logger_mutex);
 
-void WriteToFile(const LOG_LEVEL output_level, char *log) {
+static void WriteToFile(const LOG_LEVEL output_level, char *log) {
   // get time of date
   char time_string_day[32];
   time_t tt = time(NULL);
@@ -67,8 +72,8 @@ void WriteToFile(const LOG_LEVEL output_level, char *log) {
   }
 }
 
-void Log(const LOG_LEVEL output_level, const char *type, const char *format,
-         va_list arglist = nullptr) {
+static void Log(const LOG_LEVEL output_level, const char *type,
+                const char *format, va_list arglist = nullptr) {
   LOG_LEVEL level = GetLogLevel();
   if (level < output_level) {
     return;
@@ -142,6 +147,11 @@ void Log(const LOG_LEVEL output_level, const char *type, const char *format,
     default:
       break;
   }
+}
+
+int InitLogger() {
+  int rc = uv_mutex_init(&logger_mutex);
+  return rc;
 }
 
 #define V(level)                                 \

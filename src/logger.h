@@ -8,6 +8,8 @@ namespace xprofiler {
 using Nan::FunctionCallbackInfo;
 using v8::Value;
 
+int InitLogger();
+
 // normal external
 void Info(const char *log_type, const char *format, ...);
 void Error(const char *log_type, const char *format, ...);
