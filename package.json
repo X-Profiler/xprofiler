@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "1.0.6",
+  "version": "1.0.0-prepare",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -16,7 +16,8 @@
     "cov-single": "nyc --reporter=html --reporter=text --reporter=lcov mocha --timeout 0 -R spec",
     "upload": "node scripts/upload.js",
     "ci": "npm run lint && npm run cov && codecov && npm run upload",
-    "dep": "npm run build && npm run cov"
+    "dep": "npm run build && npm run cov",
+    "release": "node scripts/release.js"
   },
   "repository": {
     "type": "git",
