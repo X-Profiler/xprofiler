@@ -29,6 +29,7 @@
     "src",
     "binding.gyp",
     "xprofiler.js",
+    "index.d.ts",
     "xprofiler.json"
   ],
   "author": "yeekwanvong@gmail.com",
