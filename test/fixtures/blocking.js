@@ -15,7 +15,7 @@ if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
 
 process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE = 'YES';
 
-xprofiler();
+xprofiler.start();
 console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking xprofiler() done.');
 
 // start log bypass

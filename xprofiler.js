@@ -29,7 +29,7 @@ function runOnce(onceKey, onceFunc) {
   onceFunc();
 }
 
-exports = module.exports = (config = {}) => {
+function start(config = {}) {
   // set config by user and env
   const finalConfig = exports.setConfig(config);
 
@@ -46,7 +46,11 @@ exports = module.exports = (config = {}) => {
     // set hooks
     exports.setHooks();
   }
-};
+}
+
+exports = module.exports = start;
+
+exports.start = start;
 
 exports.setConfig = function (config) {
   // set config

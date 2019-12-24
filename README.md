@@ -45,8 +45,15 @@ npm i xprofiler --save
 在您的项目入口顶部引入即可，性能分析日志默认输出在 `os.tmpdir()` 下
 
 ```js
+// 推荐以模块函数形式使用
+const xprofiler = require('xprofiler');
+xprofiler.start();
+
+// 这里也可以直接使用
 require('xprofiler')();
 ```
+
+此时插件会以 1min/次 的频率输出嵌入的宿主 Node.js 进程的性能日志到文件中，默认为 `os.tmpdir()` 目录下 `xprofiler-${YYYYMMDD}.log` 文件。
 
 ### 可配置的参数
 
@@ -71,7 +78,8 @@ require('xprofiler')();
 #### 2. 引入插件时传入配置
 
 ```js
-require('xprofiler')({
+const xprofiler = require('xprofiler');
+xprofiler.start({
   log_dir: '/path/to/your/logdir', // 性能分析日志输出目录
   log_interval: 120, // 采样间隔 120s
   enable_log_uv_handles: false, // 不输出 uv 句柄分类详情
