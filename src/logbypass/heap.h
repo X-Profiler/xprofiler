@@ -1,6 +1,7 @@
 #ifndef _SRC_LOGBYPASS_HEAP_H
 #define _SRC_LOGBYPASS_HEAP_H
 
+#include "node_version.h"
 #include "v8.h"
 
 namespace xprofiler {
@@ -54,6 +55,15 @@ typedef struct {
   V(map)
   // large object space
   V(large_object)
+  // read only space
+  // needs v8 version >= 6.8
+  V(read_only)
+  // new large object space
+  // needs v8 version >= 6.9
+  V(new_large_object)
+  // code large object space
+  // needs v8 version >= 7.3
+  V(code_large_object)
 #undef V
 } heap_space_statistics_t;
 
