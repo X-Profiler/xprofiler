@@ -21,8 +21,8 @@ using std::to_string;
 using v8::Local;
 using v8::String;
 
-static const int kMaxMessageLength = 1024;
-static const int kMaxFormatLength = 1024;
+static const int kMaxMessageLength = 2048;
+static const int kMaxFormatLength = 2048;
 
 static uv_mutex_t logger_mutex;
 

@@ -32,7 +32,7 @@ function getMemoryRules(list, alinode) {
   return setRules(list, alinode, { alinodeRule: alindoeMemoryRule, xprofilerRule: xprofilerMemoryRule });
 }
 function setSpaceKeys(list) {
-  const spaces = ['new', 'old', 'code', 'map', 'lo'];
+  const spaces = ['new', 'old', 'code', 'map', 'lo', 'read_only', 'new_lo', 'code_lo'];
   for (const key of spaces) {
     list.push(`${key}_space_size`);
     list.push(`${key}_space_used`);

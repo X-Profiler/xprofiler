@@ -37,13 +37,12 @@ void SetHeapSpaceStatistics() {
   size_t number_of_heap_spaces = isolate->NumberOfHeapSpaces();
   for (size_t i = 0; i < number_of_heap_spaces; i++) {
     isolate->GetHeapSpaceStatistics(&s, i);
-    // todo: read_only_space, large_object_space, code_large_object_space
-#define V(name)                                                        \
-  if (strcmp(s.space_name(), #name) == 0) {                            \
-    heap_space_statistics->name##_size = s.space_size();               \
-    heap_space_statistics->name##_used = s.space_used_size();          \
-    heap_space_statistics->name##_available = s.space_used_size();     \
-    heap_space_statistics->name##_committed = s.physical_space_size(); \
+#define V(name)                                                         \
+  if (strcmp(s.space_name(), #name) == 0) {                             \
+    heap_space_statistics->name##_size = s.space_size();                \
+    heap_space_statistics->name##_used = s.space_used_size();           \
+    heap_space_statistics->name##_available = s.space_available_size(); \
+    heap_space_statistics->name##_committed = s.physical_space_size();  \
   }
     // new space
     V(new_space)
@@ -55,6 +54,15 @@ void SetHeapSpaceStatistics() {
     V(map_space)
     // large object space
     V(large_object_space)
+    // read only space
+    // needs v8 version >= 6.8
+    V(read_only_space)
+    // new large object space
+    // needs v8 version >= 6.9
+    V(new_large_object_space)
+    // code large object space
+    // needs v8 version >= 7.3
+    V(code_large_object_space)
 #undef V
   }
 }
@@ -113,7 +121,19 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          "lo_space_size: %zu, "
          "lo_space_used: %zu, "
          "lo_space_available: %zu, "
-         "lo_space_committed: %zu",
+         "lo_space_committed: %zu, "
+         "read_only_space_size: %zu, "
+         "read_only_space_used: %zu, "
+         "read_only_space_available: %zu, "
+         "read_only_space_committed: %zu, "
+         "new_lo_space_size: %zu, "
+         "new_lo_space_used: %zu, "
+         "new_lo_space_available: %zu, "
+         "new_lo_space_committed: %zu, "
+         "code_lo_space_size: %zu, "
+         "code_lo_space_used: %zu, "
+         "code_lo_space_available: %zu, "
+         "code_lo_space_committed: %zu",
          // rss
          rss,
          // heap statistics
@@ -132,7 +152,13 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          // map space
          V(map),
          // large object space
-         V(large_object));
+         V(large_object),
+         // read only space
+         V(read_only),
+         // new large object space
+         V(new_large_object),
+         // code large object space
+         V(code_large_object));
   } else {
     Info("memory",
          "memory_usage(byte) "
@@ -164,7 +190,19 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          "lo_space_size: %zu, "
          "lo_space_used: %zu, "
          "lo_space_available: %zu, "
-         "lo_space_committed: %zu",
+         "lo_space_committed: %zu, "
+         "read_only_space_size: %zu, "
+         "read_only_space_used: %zu, "
+         "read_only_space_available: %zu, "
+         "read_only_space_committed: %zu, "
+         "new_lo_space_size: %zu, "
+         "new_lo_space_used: %zu, "
+         "new_lo_space_available: %zu, "
+         "new_lo_space_committed: %zu, "
+         "code_lo_space_size: %zu, "
+         "code_lo_space_used: %zu, "
+         "code_lo_space_available: %zu, "
+         "code_lo_space_committed: %zu",
          // rss
          rss,
          // heap statistics
@@ -183,7 +221,13 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          // map space
          V(map),
          // large object space
-         V(large_object));
+         V(large_object),
+         // read only space
+         V(read_only),
+         // new large object space
+         V(new_large_object),
+         // code large object space
+         V(code_large_object));
   }
 #undef V
 }
