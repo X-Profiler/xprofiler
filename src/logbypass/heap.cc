@@ -37,33 +37,15 @@ void SetHeapSpaceStatistics() {
   size_t number_of_heap_spaces = isolate->NumberOfHeapSpaces();
   for (size_t i = 0; i < number_of_heap_spaces; i++) {
     isolate->GetHeapSpaceStatistics(&s, i);
-#define V(name)                                                         \
-  if (strcmp(s.space_name(), #name) == 0) {                             \
-    heap_space_statistics->name##_size = s.space_size();                \
-    heap_space_statistics->name##_used = s.space_used_size();           \
-    heap_space_statistics->name##_available = s.space_available_size(); \
-    heap_space_statistics->name##_committed = s.physical_space_size();  \
-  }
-    // new space
-    V(new_space)
-    // old space
-    V(old_space)
-    // code space
-    V(code_space)
-    // map space
-    V(map_space)
-    // large object space
-    V(large_object_space)
-    // read only space
-    // needs v8 version >= 6.8
-    V(read_only_space)
-    // new large object space
-    // needs v8 version >= 6.9
-    V(new_large_object_space)
-    // code large object space
-    // needs v8 version >= 7.3
-    V(code_large_object_space)
-#undef V
+
+    SET_SPACE_INFO(new_space)
+    SET_SPACE_INFO(old_space)
+    SET_SPACE_INFO(code_space)
+    SET_SPACE_INFO(map_space)
+    SET_SPACE_INFO(large_object_space)
+    SET_SPACE_INFO(read_only_space)          // needs v8 version >= 6.
+    SET_SPACE_INFO(new_large_object_space)   // needs v8 version >= 6.9
+    SET_SPACE_INFO(code_large_object_space)  // needs v8 version >= 7.3
   }
 }
 
@@ -86,11 +68,6 @@ void UnrefMemoryAsyncHandle() {
 void GetMemoryInfo() { uv_async_send(&memory_statistics_trigger); }
 
 void WriteMemoryInfoToLog(bool log_format_alinode) {
-#define V(name)                                      \
-  heap_space_statistics->name##_space_size,          \
-      heap_space_statistics->name##_space_used,      \
-      heap_space_statistics->name##_space_available, \
-      heap_space_statistics->name##_space_committed
   if (log_format_alinode) {
     Info("heap",
          "rss: %zu, "
@@ -143,22 +120,11 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          heap_statistics->total_heap_size_executable(),
          heap_statistics->total_physical_size(),
          heap_statistics->malloced_memory(), heap_statistics->external_memory(),
-         // new space
-         V(new),
-         // old space
-         V(old),
-         // code space
-         V(code),
-         // map space
-         V(map),
-         // large object space
-         V(large_object),
-         // read only space
-         V(read_only),
-         // new large object space
-         V(new_large_object),
-         // code large object space
-         V(code_large_object));
+         // space statistics
+         LOG_SPACE_INFO(new), LOG_SPACE_INFO(old), LOG_SPACE_INFO(code),
+         LOG_SPACE_INFO(map), LOG_SPACE_INFO(large_object),
+         LOG_SPACE_INFO(read_only), LOG_SPACE_INFO(new_large_object),
+         LOG_SPACE_INFO(code_large_object));
   } else {
     Info("memory",
          "memory_usage(byte) "
@@ -212,23 +178,11 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          heap_statistics->total_heap_size_executable(),
          heap_statistics->total_physical_size(),
          heap_statistics->malloced_memory(), heap_statistics->external_memory(),
-         // new space
-         V(new),
-         // old space
-         V(old),
-         // code space
-         V(code),
-         // map space
-         V(map),
-         // large object space
-         V(large_object),
-         // read only space
-         V(read_only),
-         // new large object space
-         V(new_large_object),
-         // code large object space
-         V(code_large_object));
+         // space statistics
+         LOG_SPACE_INFO(new), LOG_SPACE_INFO(old), LOG_SPACE_INFO(code),
+         LOG_SPACE_INFO(map), LOG_SPACE_INFO(large_object),
+         LOG_SPACE_INFO(read_only), LOG_SPACE_INFO(new_large_object),
+         LOG_SPACE_INFO(code_large_object));
   }
-#undef V
 }
 }  // namespace xprofiler

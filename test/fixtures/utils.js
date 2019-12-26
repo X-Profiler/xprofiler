@@ -45,3 +45,7 @@ exports.getNestingValue = function (origin, key) {
   }
   return origin;
 };
+
+exports.arrayEqual = function arrayEqual(arr1, arr2) {
+  return arr1.every(a1 => arr2.includes(a1)) && arr2.every(a2 => arr1.includes(a2));
+};

@@ -6,6 +6,20 @@ namespace xprofiler {
 using nlohmann::json;
 using std::exception;
 
+#define HANDLE_CONFIG_SETTING(ret, key, func)      \
+  if (options.find(#key) != options.end()) {       \
+    ret value;                                     \
+    XpfError err;                                  \
+    value = GetJsonValue<ret>(options, #key, err); \
+    if (err.Fail()) {                              \
+      error(format("%s", err.GetErrMessage()));    \
+      return;                                      \
+    }                                              \
+    Set##func(value);                              \
+    setted = true;                                 \
+    data[#key] = Get##func();                      \
+  }
+
 COMMAND_CALLBACK(GetXprofilerConfig) {
   json data;
   data["log_dir"] = GetLogDir();
@@ -22,24 +36,12 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
   json options = command["options"];
   bool setted = false;
   json data;
-#define V(ret, key, func)                          \
-  if (options.find(#key) != options.end()) {       \
-    ret value;                                     \
-    XpfError err;                                  \
-    value = GetJsonValue<ret>(options, #key, err); \
-    if (err.Fail()) {                              \
-      error(format("%s", err.GetErrMessage()));    \
-      return;                                      \
-    }                                              \
-    Set##func(value);                              \
-    setted = true;                                 \
-    data[#key] = Get##func();                      \
-  }
-  V(bool, enable_log_uv_handles, EnableLogUvHandles)
-  V(LOG_LEVEL, log_level, LogLevel)
-  V(LOG_TYPE, log_type, LogType)
-  V(bool, enable_fatal_error_hook, EnableFatalErrorHook)
-#undef V
+
+  HANDLE_CONFIG_SETTING(LOG_LEVEL, log_level, LogLevel)
+  HANDLE_CONFIG_SETTING(LOG_TYPE, log_type, LogType)
+  HANDLE_CONFIG_SETTING(bool, enable_log_uv_handles, EnableLogUvHandles)
+  HANDLE_CONFIG_SETTING(bool, enable_fatal_error_hook, EnableFatalErrorHook)
+
   if (!setted)
     error(format("not support setting config %s", options.dump().c_str()));
   else

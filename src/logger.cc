@@ -21,6 +21,32 @@ using std::to_string;
 using v8::Local;
 using v8::String;
 
+#define WRITET_TO_FILE(type)                   \
+  uv_mutex_lock(&logger_mutex);                \
+  type##_stream.open(filepath, std::ios::app); \
+  type##_stream << log;                        \
+  type##_stream.flush();                       \
+  type##_stream.close();                       \
+  uv_mutex_unlock(&logger_mutex);
+
+#define LOG_WITH_LEVEL(level)                    \
+  va_list args;                                  \
+  va_start(args, format);                        \
+  Log(LOG_LEVEL::level, log_type, format, args); \
+  va_end(args);
+
+#define JS_LOG_WITH_LEVEL(level)                                               \
+  if (!info[0]->IsString() || !info[1]->IsString()) {                          \
+    ThrowTypeError(                                                            \
+        New<String>("log type and content must be string!").ToLocalChecked()); \
+    return;                                                                    \
+  }                                                                            \
+  Local<String> log_type_string = To<String>(info[0]).ToLocalChecked();        \
+  Utf8String log_type(log_type_string);                                        \
+  Local<String> log_content_string = To<String>(info[1]).ToLocalChecked();     \
+  Utf8String log_content(log_content_string);                                  \
+  Log(LOG_LEVEL::level, *log_type, *log_content);
+
 static const int kMaxMessageLength = 2048;
 static const int kMaxFormatLength = 2048;
 
@@ -30,14 +56,6 @@ static uv_mutex_t logger_mutex;
 static std::ofstream info_stream;
 static std::ofstream error_stream;
 static std::ofstream debug_stream;
-
-#define WRITET_TO_FILE(type)                   \
-  uv_mutex_lock(&logger_mutex);                \
-  type##_stream.open(filepath, std::ios::app); \
-  type##_stream << log;                        \
-  type##_stream.flush();                       \
-  type##_stream.close();                       \
-  uv_mutex_unlock(&logger_mutex);
 
 static void WriteToFile(const LOG_LEVEL output_level, char *log) {
   // get time of date
@@ -154,30 +172,29 @@ int InitLogger() {
   return rc;
 }
 
-#define V(level)                                 \
-  va_list args;                                  \
-  va_start(args, format);                        \
-  Log(LOG_LEVEL::level, log_type, format, args); \
-  va_end(args);
-void Info(const char *log_type, const char *format, ...) { V(LOG_INFO) }
-void Error(const char *log_type, const char *format, ...) { V(LOG_ERROR) }
-void Debug(const char *log_type, const char *format, ...) { V(LOG_DEBUG) }
-#undef V
+/* native logger */
+void Info(const char *log_type, const char *format, ...) {
+  LOG_WITH_LEVEL(LOG_INFO)
+}
 
-#define V(level)                                                               \
-  if (!info[0]->IsString() || !info[1]->IsString()) {                          \
-    ThrowTypeError(                                                            \
-        New<String>("log type and content must be string!").ToLocalChecked()); \
-    return;                                                                    \
-  }                                                                            \
-  Local<String> log_type_string = To<String>(info[0]).ToLocalChecked();        \
-  Utf8String log_type(log_type_string);                                        \
-  Local<String> log_content_string = To<String>(info[1]).ToLocalChecked();     \
-  Utf8String log_content(log_content_string);                                  \
-  Log(LOG_LEVEL::level, *log_type, *log_content);
-void JsInfo(const FunctionCallbackInfo<Value> &info) { V(LOG_INFO) }
-void JsError(const FunctionCallbackInfo<Value> &info) { V(LOG_ERROR) }
-void JsDebug(const FunctionCallbackInfo<Value> &info) { V(LOG_DEBUG) }
-#undef V
+void Error(const char *log_type, const char *format, ...) {
+  LOG_WITH_LEVEL(LOG_ERROR)
+}
 
+void Debug(const char *log_type, const char *format, ...) {
+  LOG_WITH_LEVEL(LOG_DEBUG)
+}
+
+/* js binding logger */
+void JsInfo(const FunctionCallbackInfo<Value> &info) {
+  JS_LOG_WITH_LEVEL(LOG_INFO)
+}
+
+void JsError(const FunctionCallbackInfo<Value> &info) {
+  JS_LOG_WITH_LEVEL(LOG_ERROR)
+}
+
+void JsDebug(const FunctionCallbackInfo<Value> &info) {
+  JS_LOG_WITH_LEVEL(LOG_DEBUG)
+}
 };  // namespace xprofiler

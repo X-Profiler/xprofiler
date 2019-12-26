@@ -13,6 +13,15 @@ using nlohmann::json;
 using std::exception;
 using std::string;
 
+#define HANDLE_COMMANDS(cmd_str, handle)                              \
+  if (strcmp(cmd.c_str(), #cmd_str) == 0) {                           \
+    handle(                                                           \
+        parsed, FmtMessage,                                           \
+        [traceid](json data) { SuccessValue(traceid, data); },        \
+        [traceid](string message) { ErrorValue(traceid, message); }); \
+    handled = true;                                                   \
+  }
+
 void ParseCmd(char *command) {
   Debug("parser", "received command: %s", command);
   json parsed;
@@ -36,33 +45,30 @@ void ParseCmd(char *command) {
     return;
   }
 
-#define V(cmd_str, handle)                                            \
-  if (strcmp(cmd.c_str(), #cmd_str) == 0) {                           \
-    handle(                                                           \
-        parsed, FmtMessage,                                           \
-        [traceid](json data) { SuccessValue(traceid, data); },        \
-        [traceid](string message) { ErrorValue(traceid, message); }); \
-    handled = true;                                                   \
-  }
   // get version
-  V(check_version, GetXprofilerVersion)
+  HANDLE_COMMANDS(check_version, GetXprofilerVersion)
+
   // get/set config
-  V(get_config, GetXprofilerConfig)
-  V(set_config, SetXprofilerConfig)
+  HANDLE_COMMANDS(get_config, GetXprofilerConfig)
+  HANDLE_COMMANDS(set_config, SetXprofilerConfig)
+
   // cpu profiling
-  V(start_cpu_profiling, StartCpuProfiling)
-  V(stop_cpu_profiling, StopCpuProfiling)
+  HANDLE_COMMANDS(start_cpu_profiling, StartCpuProfiling)
+  HANDLE_COMMANDS(stop_cpu_profiling, StopCpuProfiling)
+
   // heapdump
-  V(heapdump, Heapdump)
+  HANDLE_COMMANDS(heapdump, Heapdump)
+
   // sampling heap profiling
-  V(start_heap_profiling, StartSamplingHeapProfiling)
-  V(stop_heap_profiling, StopSamplingHeapProfiling)
+  HANDLE_COMMANDS(start_heap_profiling, StartSamplingHeapProfiling)
+  HANDLE_COMMANDS(stop_heap_profiling, StopSamplingHeapProfiling)
+
   // gc profiling
-  V(start_gc_profiling, StartGcProfiling)
-  V(stop_gc_profiling, StopGcProfiling)
+  HANDLE_COMMANDS(start_gc_profiling, StartGcProfiling)
+  HANDLE_COMMANDS(stop_gc_profiling, StopGcProfiling)
+
   // node report
-  V(diag_report, GetNodeReport)
-#undef V
+  HANDLE_COMMANDS(diag_report, GetNodeReport)
 
   // not match any commands
   if (!handled) {

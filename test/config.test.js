@@ -51,7 +51,7 @@ describe('xprofiler config', function () {
     describe('xprofiler config keys', function () {
       const configKeys = Object.keys(defaultConfig);
       it(`should have these keys: [${configKeys.join(', ')}]`, function () {
-        expect(testKeys.join(', ')).to.be(configKeys.join(', '));
+        expect(utils.arrayEqual(testKeys, configKeys)).to.be.ok();
       });
     });
 
