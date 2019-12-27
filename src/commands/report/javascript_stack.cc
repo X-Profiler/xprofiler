@@ -60,7 +60,8 @@ void SetJavaScriptStack(JSONWriter* writer) {
     else
       writer->json_keyvalue("pcAddress", "nullptr");
 
-#if (NODE_MODULE_VERSION >= 0x0040)
+#if (NODE_VERSION_AT_LEAST(10, 12, 0))
+    // needs v8 version >= 6.8
     Local<StackFrame> frame = stack->GetFrame(isolate, i);
 #else
     Local<StackFrame> frame = stack->GetFrame(i);

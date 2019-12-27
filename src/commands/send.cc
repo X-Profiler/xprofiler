@@ -5,7 +5,7 @@ namespace xprofiler {
 using nlohmann::json;
 using std::string;
 
-#define V(ok, res)             \
+#define SEND_VALUE(ok, res)    \
   result["ok"] = ok;           \
   result["traceid"] = traceid; \
   result[#res] = res;          \
@@ -13,13 +13,11 @@ using std::string;
 
 void ErrorValue(string traceid, string message) {
   json result;
-  V(false, message);
+  SEND_VALUE(false, message);
 }
 
 void SuccessValue(string traceid, json data) {
   json result;
-  V(true, data);
+  SEND_VALUE(true, data);
 }
-
-#undef V
 }  // namespace xprofiler
