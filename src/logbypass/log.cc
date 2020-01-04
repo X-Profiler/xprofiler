@@ -4,6 +4,7 @@
 #include "cpu.h"
 #include "gc.h"
 #include "heap.h"
+#include "http.h"
 #include "libuv.h"
 #include "uv.h"
 
@@ -48,6 +49,9 @@ static void CreateLogThread(void *unused) {
 
       // write libuv handle info
       WriteLibuvHandleInfoToLog(log_format_alinode);
+
+      // write http status
+      WriteHttpStatus(log_format_alinode);
     }
   }
 }
@@ -77,6 +81,10 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
   // init gc hooks
   CHECK(InitGcStatusHooks, "init gc hooks failed!")
   Info("init", "logbypass: gc hooks setted.");
+
+  // init http status
+  CHECK(InitHttpStatus, "init http status failed!")
+  Info("init", "logbypass: http status inited.");
 
   // init log thread
   rc = uv_thread_create(&uv_log_thread, CreateLogThread, nullptr);

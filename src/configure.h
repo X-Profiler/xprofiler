@@ -62,6 +62,7 @@ DECLARE_GET_SET_FUNCTION(LogType, LOG_TYPE)
 DECLARE_GET_SET_FUNCTION(FormatAsAlinode, bool)
 DECLARE_GET_SET_FUNCTION(EnableLogUvHandles, bool)
 DECLARE_GET_SET_FUNCTION(EnableFatalErrorHook, bool)
+DECLARE_GET_SET_FUNCTION(PatchHttp, bool)
 
 // javascript accessible
 void Configure(const FunctionCallbackInfo<Value> &info);

@@ -63,7 +63,13 @@ const alinodeLogStructure = {
   other: getCpuRules(['now', 'cpu_15', 'cpu_30', 'cpu_60'], true),
   heap: getMemoryRules(memoryKeys, true),
   gc: getGcRules(['gc_time_during_last_min', 'total', 'scavange_duration', 'marksweep_duration'], true),
-  timer: getUvRules(['total_timer', 'active_handles'], true)
+  timer: getUvRules(['total_timer', 'active_handles'], true),
+  http: {
+    live_http_request: /^\d+$/,
+    http_request_handled: /^\d+$/,
+    http_response_sent: /^\d+$/,
+    http_rt: /^\d{1,3}.\d{2}$/
+  }
 };
 
 // xprofiler log structure
@@ -75,7 +81,12 @@ const xprofilerLogStructure = {
     'scavange_duration_last_record', 'marksweep_duration_last_record', 'incremental_marking_duration_last_record']),
   uv: getUvRules(['active_handles', 'active_file_handles', 'active_and_ref_file_handles', 'active_tcp_handles',
     'active_and_ref_tcp_handles', 'active_udp_handles', 'active_and_ref_udp_handles',
-    'active_timer_handles', 'active_and_ref_timer_handles'])
+    'active_timer_handles', 'active_and_ref_timer_handles']),
+  http: {
+    live_http_request: /^\d+$/,
+    http_response_sent: /^\d+$/,
+    http_rt: /^\d{1,3}.\d{2}$/
+  }
 };
 
 function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, structure, alinode) {

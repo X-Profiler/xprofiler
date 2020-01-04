@@ -199,8 +199,7 @@ exports = module.exports = function (logdir) {
       cmd: 'set_config',
       options: { enable_log_uv_handles: 1 },
       errored: true,
-      /* eslint-disable */
-      xctlRules: [{ key: 'message', rule: /^<enable_log_uv_handles> type error: \[json.exception.type_error.302\] type must be boolean, but is number$/ }],
+      xctlRules: [{ key: 'message', rule: /^<enable_log_uv_handles> type error: \[json.exception.type_error.302\] type must be boolean, but is number$/ }], // eslint-disable-line
       xprofctlRules() { return []; }
     },
     {
@@ -250,9 +249,9 @@ exports = module.exports = function (logdir) {
       cmd: 'stop_heap_profiling',
       errored: true,
       xctlRules() {
-        return [{ key: 'message', rule: /^stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/ }];
+        return [{ key: 'message', rule: /^stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/ }]; // eslint-disable-line
       },
-      xprofctlRules() { return [/^执行命令失败: stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/]; }
+      xprofctlRules() { return [/^执行命令失败: stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/]; } // eslint-disable-line
     },
     {
       cmd: 'start_gc_profiling',

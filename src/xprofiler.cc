@@ -2,6 +2,7 @@
 #include "configure.h"
 #include "hooks/set_hooks.h"
 #include "library/common.h"
+#include "logbypass/http.h"
 #include "logbypass/log.h"
 #include "logger.h"
 #include "nan.h"
@@ -42,6 +43,11 @@ NAN_MODULE_INIT(Initialize) {
 
   // set hooks
   CREATE_JS_BINDING(setHooks, SetHooks)
+
+  // http status
+  CREATE_JS_BINDING(addLiveRequest, AddLiveRequest)
+  CREATE_JS_BINDING(addCloseRequest, AddCloseRequest)
+  CREATE_JS_BINDING(addSentRequest, AddSentRequest)
 }
 
 NODE_MODULE(xprofiler, Initialize)

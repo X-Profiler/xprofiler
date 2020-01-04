@@ -13,13 +13,12 @@ using nlohmann::json;
 using std::exception;
 using std::string;
 
-#define HANDLE_COMMANDS(cmd_str, handle)                              \
-  if (strcmp(cmd.c_str(), #cmd_str) == 0) {                           \
-    handle(                                                           \
-        parsed, FmtMessage,                                           \
-        [traceid](json data) { SuccessValue(traceid, data); },        \
-        [traceid](string message) { ErrorValue(traceid, message); }); \
-    handled = true;                                                   \
+#define HANDLE_COMMANDS(cmd_str, handle)                                 \
+  if (strcmp(cmd.c_str(), #cmd_str) == 0) {                              \
+    handle(parsed, FmtMessage,                                           \
+           [traceid](json data) { SuccessValue(traceid, data); },        \
+           [traceid](string message) { ErrorValue(traceid, message); }); \
+    handled = true;                                                      \
   }
 
 void ParseCmd(char *command) {

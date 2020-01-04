@@ -17,6 +17,7 @@
         "src/logbypass/heap.cc",
         "src/logbypass/gc.cc",
         "src/logbypass/libuv.cc",
+        "src/logbypass/http.cc",
         "src/commands/listener.cc",
         "src/commands/send.cc",
         "src/commands/parser.cc",

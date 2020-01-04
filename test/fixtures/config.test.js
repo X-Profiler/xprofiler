@@ -99,6 +99,12 @@ const configure = {
     envKey: 'XPROFILER_ENABLE_FATAL_ERROR_HOOK',
     envValue: 'NO',
     userValue: false
+  },
+  patch_http: {
+    defaultValue: false,
+    envKey: 'XPROFILER_PATCH_HTTP',
+    envValue: 'YES',
+    userValue: true
   }
 };
 
