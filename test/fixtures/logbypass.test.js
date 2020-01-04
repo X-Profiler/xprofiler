@@ -83,9 +83,10 @@ const xprofilerLogStructure = {
     'active_and_ref_tcp_handles', 'active_udp_handles', 'active_and_ref_udp_handles',
     'active_timer_handles', 'active_and_ref_timer_handles']),
   http: {
-    live_http_request: /^\d+$/,
-    http_response_sent: /^\d+$/,
-    http_rt: /^\d{1,3}.\d{2}$/
+    live_http_request: /^0$/,
+    http_response_close: /^0$/,
+    http_response_sent: /^0$/,
+    http_rt: /^0.00$/
   }
 };
 

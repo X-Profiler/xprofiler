@@ -2,6 +2,7 @@
 
 const mm = require('mm');
 const os = require('os');
+const http = require('http');
 const xprofiler = require('../../');
 
 if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
@@ -22,6 +23,27 @@ xprofiler.runCommandsListener();
 xprofiler.setHooks();
 xprofiler.setHooks();
 
+// http server
+const server1 = http.createServer(function (req, res) { res.end('hello world.') });
+server1.listen(8443, () => console.log('http server listen at 8443...'));
+server1.unref();
+
+const server2 = http.createServer({}, function (req, res) { res.end('hello world.') });
+server2.listen(9443, () => console.log('http server listen at 9443...'));
+server2.unref();
+
+function sendRequest() {
+  const req = http.request('http://localhost:8443');
+  req.on('error', err => console.error(err));
+  req.end();
+}
+
+const interval = setInterval(sendRequest, 100);
+interval.unref();
+
 setTimeout(() => {
   mm.restore();
+  server1.close();
+  server2.close();
+  clearInterval(interval);
 }, 8000);

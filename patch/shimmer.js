@@ -29,12 +29,13 @@ function wrap(nodule, name, wrapper) {
   const wrapped = wrapper(original, name);
 
   defineProperty(wrapped, '__original', original);
-  defineProperty(wrapped, '__unwrap', function () {
-    if (nodule[name] === wrapped) { defineProperty(nodule, name, original); }
-  });
   defineProperty(wrapped, '__wrapped', true);
 
   defineProperty(nodule, name, wrapped);
+
+  defineProperty(wrapped, '__unwrap', function () {
+    if (nodule[name] === wrapped) { defineProperty(nodule, name, original); }
+  });
   return wrapped;
 }
 

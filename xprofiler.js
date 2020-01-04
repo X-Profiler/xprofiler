@@ -46,15 +46,15 @@ function start(config = {}) {
     exports.runCommandsListener();
     // set hooks
     exports.setHooks();
-
-    // patch modules
-    patch(config, {
-      // http status
-      addLiveRequest: xprofiler.addLiveRequest,
-      addCloseRequest: xprofiler.addCloseRequest,
-      addSentRequest: xprofiler.addSentRequest
-    });
   }
+
+  // patch modules
+  patch(finalConfig, {
+    // http status
+    addLiveRequest: xprofiler.addLiveRequest,
+    addCloseRequest: xprofiler.addCloseRequest,
+    addSentRequest: xprofiler.addSentRequest
+  });
 }
 
 exports = module.exports = start;
