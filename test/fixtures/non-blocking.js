@@ -24,26 +24,46 @@ xprofiler.setHooks();
 xprofiler.setHooks();
 
 // http server
-const server1 = http.createServer(function (req, res) { res.end('hello world.') });
+const server1 = http.createServer(function (req, res) {
+  setTimeout(() => res.end('hello world.'), 100);
+});
 server1.listen(8443, () => console.log('http server listen at 8443...'));
 server1.unref();
 
-const server2 = http.createServer({}, function (req, res) { res.end('hello world.') });
+const server2 = http.createServer({}, function (req, res) { res.end('hello world.'); });
 server2.listen(9443, () => console.log('http server listen at 9443...'));
 server2.unref();
 
-function sendRequest() {
+function sendRequest(abort) {
   const req = http.request('http://localhost:8443');
-  req.on('error', err => console.error(err));
+  req.on('error', err => console.error('non-blocking', err.message));
   req.end();
+
+  if (abort) {
+    setTimeout(() => {
+      req.abort();
+    }, 50);
+  }
 }
 
-const interval = setInterval(sendRequest, 100);
+let times = 1;
+const interval = setInterval(() => {
+  if (times % 2 === 0) {
+    sendRequest(true);
+  } else {
+    sendRequest();
+  }
+  times++;
+}, 150);
 interval.unref();
 
 setTimeout(() => {
   mm.restore();
-  server1.close();
-  server2.close();
   clearInterval(interval);
+  console.log('will close...');
+  setTimeout(() => {
+    server1.close();
+    server2.close();
+    console.log('closed');
+  }, 200);
 }, 8000);
