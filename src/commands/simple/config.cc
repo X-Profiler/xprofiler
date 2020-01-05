@@ -29,6 +29,7 @@ COMMAND_CALLBACK(GetXprofilerConfig) {
   data["log_level"] = GetLogLevel();
   data["log_type"] = GetLogType();
   data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
+  data["patch_http"] = GetPatchHttp();
   success(data);
 }
 
