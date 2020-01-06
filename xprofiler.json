@@ -55,5 +55,13 @@
       "boolean"
     ],
     "format": "boolean"
+  },
+  {
+    "name": "patch_http",
+    "env": "XPROFILER_PATCH_HTTP",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
   }
 ]

@@ -3,6 +3,7 @@
 const xprofiler = require('bindings')('xprofiler');
 const utils = require('./lib/utils');
 const clean = require('./lib/clean');
+const { patch } = require('./patch');
 const configure = require('./lib/configure');
 const configList = require('./xprofiler.json');
 
@@ -46,6 +47,14 @@ function start(config = {}) {
     // set hooks
     exports.setHooks();
   }
+
+  // patch modules
+  patch(finalConfig, {
+    // http status
+    addLiveRequest: xprofiler.addLiveRequest,
+    addCloseRequest: xprofiler.addCloseRequest,
+    addSentRequest: xprofiler.addSentRequest
+  });
 }
 
 exports = module.exports = start;

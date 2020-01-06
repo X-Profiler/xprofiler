@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "1.0.0-prepare",
+  "version": "1.1.0-prepare",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "npm run lint && node-gyp rebuild",
     "format": "clang-format -i --glob=\"src/**/!(report_win)[.h|.cc]\"",
-    "lint": "npm run format && eslint --fix xprofiler.js \"test/**/*.js\" lib/*.js bin/xprofctl scripts/**/*.js",
+    "lint": "npm run format && eslint --fix xprofiler.js \"test/**/*.js\" lib/*.js patch/*.js bin/xprofctl scripts/**/*.js",
     "test": "mocha -t 0 -R spec test/*.test.js",
     "test-single": "mocha -t 0 -R spec",
     "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js  --timeout 0",
@@ -26,6 +26,7 @@
   "files": [
     "bin",
     "lib",
+    "patch",
     "src",
     "binding.gyp",
     "xprofiler.js",

@@ -156,6 +156,7 @@ exports = module.exports = function (logdir) {
         { key: 'data.log_level', rule: /^2$/ },
         { key: 'data.log_type', rule: /^1$/ },
         { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.patch_http', rule: { label: 'false', test: value => value === false } },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 当前配置\\(pid ${data.pid}\\):\n`
@@ -165,7 +166,8 @@ exports = module.exports = function (logdir) {
           + '  - log_format_alinode: false\n'
           + '  - log_interval: 60\n'
           + '  - log_level: 2\n'
-          + '  - log_type: 1')
+          + '  - log_type: 1\n'
+          + '  - patch_http: false')
         ];
       }
     },
@@ -199,8 +201,7 @@ exports = module.exports = function (logdir) {
       cmd: 'set_config',
       options: { enable_log_uv_handles: 1 },
       errored: true,
-      /* eslint-disable */
-      xctlRules: [{ key: 'message', rule: /^<enable_log_uv_handles> type error: \[json.exception.type_error.302\] type must be boolean, but is number$/ }],
+      xctlRules: [{ key: 'message', rule: /^<enable_log_uv_handles> type error: \[json.exception.type_error.302\] type must be boolean, but is number$/ }], // eslint-disable-line
       xprofctlRules() { return []; }
     },
     {
@@ -250,9 +251,9 @@ exports = module.exports = function (logdir) {
       cmd: 'stop_heap_profiling',
       errored: true,
       xctlRules() {
-        return [{ key: 'message', rule: /^stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/ }];
+        return [{ key: 'message', rule: /^stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/ }]; // eslint-disable-line
       },
-      xprofctlRules() { return [/^执行命令失败: stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/]; }
+      xprofctlRules() { return [/^执行命令失败: stop_sampling_heap_profiling dependent action start_sampling_heap_profiling is not running.$/]; } // eslint-disable-line
     },
     {
       cmd: 'start_gc_profiling',
