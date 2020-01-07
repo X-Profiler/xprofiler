@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('expect.js');
-const { wrap, unwrap } = require('../patch/shimmer');
+const { wrap, unwrap } = require('../../patch/shimmer');
 
 describe('wrap / unwrap module', function () {
   it('wrap module failed with wrong params', function () {
