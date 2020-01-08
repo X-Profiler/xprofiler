@@ -1,7 +1,7 @@
-#include "uv.h"
+#include "http.h"
 
 #include "../logger.h"
-#include "http.h"
+#include "uv.h"
 
 namespace xprofiler {
 using Nan::To;

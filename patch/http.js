@@ -26,12 +26,11 @@ function serverWrapper(addLiveRequest, addCloseRequest, addSentRequest, original
 
     if (typeof opts === 'function') {
       args.splice(0, 1, requestListenerWrapper(opts, addLiveRequest, addCloseRequest, addSentRequest));
-      returned = original.apply(this, args);
-    }
-    if (typeof requestListener === 'function') {
+    } else if (typeof requestListener === 'function') {
       args.splice(1, 1, requestListenerWrapper(requestListener, addLiveRequest, addCloseRequest, addSentRequest));
-      returned = original.apply(this, args);
     }
+
+    returned = original.apply(this, args);
 
     return returned;
   };

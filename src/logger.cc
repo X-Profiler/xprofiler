@@ -25,7 +25,6 @@ using v8::String;
   uv_mutex_lock(&logger_mutex);                \
   type##_stream.open(filepath, std::ios::app); \
   type##_stream << log;                        \
-  type##_stream.flush();                       \
   type##_stream.close();                       \
   uv_mutex_unlock(&logger_mutex);
 

@@ -10,21 +10,33 @@ const getTestCases = require('./fixtures/logbypass.test');
 const logdirBlocking = utils.createLogDir('log_bypass_blocking');
 const logdirNonBlocking = utils.createLogDir('log_bypass_non_blocking');
 
+// common cases
 let cases = getTestCases('performance log correctly', logdirBlocking, logdirNonBlocking);
+
+// libuv cases
+const logdirBlockingForUv = utils.createLogDir('log_bypass_blocking_uv');
+const logdirNonBlockingForUv = utils.createLogDir('log_bypass_non_blocking_uv');
 const casesForLibuv = getTestCases('performance log correctly with XPROFILER_ENABLE_LOG_UV_HANDLES=NO',
-  logdirBlocking, logdirNonBlocking, { XPROFILER_ENABLE_LOG_UV_HANDLES: 'NO' },
+  logdirBlockingForUv, logdirNonBlockingForUv, { XPROFILER_ENABLE_LOG_UV_HANDLES: 'NO' },
   { uv: getTestCases.getUvRules(['active_handles']) });
-const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HTTP=YES',
-  logdirBlocking, logdirNonBlocking, { XPROFILER_PATCH_HTTP: 'YES' },
-  {
-    http: {
-      live_http_request: /^\d+$/,
-      http_response_close: /^\d+$/,
-      http_response_sent: /^\d+$/,
-      http_rt: /^\d+.\d{2}$/
-    }
-  });
-cases = cases.concat(casesForLibuv).concat(casesForHttp);
+
+// http cases
+const logdirBlockingForHttp = utils.createLogDir('log_bypass_blocking_http');
+const logdirNonBlockingForHttp = utils.createLogDir('log_bypass_non_blocking_http');
+// const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HTTP=YES',
+//   logdirBlockingForHttp, logdirNonBlockingForHttp, { XPROFILER_PATCH_HTTP: 'YES' },
+//   {
+//     http: {
+//       live_http_request: /^\d+$/,
+//       http_response_close: /^\d+$/,
+//       http_response_sent: /^\d+$/,
+//       http_rt: /^\d+.\d{2}$/
+//     }
+//   });
+
+// compose cases
+// cases = cases.concat(casesForLibuv).concat(casesForHttp);
+cases = cases.concat(casesForLibuv);
 
 function parseLog(logType, content, patt, alinode) {
   console.log(`parse log ${logType}: ${JSON.stringify(content)}`);
@@ -76,6 +88,10 @@ for (const testCase of cases) {
           if (testCase.targets.indexOf(target) === testCase.targets.length - 1) {
             utils.cleanDir(logdirBlocking);
             utils.cleanDir(logdirNonBlocking);
+            utils.cleanDir(logdirBlockingForUv);
+            utils.cleanDir(logdirNonBlockingForUv);
+            utils.cleanDir(logdirBlockingForHttp);
+            utils.cleanDir(logdirNonBlockingForHttp);
           }
         }
       });
