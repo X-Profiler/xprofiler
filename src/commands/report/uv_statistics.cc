@@ -227,43 +227,60 @@ static void reportEndpoints(uv_handle_t *h, ostringstream &out) {
 
 static void walkHandle(uv_handle_t *h, void *arg) {
   uv_any_handle *handle = reinterpret_cast<uv_any_handle *>(h);
+
   ostringstream data;
+  // const char *type = uv_handle_type_name(h->type);
+  string type;
 
   switch (h->type) {
     case UV_UNKNOWN_HANDLE:
+      type = "unknown";
       break;
     case UV_ASYNC:
+      type = "async";
       break;
     case UV_CHECK:
+      type = "check";
       break;
     case UV_FS_EVENT: {
+      type = "fs_event";
       reportPath(h, data);
       break;
     }
     case UV_FS_POLL: {
+      type = "fs_poll";
       reportPath(h, data);
       break;
     }
     case UV_HANDLE:
+      type = "handle";
       break;
     case UV_IDLE:
+      type = "idle";
       break;
     case UV_NAMED_PIPE:
+      type = "pipe";
       break;
     case UV_POLL:
+      type = "poll";
       break;
     case UV_PREPARE:
+      type = "prepare";
       break;
     case UV_PROCESS:
+      type = "process";
       data << "pid: " << handle->process.pid;
       break;
     case UV_STREAM:
+      type = "stream";
       break;
     case UV_TCP: {
+      type = "tcp";
       reportEndpoints(h, data);
       break;
     }
     case UV_TIMER: {
+      type = "timer";
 #if defined(_WIN32) && (UV_VERSION_HEX < ((1 << 16) | (22 << 8)))
       uint64_t due = handle->timer.due;
 #else
@@ -279,6 +296,7 @@ static void walkHandle(uv_handle_t *h, void *arg) {
       break;
     }
     case UV_TTY: {
+      type = "tty";
       int height, width, rc;
       rc = uv_tty_get_winsize(&(handle->tty), &width, &height);
       if (rc == 0) {
@@ -287,17 +305,21 @@ static void walkHandle(uv_handle_t *h, void *arg) {
       break;
     }
     case UV_UDP: {
+      type = "udp";
       reportEndpoints(h, data);
       break;
     }
     case UV_SIGNAL: {
+      type = "signal";
       data << "signum: " << handle->signal.signum << " ("
            << SignoString(handle->signal.signum) << ")";
       break;
     }
     case UV_FILE:
+      type = "file";
       break;
     case UV_HANDLE_TYPE_MAX:
+      type = "max";
       break;
   }
 
@@ -349,7 +371,6 @@ static void walkHandle(uv_handle_t *h, void *arg) {
   }
 
   JSONWriter *writer = static_cast<JSONWriter *>(arg);
-  const char *type = uv_handle_type_name(h->type);
   string detail = data.str();
 
   writer->json_start();

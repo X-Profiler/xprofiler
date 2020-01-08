@@ -24,15 +24,11 @@ xprofiler.setHooks();
 xprofiler.setHooks();
 
 // http server
-const server1 = http.createServer(function (req, res) {
+const server = http.createServer(function (req, res) {
   setTimeout(() => res.end('hello world.'), 100);
 });
-server1.listen(8443, () => console.log('http server listen at 8443...'));
-server1.unref();
-
-const server2 = http.createServer({}, function (req, res) { res.end('hello world.'); });
-server2.listen(9443, () => console.log('http server listen at 9443...'));
-server2.unref();
+server.listen(8443, () => console.log('http server listen at 8443...'));
+server.unref();
 
 function sendRequest(abort) {
   const req = http.request('http://localhost:8443');
@@ -62,8 +58,7 @@ setTimeout(() => {
   clearInterval(interval);
   console.log('will close...');
   setTimeout(() => {
-    server1.close();
-    server2.close();
+    server.close();
     console.log('closed');
   }, 200);
 }, 8000);
