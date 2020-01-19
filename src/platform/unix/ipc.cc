@@ -9,6 +9,7 @@
 
 namespace xprofiler {
 using std::string;
+
 static struct sockaddr_un server_addr;
 static struct sockaddr_un client_addr;
 
@@ -33,6 +34,15 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
   // get domain socket file name
   string filename =
       GetLogDir() + "/xprofiler-uds-path-" + std::to_string(getpid()) + ".sock";
+
+  if (filename.length() > sizeof(server_addr.sun_path) - 1) {
+    Error(module_type,
+          "the length of <%s> is larger than sizeof(server_addr.sun_path) - 1 "
+          "(which is %lu).",
+          filename.c_str(), sizeof(server_addr.sun_path) - 1);
+    return;
+  }
+
   Debug(module_type, "unix domain socket file name: %s.", filename.c_str());
 
   // set server addr
@@ -104,6 +114,14 @@ void CreateIpcClient(char *message) {
   // set client addr
   client_addr.sun_family = AF_UNIX;
   std::string filename = GetLogDir() + "/" + XPROFILER_IPC_PATH;
+  if (filename.length() > sizeof(client_addr.sun_path) - 1) {
+    Error(module_type,
+          "the length of <%s> is larger than sizeof(client_addr.sun_path) - 1 "
+          "(which is %lu).",
+          filename.c_str(), sizeof(client_addr.sun_path) - 1);
+    return;
+  }
+
   strcpy(client_addr.sun_path, filename.c_str());
 
   // connect server
