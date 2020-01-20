@@ -23,20 +23,19 @@ const casesForLibuv = getTestCases('performance log correctly with XPROFILER_ENA
 // http cases
 const logdirBlockingForHttp = utils.createLogDir('log_bypass_blocking_http');
 const logdirNonBlockingForHttp = utils.createLogDir('log_bypass_non_blocking_http');
-// const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HTTP=YES',
-//   logdirBlockingForHttp, logdirNonBlockingForHttp, { XPROFILER_PATCH_HTTP: 'YES' },
-//   {
-//     http: {
-//       live_http_request: /^\d+$/,
-//       http_response_close: /^\d+$/,
-//       http_response_sent: /^\d+$/,
-//       http_rt: /^\d+.\d{2}$/
-//     }
-//   });
+const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HTTP=YES',
+  logdirBlockingForHttp, logdirNonBlockingForHttp, { XPROFILER_PATCH_HTTP: 'YES' },
+  {
+    http: {
+      live_http_request: /^\d+$/,
+      http_response_close: /^\d+$/,
+      http_response_sent: /^\d+$/,
+      http_rt: /^\d+.\d{2}$/
+    }
+  });
 
 // compose cases
-// cases = cases.concat(casesForLibuv).concat(casesForHttp);
-cases = cases.concat(casesForLibuv);
+cases = cases.concat(casesForLibuv).concat(casesForHttp);
 
 function parseLog(logType, content, patt, alinode) {
   console.log(`parse log ${logType}: ${JSON.stringify(content)}`);
@@ -76,7 +75,7 @@ for (const testCase of cases) {
       let logContent;
       let pid;
       before(async function () {
-        const p = cp.fork(target.file, { env: Object.assign({}, testCase.env, target.env) });
+        const p = cp.fork(target.file, { env: Object.assign({ XPROFILER_LOG_TYPE: 1 }, testCase.env, target.env) });
         pid = p.pid;
         await new Promise(resolve => p.on('close', resolve));
         logContent = fs.readFileSync(target.logfile, 'utf8');

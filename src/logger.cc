@@ -153,9 +153,10 @@ static void Log(const LOG_LEVEL output_level, const char *type,
 
   // get log type
   switch (GetLogType()) {
-    // ttl
+    // tty
     case LOG_TYPE::LOG_TO_TTL:
       printf("%s", tmp_log);
+      WriteToFile(output_level, tmp_log);
       break;
     // file
     case LOG_TYPE::LOG_TO_FILE:
