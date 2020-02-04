@@ -34,13 +34,25 @@ NAN_GC_CALLBACK(GCPrologueCallback) {
 
 // gc epilogue hook
 NAN_GC_CALLBACK(GCEpilogueCallback) {
-  if (gc_statistics->start() == 0) {
+  uv_mutex_lock(&gc_mutex);
+
+  uint64_t now = uv_hrtime();
+  uint64_t start = gc_statistics->start();
+  if (start == 0 || now < start) {
     return;
   }
-  uv_mutex_lock(&gc_mutex);
+
   gc_statistics->total_gc_times++;
-  unsigned int duration =
-      (uv_hrtime() - gc_statistics->start()) / 10e5;  // cost, ms
+  unsigned int duration = (now - start) / 10e5;  // cost, ms
+
+  // check duration is legal
+  if (duration >= 5 * 60 * 1000) {
+    return;
+  }
+
+  // reset gc start time
+  gc_statistics->start() = 0;
+
   gc_statistics->total_gc_duration += duration;
   gc_statistics->gc_time_during_last_record += duration;
 
