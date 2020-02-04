@@ -18,11 +18,11 @@ namespace xprofiler {
   }
 
 #define CALAULATE_AVERAGE(total_length, period) \
-  if (total_length == 0) return;                \
   for (int i = 0; i < total_length; i++) {      \
     cpu_##period##_average += cpu_##period[i];  \
   }                                             \
-  cpu_##period##_average = cpu_##period##_average / total_length;
+  if (total_length != 0)                        \
+    cpu_##period##_average = cpu_##period##_average / total_length;
 
 #define CALAULATE_CPU_USAGE_IN_PERIOD(period)                   \
   bool cpu_##period##_array_not_full =                          \
