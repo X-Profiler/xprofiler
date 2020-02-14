@@ -39,6 +39,7 @@ NAN_GC_CALLBACK(GCEpilogueCallback) {
   uint64_t now = uv_hrtime();
   uint64_t start = gc_statistics->start();
   if (start == 0 || now < start) {
+    uv_mutex_unlock(&gc_mutex);
     return;
   }
 
@@ -47,6 +48,7 @@ NAN_GC_CALLBACK(GCEpilogueCallback) {
 
   // check duration is legal
   if (duration >= 5 * 60 * 1000) {
+    uv_mutex_unlock(&gc_mutex);
     return;
   }
 
