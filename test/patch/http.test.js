@@ -50,7 +50,7 @@ describe(`patch http.createServer(cb)`, function () {
 
   before(async function () {
     mm(http, 'createServer', mockCreateServer);
-    patchHttp(addLiveRequest, addCloseRequest, addSentRequest);
+    patchHttp({ addLiveRequest, addCloseRequest, addSentRequest });
     await http.createServer(function (request, response) {
       triggerTimes++;
       response.emit('finish');
