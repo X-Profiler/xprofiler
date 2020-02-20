@@ -105,6 +105,12 @@ const configure = {
     envKey: 'XPROFILER_PATCH_HTTP',
     envValue: 'YES',
     userValue: true
+  },
+  patch_http_timeout: {
+    defaultValue: 30,
+    envKey: 'XPROFILER_PATCH_HTTP_TIMEOUT',
+    envValue: 60,
+    userValue: 45
   }
 };
 

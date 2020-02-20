@@ -6,18 +6,28 @@ const https = require('https');
 
 function requestListenerWrapper(original, methods) {
   return function (req, res) {
-    const { addLiveRequest, addCloseRequest, addSentRequest, addHttpStatusCode } = methods;
+    const { addLiveRequest, addCloseRequest, addSentRequest,
+      addRequestTimeout, addHttpStatusCode, patch_http_timeout } = methods;
 
     addLiveRequest();
+
+    const timer = setTimeout(() => {
+      addRequestTimeout();
+    }, patch_http_timeout * 1000);
+    timer.unref();
 
     const start = Date.now();
 
     res.on('finish', () => {
       addHttpStatusCode(res.statusCode);
       addSentRequest(Date.now() - start);
+      clearTimeout(timer);
     });
 
-    res.on('close', () => addCloseRequest());
+    res.on('close', () => {
+      addCloseRequest();
+      clearTimeout(timer);
+    });
 
     // call origin function
     const returned = original.apply(this, arguments);

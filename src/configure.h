@@ -63,6 +63,7 @@ DECLARE_GET_SET_FUNCTION(FormatAsAlinode, bool)
 DECLARE_GET_SET_FUNCTION(EnableLogUvHandles, bool)
 DECLARE_GET_SET_FUNCTION(EnableFatalErrorHook, bool)
 DECLARE_GET_SET_FUNCTION(PatchHttp, bool)
+DECLARE_GET_SET_FUNCTION(PatchHttpTimeout, uint32_t)
 
 // javascript accessible
 void Configure(const FunctionCallbackInfo<Value> &info);

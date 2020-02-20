@@ -25,7 +25,7 @@ xprofiler.setHooks();
 
 // http server
 const server = http.createServer(function (req, res) {
-  setTimeout(() => res.end('hello world.'), 100);
+  setTimeout(() => res.end('hello world.'), (0.5 + Math.random()) * 1000);
 });
 server.listen(8443, () => console.log('http server listen at 8443...'));
 server.unref();

@@ -72,7 +72,7 @@ void AddHttpStatusCode(const FunctionCallbackInfo<Value> &info) {
   }
 }
 
-void WriteHttpStatus(bool log_format_alinode) {
+void WriteHttpStatus(bool log_format_alinode, uint32_t http_patch_timeout) {
   uv_mutex_lock(&http_mutex);
 
   double rt = 0.00;
@@ -102,9 +102,11 @@ void WriteHttpStatus(bool log_format_alinode) {
          "live_http_request: %d, "
          "http_response_close: %d, "
          "http_response_sent: %d, "
+         "http_request_timeout: %d, "
+         "http_patch_timeout: %d, "
          "http_rt: %.2lf",
          format.c_str(), live_http_request, http_response_close,
-         http_response_sent, rt);
+         http_response_sent, http_request_timeout, http_patch_timeout, rt);
   }
 
   // reset

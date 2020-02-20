@@ -24,12 +24,14 @@ const casesForLibuv = getTestCases('performance log correctly with XPROFILER_ENA
 const logdirBlockingForHttp = utils.createLogDir('log_bypass_blocking_http');
 const logdirNonBlockingForHttp = utils.createLogDir('log_bypass_non_blocking_http');
 const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HTTP=YES',
-  logdirBlockingForHttp, logdirNonBlockingForHttp, { XPROFILER_PATCH_HTTP: 'YES' },
+  logdirBlockingForHttp, logdirNonBlockingForHttp, { XPROFILER_PATCH_HTTP: 'YES', XPROFILER_PATCH_HTTP_TIMEOUT: 1 },
   {
     http: {
       live_http_request: /^\d+$/,
       http_response_close: /^\d+$/,
       http_response_sent: /^\d+$/,
+      http_request_timeout: /^\d+$/,
+      http_patch_timeout: /^1$/,
       http_rt: /^\d+.\d{2}$/,
       res: { notRequired: true, regexp: /^\d+$/ }
     }

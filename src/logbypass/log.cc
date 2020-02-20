@@ -51,7 +51,7 @@ static void CreateLogThread(void *unused) {
       WriteLibuvHandleInfoToLog(log_format_alinode);
 
       // write http status
-      WriteHttpStatus(log_format_alinode);
+      WriteHttpStatus(log_format_alinode, GetPatchHttpTimeout());
     }
   }
 }
