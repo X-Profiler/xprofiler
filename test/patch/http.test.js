@@ -6,6 +6,7 @@ const mm = require('mm');
 const expect = require('expect.js');
 const { patchHttp } = require('../../patch/http');
 
+const status = {};
 
 describe(`patch http.createServer(cb)`, function () {
   const requestTimes = 5;
@@ -25,6 +26,14 @@ describe(`patch http.createServer(cb)`, function () {
 
   function addSentRequest() {
     sentRequest++;
+  }
+
+  function addHttpStatusCode(code) {
+    if (status[code]) {
+      status[code]++;
+    } else {
+      status[code] = 1;
+    }
   }
 
   function mockCreateServer(opts, requestHandle) {
@@ -50,21 +59,24 @@ describe(`patch http.createServer(cb)`, function () {
 
   before(async function () {
     mm(http, 'createServer', mockCreateServer);
-    patchHttp(addLiveRequest, addCloseRequest, addSentRequest);
+    patchHttp({ addLiveRequest, addCloseRequest, addSentRequest, addHttpStatusCode });
     await http.createServer(function (request, response) {
       triggerTimes++;
+      response.statusCode = 200;
       response.emit('finish');
       response.emit('close');
     });
 
     await http.createServer({}, function (request, response) {
       triggerTimes++;
+      response.statusCode = 200;
       response.emit('finish');
       response.emit('close');
     });
 
     await http.createServer({}, {}, function (request, response) {
       triggerTimes++;
+      response.statusCode = 200;
       response.emit('finish');
       response.emit('close');
     });
@@ -92,5 +104,9 @@ describe(`patch http.createServer(cb)`, function () {
 
   it(`sent request shoule be ${requestTimes} * 2`, function () {
     expect(sentRequest).to.be(requestTimes * 2);
+  });
+
+  it(`count of http status code 200 should be ${requestTimes} * 2`, function () {
+    expect(status[200]).to.be(requestTimes * 2);
   });
 });

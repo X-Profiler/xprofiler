@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "1.1.1",
+  "version": "1.2.0-prepare",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -63,5 +63,6 @@
   "xctlIpcPath": {
     "unix": "xprofiler-ctl-uds-path.sock",
     "win32": "xprofiler-ctl"
-  }
+  },
+  "blurryTag": "__"
 }

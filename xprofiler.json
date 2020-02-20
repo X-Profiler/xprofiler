@@ -63,5 +63,13 @@
       "boolean"
     ],
     "format": "boolean"
+  },
+  {
+    "name": "patch_http_timeout",
+    "env": "XPROFILER_PATCH_HTTP_TIMEOUT",
+    "rules": [
+      "number"
+    ],
+    "format": "number"
   }
 ]

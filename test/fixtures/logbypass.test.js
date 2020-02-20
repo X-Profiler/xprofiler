@@ -86,7 +86,10 @@ const xprofilerLogStructure = {
     live_http_request: /^0$/,
     http_response_close: /^0$/,
     http_response_sent: /^0$/,
-    http_rt: /^0.00$/
+    http_request_timeout: /^0$/,
+    http_patch_timeout: /^30$/,
+    http_rt: /^0.00$/,
+    res: { notRequired: true, regexp: /^\d+$/ }
   }
 };
 

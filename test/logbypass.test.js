@@ -24,13 +24,16 @@ const casesForLibuv = getTestCases('performance log correctly with XPROFILER_ENA
 const logdirBlockingForHttp = utils.createLogDir('log_bypass_blocking_http');
 const logdirNonBlockingForHttp = utils.createLogDir('log_bypass_non_blocking_http');
 const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HTTP=YES',
-  logdirBlockingForHttp, logdirNonBlockingForHttp, { XPROFILER_PATCH_HTTP: 'YES' },
+  logdirBlockingForHttp, logdirNonBlockingForHttp, { XPROFILER_PATCH_HTTP: 'YES', XPROFILER_PATCH_HTTP_TIMEOUT: 1 },
   {
     http: {
       live_http_request: /^\d+$/,
       http_response_close: /^\d+$/,
       http_response_sent: /^\d+$/,
-      http_rt: /^\d+.\d{2}$/
+      http_request_timeout: /^\d+$/,
+      http_patch_timeout: /^1$/,
+      http_rt: /^\d+.\d{2}$/,
+      res: { notRequired: true, regexp: /^\d+$/ }
     }
   });
 
@@ -123,8 +126,10 @@ for (const testCase of cases) {
             const detail = parsed.detail;
             describe(`${testCase.title} ${target.title}: ${type}`, function () {
               for (const key of Object.keys(detail)) {
-                it(`${key}: ${detail[key]} shoule be ${struct[key]}`, function () {
-                  expect(struct[key].test(detail[key])).to.be.ok();
+                const key2 = utils.formatKey(key);
+                const regexp = key2 !== key ? struct[key2].regexp : struct[key2];
+                it(`${key}: ${detail[key]} shoule be ${regexp}`, function () {
+                  expect(regexp.test(detail[key])).to.be.ok();
                 });
               }
             });
