@@ -53,7 +53,8 @@ function start(config = {}) {
     // http status
     addLiveRequest: xprofiler.addLiveRequest,
     addCloseRequest: xprofiler.addCloseRequest,
-    addSentRequest: xprofiler.addSentRequest
+    addSentRequest: xprofiler.addSentRequest,
+    addHttpStatusCode: xprofiler.addHttpStatusCode
   });
 }
 

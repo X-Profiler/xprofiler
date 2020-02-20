@@ -6,13 +6,16 @@ const https = require('https');
 
 function requestListenerWrapper(original, methods) {
   return function (req, res) {
-    const { addLiveRequest, addCloseRequest, addSentRequest } = methods;
+    const { addLiveRequest, addCloseRequest, addSentRequest, addHttpStatusCode } = methods;
 
     addLiveRequest();
 
     const start = Date.now();
 
-    res.on('finish', () => addSentRequest(Date.now() - start));
+    res.on('finish', () => {
+      addHttpStatusCode(res.statusCode);
+      addSentRequest(Date.now() - start);
+    });
 
     res.on('close', () => addCloseRequest());
 

@@ -30,7 +30,8 @@ const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HT
       live_http_request: /^\d+$/,
       http_response_close: /^\d+$/,
       http_response_sent: /^\d+$/,
-      http_rt: /^\d+.\d{2}$/
+      http_rt: /^\d+.\d{2}$/,
+      res: { notRequired: true, regexp: /^\d+$/ }
     }
   });
 
@@ -123,8 +124,10 @@ for (const testCase of cases) {
             const detail = parsed.detail;
             describe(`${testCase.title} ${target.title}: ${type}`, function () {
               for (const key of Object.keys(detail)) {
-                it(`${key}: ${detail[key]} shoule be ${struct[key]}`, function () {
-                  expect(struct[key].test(detail[key])).to.be.ok();
+                const key2 = utils.formatKey(key);
+                const regexp = key2 !== key ? struct[key2].regexp : struct[key2];
+                it(`${key}: ${detail[key]} shoule be ${regexp}`, function () {
+                  expect(regexp.test(detail[key])).to.be.ok();
                 });
               }
             });
