@@ -116,7 +116,7 @@ const diag = {
   location: /^([\w\s()-]+|)$/,
   message: /^([\w\s()-]+|)$/,
   nodeVersion: new RegExp(`^${process.version}$`),
-  osVersion: /^([\w\s()-_/.:~]+|)$/,
+  osVersion: /^([\w\s()-_/.:~#]+|)$/,
   dumpTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
   loadTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
   vmState: /^[A-Z]+$/,
