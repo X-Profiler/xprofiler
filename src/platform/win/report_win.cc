@@ -1,12 +1,16 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <dbghelp.h>
+#include <Lm.h>
 #include <psapi.h>
+
+#include <sstream>
 #include <string>
 
 #include "../../library/writer.h"
 
 namespace xprofiler {
+using std::ostringstream;
 using std::string;
 
 static const int kMaxFrams = 256;
@@ -112,6 +116,87 @@ void PrintLoadedLibraries(JSONWriter* writer) {
   }
 
   writer->json_arrayend();
+}
+
+string GetOsVersion() {
+  ostringstream data;
+
+  const DWORD level = 101;
+  LPSERVER_INFO_101 os_info = NULL;
+  NET_API_STATUS nStatus = NetServerGetInfo(NULL, level, (LPBYTE*)&os_info);
+  if (nStatus == NERR_Success) {
+    LPSTR os_name = "Windows";
+    const DWORD major = os_info->sv101_version_major & MAJOR_VERSION_MASK;
+    const DWORD type = os_info->sv101_type;
+    const bool isServer = (type & SV_TYPE_DOMAIN_CTRL) ||
+                          (type & SV_TYPE_DOMAIN_BAKCTRL) ||
+                          (type & SV_TYPE_SERVER_NT);
+    switch (major) {
+      case 5:
+        switch (os_info->sv101_version_minor) {
+          case 0:
+            os_name = "Windows 2000";
+            break;
+          default:
+            os_name = (isServer ? "Windows Server 2003" : "Windows XP");
+        }
+        break;
+      case 6:
+        switch (os_info->sv101_version_minor) {
+          case 0:
+            os_name = (isServer ? "Windows Server 2008" : "Windows Vista");
+            break;
+          case 1:
+            os_name = (isServer ? "Windows Server 2008 R2" : "Windows 7");
+            break;
+          case 2:
+            os_name = (isServer ? "Windows Server 2012" : "Windows 8");
+            break;
+          case 3:
+            os_name = (isServer ? "Windows Server 2012 R2" : "Windows 8.1");
+            break;
+          default:
+            os_name = (isServer ? "Windows Server" : "Windows Client");
+        }
+        break;
+      case 10:
+        os_name = (isServer ? "Windows Server 2016" : "Windows 10");
+        break;
+      default:
+        os_name = (isServer ? "Windows Server" : "Windows Client");
+    }
+    data << os_name;
+
+    // Convert and print the machine name and comment fields (these are LPWSTR
+    // types)
+    size_t count;
+    char name_buf[256];
+    wcstombs_s(&count, name_buf, sizeof(name_buf), os_info->sv101_name,
+               _TRUNCATE);
+    if (os_info->sv101_comment != NULL) {
+      char comment_buf[256];
+      wcstombs_s(&count, comment_buf, sizeof(comment_buf),
+                 os_info->sv101_comment, _TRUNCATE);
+      data << " / " << name_buf << " " << comment_buf;
+    } else {
+      data << " / " << name_buf;
+    }
+
+    if (os_info != NULL) {
+      NetApiBufferFree(os_info);
+    }
+  } else {
+    // NetServerGetInfo() call failed, fallback to use GetComputerName() instead
+    TCHAR machine_name[256];
+    DWORD machine_name_size = 256;
+    data << "Windows";
+    if (GetComputerName(machine_name, &machine_name_size)) {
+      data << " / " << machine_name;
+    }
+  }
+
+  string detail = data.str();
+  return detail;
 }
 
 }  // namespace xprofiler

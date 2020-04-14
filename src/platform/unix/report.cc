@@ -9,7 +9,9 @@
 #include <execinfo.h>
 #include <inttypes.h>
 #include <sys/resource.h>
+#include <sys/utsname.h>
 
+#include <sstream>
 #include <string>
 
 #ifdef __linux__
@@ -25,6 +27,7 @@
 extern char** environ;
 
 namespace xprofiler {
+using std::ostringstream;
 using std::string;
 
 static const int kMaxFrams = 256;
@@ -184,6 +187,44 @@ void PrintLoadedLibraries(JSONWriter* writer) {
 
   writer->json_arrayend();
 }
+
+string GetOsVersion() {
+  ostringstream data;
+  struct utsname os_info;
+  if (uname(&os_info) >= 0) {
+// os info
+#if defined(_AIX)
+    data << os_info.sysname << " / " << os_info.version << "."
+         << os_info.release;
+#else
+    data << os_info.sysname << " / " << os_info.release << " / "
+         << os_info.version;
+#endif
+
+// machine info
+#if defined(__MVS__)
+#else
+    const char* (*libc_version)();
+    *(void**)(&libc_version) = dlsym(RTLD_DEFAULT, "gnu_get_libc_version");
+    if (libc_version != NULL) {
+      data << " (glibc: " << (*libc_version)() << ")";
+    }
+#if defined(_AIX)
+    char hn[256];
+    memset(hn, 0, sizeof(hn));
+    gethostname(hn, sizeof(hn));
+    data << " / " << hn << " " << os_info.nodename << " " << os_info.machine;
+#else
+    data << " / " << os_info.nodename << " " << os_info.machine;
+#endif
+#endif
+  } else
+    data << "unknown";
+
+  string detail = data.str();
+  return detail;
+}
+
 }  // namespace xprofiler
 
 #endif
