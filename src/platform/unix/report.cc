@@ -207,7 +207,7 @@ string GetOsVersion() {
     const char* (*libc_version)();
     *(void**)(&libc_version) = dlsym(RTLD_DEFAULT, "gnu_get_libc_version");
     if (libc_version != NULL) {
-      data << "(glibc: " << (*libc_version)() << ")";
+      data << " (glibc: " << (*libc_version)() << ")";
     }
 #if defined(_AIX)
     char hn[256];
