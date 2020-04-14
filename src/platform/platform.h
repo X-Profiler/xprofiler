@@ -29,6 +29,7 @@ int uv_gettimeofday(uv_timeval64_t *tv);
 
 // node report
 string GetPcAddress(void *pc);
+string GetOsVersion();
 void PrintNativeStack(JSONWriter *writer);
 void PrintSystemEnv(JSONWriter *writer);
 void PrintResourceLimits(JSONWriter *writer);

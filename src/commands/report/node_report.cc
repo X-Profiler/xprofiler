@@ -28,6 +28,7 @@ static void WriteNodeReport(JSONWriter *writer, string location,
   writer->json_keyvalue("location", location);
   writer->json_keyvalue("message", message);
   writer->json_keyvalue("nodeVersion", GetGlobalNodeVersion());
+  writer->json_keyvalue("osVersion", GetOsVersion());
   writer->json_keyvalue("loadTime", GetStartTime("%Y-%m-%d %H:%M:%S"));
   writer->json_keyvalue("dumpTime", ConvertTime("%Y-%m-%d %H:%M:%S"));
 
