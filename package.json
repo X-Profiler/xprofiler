@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "1.2.0",
+  "version": "1.2.1-prepare",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -41,7 +41,7 @@
   "homepage": "https://github.com/hyj1991/xprofiler#readme",
   "dependencies": {
     "bindings": "^1.5.0",
-    "nan": "^2.14.0",
+    "nan": "^2.14.1",
     "node-gyp": "^6.0.0",
     "uuid": "^3.3.3",
     "yargs": "^14.2.0"

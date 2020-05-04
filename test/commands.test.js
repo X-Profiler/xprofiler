@@ -56,7 +56,7 @@ for (let i = 0; i < testConfig.length; i++) {
           })
         });
         pid = p.pid;
-        await utils.sleep(3000);
+        await utils.sleep(4500);
         // send cmd with xctl (function)
         console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xctl cmd.');
         resByXctl = await xctl(pid, cmd, options);
