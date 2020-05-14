@@ -17,7 +17,8 @@
     "upload": "node scripts/upload.js",
     "ci": "npm run lint && npm run cov && codecov && npm run upload",
     "dep": "npm run build && npm run cov",
-    "release": "node scripts/release.js"
+    "release": "node scripts/release.js",
+    "autod": "autod"
   },
   "repository": {
     "type": "git",
@@ -47,6 +48,7 @@
     "yargs": "^14.2.0"
   },
   "devDependencies": {
+    "autod": "^3.1.0",
     "clang-format": "^1.2.4",
     "codecov": "^3.6.1",
     "eslint": "^6.6.0",

@@ -27,11 +27,11 @@ xprofiler.setHooks();
 const server = http.createServer(function (req, res) {
   setTimeout(() => res.end('hello world.'), (0.5 + Math.random()) * 1000);
 });
-server.listen(8443, () => console.log('http server listen at 8443...'));
+server.listen(8445, () => console.log('http server listen at 8445...'));
 server.unref();
 
 function sendRequest(abort) {
-  const req = http.request('http://localhost:8443');
+  const req = http.request('http://localhost:8445');
   req.on('error', err => console.error('non-blocking', err.message));
   req.end();
 

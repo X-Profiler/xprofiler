@@ -55,7 +55,9 @@ for (const cse of cases) {
 
     it('value should be ok', function () {
       describe(`it has expected structure`, function () {
-        checkProfile(diag, JSON.parse(fs.readFileSync(hookFile, 'utf8')));
+        const content = fs.readFileSync(hookFile, 'utf8').trim();
+        console.log(content);
+        checkProfile(diag, JSON.parse(content));
       });
     });
   });
