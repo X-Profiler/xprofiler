@@ -1,11 +1,11 @@
 # X-Profiler
 
 [![Npm](https://img.shields.io/npm/v/xprofiler)](https://www.npmjs.com/package/xprofiler)
-[![Codecov branch](https://img.shields.io/codecov/c/github/hyj1991/xprofiler/master)](https://codecov.io/gh/hyj1991/xprofiler/branch/master)
-[![Linux/osx build status](https://travis-ci.org/hyj1991/xprofiler.svg?branch=master)](https://travis-ci.org/hyj1991/xprofiler)
-[![Windows build status](https://ci.appveyor.com/api/projects/status/c6y7jtux1m5jabgc/branch/master?svg=true)](https://ci.appveyor.com/project/hyj1991/xprofiler/branch/master)
+[![Codecov branch](https://img.shields.io/codecov/c/github/X-Profiler/xprofiler/master)](https://codecov.io/gh/X-Profiler/xprofiler/branch/master)
+[![Linux/osx build status](https://travis-ci.org/X-Profiler/xprofiler.svg?branch=master)](https://travis-ci.org/github/X-Profiler/xprofiler)
+[![Windows build status](https://ci.appveyor.com/api/projects/status/e5xtotum6lbi3mt7/branch/master?svg=true)](https://ci.appveyor.com/project/hyj1991/xprofiler/branch/master)
 [![Npm](https://img.shields.io/npm/dm/xprofiler)](https://www.npmjs.com/package/xprofiler)
-[![License](https://img.shields.io/npm/l/xprofiler)](LICENSE)
+[![License](https://img.shields.io/github/license/X-Profiler/xprofiler)](LICENSE)
 
 Easy-Monitor v3.0 Node.js Runtime 插件，输出性能日志，并且可以进行实时的运行时状态采样。
 
@@ -104,7 +104,7 @@ const defaultConfig = {
 
 const xprofilerConfig = Object.assign({}, defaultConfig, envConfig, userConfig);
 ```
-详细配置覆盖规则的测试可以参见 [config.test.js](https://github.com/hyj1991/xprofiler/blob/master/test/config.test.js)
+详细配置覆盖规则的测试可以参见 [config.test.js](https://github.com/X-Profiler/xprofiler/blob/master/test/config.test.js)
 
 ### 性能分析日志
 
@@ -187,7 +187,7 @@ copyright 2019
 
 ## IV. 稳定性
 
-xprofiler 每个 commit 都会通过 travis-ci/appveyor 进行在 windows/linux/macosX 下的编译以及单元测试，如果您在使用中依旧出现意外的 crash，可以反馈到 [Issue 列表](https://github.com/hyj1991/xprofiler/issues) 进行跟踪处理。
+xprofiler 每个 commit 都会通过 travis-ci/appveyor 进行在 windows/linux/macosX 下的编译以及单元测试，如果您在使用中依旧出现意外的 crash，可以反馈到 [Issue 列表](https://github.com/X-Profiler/xprofiler/issues) 进行跟踪处理。
 
 
 ## V. 测试与代码覆盖率
@@ -198,7 +198,7 @@ xprofiler 每个 commit 都会通过 travis-ci/appveyor 进行在 windows/linux/
 npm run cov
 ```
 
-master 分支的代码覆盖率情况可以参见 [codecov badge](https://codecov.io/gh/hyj1991/xprofiler/branch/master)。
+master 分支的代码覆盖率情况可以参见 [codecov badge](https://codecov.io/gh/X-Profiler/xprofiler/branch/master)。
 
 
 ## VI. 如何参与贡献
@@ -207,7 +207,7 @@ master 分支的代码覆盖率情况可以参见 [codecov badge](https://codeco
 * clone 你 fork 出来的仓库至本地开发
 * 进行本地开发，添加功能或者修改 bug，并且附上必要的测试
 * 请在 commit 中描述下添加的功能或者修改 bug 的详细信息，并提交至你的远程仓库
-* 在 [PR](https://github.com/hyj1991/xprofiler/pulls) 页面选择 New Pull Request，继续选择 compare across forks，在列表中选中你的 Fork，然后创建新的 PR
+* 在 [PR](https://github.com/X-Profiler/xprofiler/pulls) 页面选择 New Pull Request，继续选择 compare across forks，在列表中选中你的 Fork，然后创建新的 PR
 * 查看 pr 下的 travis/appveypr CI 状态，如果执行失败请到对应页面查看失败原因并在你自己的仓库下进行修复，修复 commit 会自动同步到此 pr 下，无需关闭重启发起
 
 我们将在 review 后选择合并至本仓库内，贡献者也会加入到本项目的协作者列表中。

@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hyj1991/xprofiler.git"
+    "url": "git+https://github.com/X-Profiler/xprofiler.git"
   },
   "files": [
     "bin",
@@ -37,9 +37,9 @@
   "author": "yeekwanvong@gmail.com",
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/hyj1991/xprofiler/issues"
+    "url": "https://github.com/X-Profiler/xprofiler/issues"
   },
-  "homepage": "https://github.com/hyj1991/xprofiler#readme",
+  "homepage": "https://github.com/X-Profiler/xprofiler#readme",
   "dependencies": {
     "bindings": "^1.5.0",
     "nan": "^2.14.1",
