@@ -101,10 +101,10 @@ const configure = {
     userValue: false
   },
   patch_http: {
-    defaultValue: false,
+    defaultValue: true,
     envKey: 'XPROFILER_PATCH_HTTP',
-    envValue: 'YES',
-    userValue: true
+    envValue: 'NO',
+    userValue: false
   },
   patch_http_timeout: {
     defaultValue: 30,

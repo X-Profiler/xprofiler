@@ -157,7 +157,7 @@ exports = module.exports = function (logdir) {
         { key: 'data.log_level', rule: /^2$/ },
         { key: 'data.log_type', rule: /^1$/ },
         { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
-        { key: 'data.patch_http', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.patch_http', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http_timeout', rule: /^30$/ },
       ],
       xprofctlRules(data) {
@@ -169,7 +169,7 @@ exports = module.exports = function (logdir) {
           + '  - log_interval: 60\n'
           + '  - log_level: 2\n'
           + '  - log_type: 1\n'
-          + '  - patch_http: false\n'
+          + '  - patch_http: true\n'
           + '  - patch_http_timeout: 30')
         ];
       }

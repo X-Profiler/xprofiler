@@ -23,7 +23,7 @@ static LOG_TYPE log_type = LOG_TO_FILE;
 static bool enable_log_uv_handles = true;
 static bool log_format_alinode = false;
 static bool enable_fatal_error_hook = true;
-static bool patch_http = false;
+static bool patch_http = true;
 static uint32_t patch_http_timeout = 30;
 
 void Configure(const FunctionCallbackInfo<Value> &info) {
