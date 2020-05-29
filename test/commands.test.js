@@ -60,6 +60,7 @@ for (let i = 0; i < testConfig.length; i++) {
         // send cmd with xctl (function)
         console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xctl cmd.');
         resByXctl = await xctl(pid, cmd, options);
+        await utils.sleep(500);
         // send cmd with xprofctl (cli)
         const extra = convertOptions(options);
         const nodeExe = os.platform() === 'win32' ? 'node ' : '';

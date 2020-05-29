@@ -68,7 +68,7 @@ const alinodeLogStructure = {
     live_http_request: /^\d+$/,
     http_request_handled: /^\d+$/,
     http_response_sent: /^\d+$/,
-    http_rt: /^\d{1,3}.\d{2}$/
+    http_rt: /^\d+.\d{2}$/
   }
 };
 
@@ -83,12 +83,12 @@ const xprofilerLogStructure = {
     'active_and_ref_tcp_handles', 'active_udp_handles', 'active_and_ref_udp_handles',
     'active_timer_handles', 'active_and_ref_timer_handles']),
   http: {
-    live_http_request: /^0$/,
-    http_response_close: /^0$/,
-    http_response_sent: /^0$/,
-    http_request_timeout: /^0$/,
-    http_patch_timeout: /^30$/,
-    http_rt: /^0.00$/,
+    live_http_request: /^\d+$/,
+    http_response_close: /^\d+$/,
+    http_response_sent: /^\d+$/,
+    http_request_timeout: /^\d+$/,
+    http_patch_timeout: /^1$/,
+    http_rt: /^\d+.\d{2}$/,
     res: { notRequired: true, regexp: /^\d+$/ }
   }
 };
@@ -99,7 +99,8 @@ function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, struc
 
   // common env
   const commonEnvConfig = Object.assign({}, process.env, {
-    XPROFILER_LOG_INTERVAL: 1
+    XPROFILER_LOG_INTERVAL: 1,
+    XPROFILER_PATCH_HTTP_TIMEOUT: 1,
   });
 
   // common case config
