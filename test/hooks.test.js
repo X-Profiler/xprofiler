@@ -7,6 +7,8 @@ const expect = require('expect.js');
 const promisify = require('util').promisify;
 const readdir = promisify(fs.readdir);
 const unlink = promisify(fs.unlink);
+const exists = promisify(fs.exists);
+const readFile = promisify(fs.readFile);
 const utils = require('./fixtures/utils');
 const { profileRule: { diag }, checkProfile } = require('./fixtures/command.test');
 
@@ -32,10 +34,23 @@ for (const cse of cases) {
         })
       });
       await new Promise(resolve => p.on('close', resolve));
+      await utils.sleep(2000);
       const files = await readdir(logdir);
       for (const file of files) {
         if (/x-fatal-error-(\d+)-(\d+)-(\d+).diag/.test(file)) {
           hookFile = path.join(logdir, file);
+          const fileExists = await exists(hookFile);
+          console.log('check hook file exists:', hookFile, fileExists);
+          if (!fileExists) {
+            continue;
+          }
+          const fileContent = (await readFile(hookFile, 'utf8')).trim();
+          console.log('check hook file content:', hookFile, !!fileContent);
+          if (!fileContent) {
+            continue;
+          }
+          console.log('final hook file:', hookFile);
+          break;
         }
       }
     });
@@ -56,7 +71,7 @@ for (const cse of cases) {
     it('value should be ok', function () {
       describe(`it has expected structure`, function () {
         const content = fs.readFileSync(hookFile, 'utf8').trim();
-        console.log(content);
+        console.log('fatal error report:', content);
         checkProfile(diag, JSON.parse(content));
       });
     });

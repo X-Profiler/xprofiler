@@ -3,7 +3,7 @@
 const os = require('os');
 const mm = require('mm');
 const moment = require('moment');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const traceid = uuid();
 console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking start.');
 
