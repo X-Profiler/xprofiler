@@ -24,7 +24,7 @@ using v8::SampleInfo;
 using v8::StackFrame;
 using v8::StackTrace;
 
-void SetJavaScriptStack(JSONWriter* writer) {
+void SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
   HandleScope scope;
   RegisterState state;
   SampleInfo info;
@@ -46,6 +46,12 @@ void SetJavaScriptStack(JSONWriter* writer) {
     writer->json_keyvalue("vmState", v8_states[info.vm_state]);
   } else {
     writer->json_keyvalue("vmState", "unknown");
+  }
+
+  if (fatal_error) {
+    writer->json_arraystart("jsStacks");
+    writer->json_arrayend();
+    return;
   }
 
   // get js stacks

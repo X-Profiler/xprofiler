@@ -4,7 +4,7 @@
 #include "../../library/writer.h"
 
 namespace xprofiler {
-void SetJavaScriptStack(JSONWriter* writer);
+void SetJavaScriptStack(JSONWriter* writer, bool fatal_error = false);
 }
 
 #endif

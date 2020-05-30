@@ -17,7 +17,9 @@ static void OnFatalError(const char* location, const char* message) {
                     to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
                     RandNum() + ".diag";
   Info(module_type, "dump report to %s.", filepath.c_str());
-  NodeReport::GetNodeReport(filepath, location, message);
+  NodeReport::GetNodeReport(filepath, location, message, true);
+  Info(module_type, "report dumped.");
+  raise(SIGABRT);
 }
 
 void SetFatalErrorHandler() {

@@ -1,6 +1,6 @@
 'use strict';
 
-const { defaultExclude } = require('test-exclude');
+const defaultExclude = require('@istanbuljs/schema/default-exclude');
 const os = require('os');
 
 let platformExclude = [
