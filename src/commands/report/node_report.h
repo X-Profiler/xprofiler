@@ -10,7 +10,8 @@ class NodeReport {
   NodeReport();
   virtual ~NodeReport();
   static void GetNodeReport(string filepath, string location = "Active Dump",
-                            string message = "Active Dump");
+                            string message = "Active Dump",
+                            bool fatal_error = false);
 };
 }  // namespace xprofiler
 
