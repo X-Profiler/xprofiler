@@ -1,11 +1,16 @@
 'use strict';
 
-const xprofiler = require('bindings')('xprofiler');
+const path = require('path');
 const utils = require('./lib/utils');
 const clean = require('./lib/clean');
 const { patch } = require('./patch');
 const configure = require('./lib/configure');
 const configList = require('./xprofiler.json');
+
+// xprofiler.node
+const binary = require('node-pre-gyp');
+const bindingPath = binary.find(path.resolve(path.join(__dirname, './package.json')));
+const xprofiler = require(bindingPath);
 
 const runOnceStatus = {
   bypassLogThreadStarted: false,

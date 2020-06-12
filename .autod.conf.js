@@ -7,9 +7,8 @@ module.exports = {
     'test',
   ],
   dep: [
-    'bindings',
     'nan',
-    'node-gyp',
+    'node-pre-gyp',
     'uuid',
     'yargs',
   ],
@@ -38,5 +37,6 @@ module.exports = {
   semver: [
     'eslint@6',
     'node-gyp@6',
+    'mocha@7',
   ]
 };

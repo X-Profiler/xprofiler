@@ -6,8 +6,21 @@
     "xprofctl": "bin/xprofctl"
   },
   "main": "xprofiler.js",
+  "binary": {
+    "module_name": "xprofiler",
+    "module_path": "./build/binding/{configuration}/{node_abi}-{platform}-{arch}/",
+    "remote_path": "./X-Profiler/xprofiler/releases/download/v{version}/",
+    "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
+    "host": "https://github.com"
+  },
   "scripts": {
-    "build": "npm run lint && node-gyp rebuild",
+    "install": "node-pre-gyp install --fallback-to-build",
+    "package": "node scripts/build.js",
+    "pack-common": "node scripts/common.js",
+    "pack-6u": "node scripts/6u.js",
+    "pack-7u": "node scripts/7u.js",
+    "copy": "node scripts/copy.js",
+    "build": "npm run lint && node-pre-gyp rebuild",
     "format": "clang-format -i --glob=\"src/**/!(report_win)[.h|.cc]\"",
     "lint": "npm run format && eslint --fix xprofiler.js \"test/**/*.js\" lib/*.js patch/*.js bin/xprofctl scripts/**/*.js",
     "test": "mocha -t 0 -R spec test/*.test.js test/patch/*.test.js",
@@ -15,7 +28,7 @@
     "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js test/patch/*.test.js --timeout 0",
     "cov-single": "nyc --reporter=html --reporter=text --reporter=lcov mocha --timeout 0 -R spec",
     "upload": "node scripts/upload.js",
-    "ci": "npm run lint && npm run cov && codecov && npm run upload",
+    "ci": "npm run lint && npm run build && npm run cov && codecov && npm run upload",
     "dep": "npm run build && npm run cov",
     "release": "node scripts/release.js",
     "autod": "autod"
@@ -41,9 +54,8 @@
   },
   "homepage": "https://github.com/X-Profiler/xprofiler#readme",
   "dependencies": {
-    "bindings": "^1.5.0",
     "nan": "^2.14.1",
-    "node-gyp": "^6.1.0",
+    "node-pre-gyp": "^0.15.0",
     "uuid": "^8.1.0",
     "yargs": "^15.3.1"
   },
@@ -58,9 +70,9 @@
     "mm": "^3.2.0",
     "mocha": "^7.2.0",
     "moment": "^2.26.0",
-    "nyc": "^15.0.1",
+    "nyc": "^15.1.0",
     "tunnel-agent": "^0.6.0",
-    "urllib": "^2.35.0"
+    "urllib": "^2.36.1"
   },
   "xctlIpcPath": {
     "unix": "xprofiler-ctl-uds-path.sock",
