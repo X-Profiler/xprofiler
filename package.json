@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -9,9 +9,9 @@
   "binary": {
     "module_name": "xprofiler",
     "module_path": "./build/binding/{configuration}/{node_abi}-{platform}-{arch}/",
-    "remote_path": "./X-Profiler/xprofiler/releases/download/v{version}/",
+    "remote_path": "./v{version}/",
     "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
-    "host": "https://github.com"
+    "host": "https://github.com/X-Profiler/xprofiler/releases/download"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
