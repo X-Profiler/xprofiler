@@ -23,7 +23,7 @@ T GetJsonValue(json data, string key, XpfError &err) {
   T result = T();
   try {
     result = data[key].get<T>();
-  } catch (exception &e) {
+  } catch (json::exception &e) {
     Error("type_value", "%s <%s> type error: %s", data.dump().c_str(),
           key.c_str(), e.what());
     err = XpfError::Failure("<%s> type error: %s", key.c_str(), e.what());
