@@ -7,7 +7,6 @@
 
 namespace xprofiler {
 using nlohmann::json;
-using std::exception;
 using std::string;
 
 void Sleep(int seconds);
