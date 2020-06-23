@@ -6,8 +6,12 @@
 #include "uv.h"
 
 namespace xprofiler {
+using Nan::FunctionCallbackInfo;
+using Nan::New;
 using std::string;
 using std::wstring;
+using v8::Boolean;
+using v8::Value;
 
 static const char module_type[] = "ipc";
 
@@ -34,6 +38,10 @@ wstring String2LPCWSTR(const string &s) {
   wstring r(buf);
   delete[] buf;
   return r;
+}
+
+void CheckSocketPath(const FunctionCallbackInfo<Value> &info) {
+  info.GetReturnValue().Set(New<Boolean>(true));
 }
 
 void CreateIpcServer(void (*parsecmd)(char *)) {

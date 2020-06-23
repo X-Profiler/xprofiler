@@ -25,6 +25,7 @@ static bool log_format_alinode = false;
 static bool enable_fatal_error_hook = true;
 static bool patch_http = true;
 static uint32_t patch_http_timeout = 30;
+static bool check_throw = true;
 
 void Configure(const FunctionCallbackInfo<Value> &info) {
   if (!info[0]->IsObject()) {
@@ -42,6 +43,7 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
   CONVERT_BOOL(enable_fatal_error_hook)
   CONVERT_BOOL(patch_http)
   CONVERT_UINT32(patch_http_timeout)
+  CONVERT_BOOL(check_throw)
 
   info.GetReturnValue().Set(New<Boolean>(true));
 }
@@ -58,6 +60,7 @@ void GetConfig(const FunctionCallbackInfo<Value> &info) {
   CONFIG_NATIVE_NUMBER(enable_fatal_error_hook, Boolean)
   CONFIG_NATIVE_NUMBER(patch_http, Boolean)
   CONFIG_NATIVE_NUMBER(patch_http_timeout, Number)
+  CONFIG_NATIVE_NUMBER(check_throw, Boolean)
 
   info.GetReturnValue().Set(config);
 }
@@ -72,4 +75,5 @@ DEFINE_GET_SET_FUNCTION(EnableLogUvHandles, bool, enable_log_uv_handles)
 DEFINE_GET_SET_FUNCTION(EnableFatalErrorHook, bool, enable_fatal_error_hook)
 DEFINE_GET_SET_FUNCTION(PatchHttp, bool, patch_http)
 DEFINE_GET_SET_FUNCTION(PatchHttpTimeout, uint32_t, patch_http_timeout)
+DEFINE_GET_SET_FUNCTION(CheckThrow, bool, check_throw)
 }  // namespace xprofiler

@@ -10,6 +10,7 @@ export interface XprofilerConfig {
   enable_fatal_error_hook?: boolean;
   patch_http?: boolean;
   patch_http_timeout?: number;
+  check_throw?: boolean;
 }
 
 /**

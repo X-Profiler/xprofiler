@@ -71,5 +71,13 @@
       "number"
     ],
     "format": "number"
+  },
+  {
+    "name": "check_throw",
+    "env": "XPROFILER_CHECK_THROW",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
   }
 ]

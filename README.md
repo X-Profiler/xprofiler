@@ -9,7 +9,7 @@
 
 Easy-Monitor v3.0 Node.js Runtime 插件，输出性能日志，并且可以进行实时的运行时状态采样。
 
-完整部署文档：https://www.yuque.com/hyj1991/easy-monitor 。
+点击访问 [控制台 Demo](http://120.27.24.200:7443/) 进行体验，完整的性能监控部署文档：https://www.yuque.com/hyj1991/easy-monitor
 
 ## I. 兼容性
 

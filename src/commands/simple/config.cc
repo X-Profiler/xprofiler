@@ -31,6 +31,7 @@ COMMAND_CALLBACK(GetXprofilerConfig) {
   data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
   data["patch_http"] = GetPatchHttp();
   data["patch_http_timeout"] = GetPatchHttpTimeout();
+  data["check_throw"] = GetCheckThrow();
   success(data);
 }
 
