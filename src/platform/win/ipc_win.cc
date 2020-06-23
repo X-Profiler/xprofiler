@@ -41,7 +41,7 @@ wstring String2LPCWSTR(const string &s) {
 }
 
 void CheckSocketPath(const FunctionCallbackInfo<Value> &info) {
-  info.GetReturnValue().Set(New<Boolean>(true);
+  info.GetReturnValue().Set(New<Boolean>(true));
 }
 
 void CreateIpcServer(void (*parsecmd)(char *)) {
