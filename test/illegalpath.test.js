@@ -8,7 +8,13 @@ const utils = require('./fixtures/utils');
 
 if (os.platform() === 'win32') {
   describe(`platform ${os.platform()}: check socket path illegal`, function () {
+    it(`should throw socket check error`, function () {
+      expect(true).to.be.ok();
+    });
 
+    it(`should console check error`, function () {
+      expect(true).to.be.ok();
+    });
   });
 } else {
   describe(`platform ${os.platform()}: check socket path illegal`, function () {

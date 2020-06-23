@@ -28,6 +28,7 @@ function checkNecessary() {
   }
 }
 
+/* istanbul ignore next */
 function checkSocketPath(finalConfig) {
   const passed = xprofiler.checkSocketPath(true);
   if (!passed) {
@@ -57,9 +58,7 @@ function start(config = {}) {
   const finalConfig = exports.setConfig(config);
 
   // check socket path
-  if (!checkSocketPath(finalConfig)) {
-    return;
-  }
+  checkSocketPath(finalConfig);
 
   // clean & set logdir info to file
   const logdir = finalConfig.log_dir;
