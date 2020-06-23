@@ -7,6 +7,7 @@ module.exports = {
     'test',
   ],
   dep: [
+    'moment',
     'nan',
     'node-pre-gyp',
     'uuid',
@@ -22,7 +23,6 @@ module.exports = {
     'formstream',
     'mm',
     'mocha',
-    'moment',
     'nyc',
     'tunnel-agent',
     'urllib',
