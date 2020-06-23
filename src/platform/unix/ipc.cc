@@ -8,7 +8,12 @@
 #include "../../logger.h"
 
 namespace xprofiler {
+using Nan::FunctionCallbackInfo;
+using Nan::New;
+using Nan::To;
 using std::string;
+using v8::Boolean;
+using v8::Value;
 
 static struct sockaddr_un server_addr;
 static struct sockaddr_un client_addr;
@@ -23,6 +28,32 @@ static const char module_type[] = "ipc";
   shutdown(new_client_fd, SHUT_RDWR); \
   close(new_client_fd);
 
+static string GetSocketPath() {
+  string filename =
+      GetLogDir() + "/xprofiler-uds-path-" + std::to_string(getpid()) + ".sock";
+  return filename;
+}
+
+static bool CheckSocketPathIllegal(bool log_error) {
+  string filename = GetSocketPath();
+  bool illegal = filename.length() > sizeof(server_addr.sun_path) - 1;
+  if (illegal && log_error) {
+    Error(module_type,
+          "the length of <%s> is larger than sizeof(server_addr.sun_path) - 1 "
+          "(which is %lu).",
+          filename.c_str(), sizeof(server_addr.sun_path) - 1);
+  }
+  return illegal;
+}
+
+void CheckSocketPath(const FunctionCallbackInfo<Value> &info) {
+  bool log_error = false;
+  if (info[0]->IsBoolean()) {
+    log_error = To<bool>(info[0]).ToChecked();
+  }
+  info.GetReturnValue().Set(New<Boolean>(!CheckSocketPathIllegal(log_error)));
+}
+
 void CreateIpcServer(void (*parsecmd)(char *)) {
   // create unix domain socket
   int server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -31,17 +62,11 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
     return;
   }
 
-  // get domain socket file name
-  string filename =
-      GetLogDir() + "/xprofiler-uds-path-" + std::to_string(getpid()) + ".sock";
+  // check socket path illegal
+  if (CheckSocketPathIllegal(false)) return;
 
-  if (filename.length() > sizeof(server_addr.sun_path) - 1) {
-    Error(module_type,
-          "the length of <%s> is larger than sizeof(server_addr.sun_path) - 1 "
-          "(which is %lu).",
-          filename.c_str(), sizeof(server_addr.sun_path) - 1);
-    return;
-  }
+  // get domain socket path
+  string filename = GetSocketPath();
 
   Debug(module_type, "unix domain socket file name: %s.", filename.c_str());
 

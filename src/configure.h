@@ -64,6 +64,7 @@ DECLARE_GET_SET_FUNCTION(EnableLogUvHandles, bool)
 DECLARE_GET_SET_FUNCTION(EnableFatalErrorHook, bool)
 DECLARE_GET_SET_FUNCTION(PatchHttp, bool)
 DECLARE_GET_SET_FUNCTION(PatchHttpTimeout, uint32_t)
+DECLARE_GET_SET_FUNCTION(CheckThrow, bool)
 
 // javascript accessible
 void Configure(const FunctionCallbackInfo<Value> &info);

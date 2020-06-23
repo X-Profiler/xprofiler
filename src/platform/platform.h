@@ -3,9 +3,12 @@
 #include <string>
 
 #include "../library/writer.h"
+#include "nan.h"
 
 namespace xprofiler {
+using Nan::FunctionCallbackInfo;
 using std::string;
+using v8::Value;
 
 // cpu
 double GetNowCpuUsage();
@@ -34,6 +37,9 @@ void PrintNativeStack(JSONWriter *writer);
 void PrintSystemEnv(JSONWriter *writer);
 void PrintResourceLimits(JSONWriter *writer);
 void PrintLoadedLibraries(JSONWriter *writer);
+
+// js binding
+void CheckSocketPath(const FunctionCallbackInfo<Value> &info);
 }  // namespace xprofiler
 
 #endif

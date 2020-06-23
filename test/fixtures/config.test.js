@@ -111,6 +111,12 @@ const configure = {
     envKey: 'XPROFILER_PATCH_HTTP_TIMEOUT',
     envValue: 60,
     userValue: 45
+  },
+  check_throw: {
+    defaultValue: true,
+    envKey: 'XPROFILER_CHECK_THROW',
+    envValue: 'NO',
+    userValue: false
   }
 };
 

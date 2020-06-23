@@ -159,9 +159,11 @@ exports = module.exports = function (logdir) {
         { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http_timeout', rule: /^30$/ },
+        { key: 'data.check_throw', rule: { label: 'false', test: value => value === true } },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 当前配置\\(pid ${data.pid}\\):\n`
+          + '  - check_throw: false\n'
           + '  - enable_fatal_error_hook: true\n'
           + '  - enable_log_uv_handles: true\n'
           + `  - log_dir: ${escape(logdir)}\n`

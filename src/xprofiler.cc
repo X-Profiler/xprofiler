@@ -6,6 +6,7 @@
 #include "logbypass/log.h"
 #include "logger.h"
 #include "nan.h"
+#include "platform/platform.h"
 
 namespace xprofiler {
 using Nan::GetFunction;
@@ -39,6 +40,7 @@ NAN_MODULE_INIT(Initialize) {
   CREATE_JS_BINDING(runLogBypass, RunLogBypass)
 
   // commands listener
+  CREATE_JS_BINDING(checkSocketPath, CheckSocketPath)
   CREATE_JS_BINDING(runCommandsListener, RunCommandsListener)
 
   // set hooks
