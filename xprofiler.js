@@ -33,7 +33,7 @@ function checkSocketPath(finalConfig) {
   const passed = xprofiler.checkSocketPath(true);
   if (!passed) {
     const message = 'socket path is too long, complete log of this error can be found in:\n'
-      + `${path.join(finalConfig.log_dir, `xprofiler-error-${moment().format('YYYYMMDD')}.log`)}\n`;
+      + `  ${path.join(finalConfig.log_dir, `xprofiler-error-${moment().format('YYYYMMDD')}.log`)}\n`;
     if (finalConfig.check_throw) {
       throw new Error(message);
     }
