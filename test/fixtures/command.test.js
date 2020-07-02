@@ -113,8 +113,8 @@ const gcprofile = {
 
 const diag = {
   pid: /^\d+$/,
-  location: /^([\w\s()-]+|)$/,
-  message: /^([\w\s()-]+|)$/,
+  location: /^([\w\s()-:]+|)$/,
+  message: /^([\w\s()-:]+|)$/,
   nodeVersion: new RegExp(`^${process.version}$`),
   osVersion: /^([\w\s()-_/.:~#]+|)$/,
   dumpTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
