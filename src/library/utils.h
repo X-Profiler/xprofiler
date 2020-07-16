@@ -23,9 +23,15 @@ T GetJsonValue(json data, string key, XpfError &err) {
   try {
     result = data[key].get<T>();
   } catch (json::exception &e) {
+    // format error message
+    // ref: https://en.cppreference.com/w/cpp/error/exception/what
+    char error_message[256];
+    snprintf(error_message, sizeof(error_message), "%s", e.what());
+
+    // log error message
     Error("type_value", "%s <%s> type error: %s", data.dump().c_str(),
-          key.c_str(), e.what());
-    err = XpfError::Failure("<%s> type error: %s", key.c_str(), e.what());
+          key.c_str(), error_message);
+    err = XpfError::Failure("<%s> type error: %s", key.c_str(), error_message);
   }
   return result;
 }

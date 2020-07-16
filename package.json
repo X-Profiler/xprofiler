@@ -57,8 +57,8 @@
     "moment": "^2.27.0",
     "nan": "^2.14.1",
     "node-pre-gyp": "^0.15.0",
-    "uuid": "^8.1.0",
-    "yargs": "^15.3.1"
+    "uuid": "^8.2.0",
+    "yargs": "^15.4.1"
   },
   "devDependencies": {
     "@istanbuljs/schema": "^0.1.2",
