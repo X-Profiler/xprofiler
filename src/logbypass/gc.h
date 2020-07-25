@@ -4,7 +4,7 @@
 #include "nan.h"
 
 namespace xprofiler {
-typedef struct {
+typedef struct GcStatistics {
  public:
   // total gc times
   unsigned int total_gc_times = 0;

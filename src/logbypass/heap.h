@@ -28,7 +28,7 @@ using v8::HeapStatistics;
       heap_space_statistics->name##_space_committed
 
 // heap statistics struct
-typedef struct {
+typedef struct XprofilerHeapStatistics {
  public:
   HeapStatistics *handle() { return &heap_statistics_; }
   size_t total_heap_size() { return heap_statistics_.total_heap_size(); }
@@ -59,7 +59,7 @@ typedef struct {
 } heap_statistics_t;
 
 // heap space statistics struct
-typedef struct {
+typedef struct XprofilerHeapSpaceStatistics {
   INIT_SPACE_INFO(new)
   INIT_SPACE_INFO(old)
   INIT_SPACE_INFO(code)

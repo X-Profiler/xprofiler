@@ -13,7 +13,7 @@ namespace xprofiler {
   active_##name##_handles = HANDLE_DEFAULT_VALUE; \
   active_and_ref_##name##_handles = HANDLE_DEFAULT_VALUE;
 
-typedef struct {
+typedef struct UvHandleStatistics {
   INIT_UV_HANDLE(file)
   INIT_UV_HANDLE(tcp)
   INIT_UV_HANDLE(udp)
