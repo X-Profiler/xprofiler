@@ -23,6 +23,8 @@ describe(`xprofiler starting`, function () {
     mm(process.env, 'UNIT_TEST_CHECK_TIME', checkTime);
     fs.writeFileSync(xprofilerPath, [invaidPid, logdir].join(SPLITTER) + '\n');
     xprofiler({ log_dir: logdir });
+    xprofiler({ log_dir: logdir });
+    xprofiler({ log_dir: logdir });
     await utils.sleep((checkTime + 3) * 1000);
   });
 
@@ -72,5 +74,11 @@ describe(`xprofiler starting`, function () {
         expect(aliveProcess[5]).to.be(path.join(__dirname, '..'));
       });
     });
+  });
+
+  it('duplicate process info not exists in ~/.xprofiler', function () {
+    const content = fs.readFileSync(xprofilerPath, 'utf8').trim();
+    const aliveProcessInfo = content.split('\n').map(line => line.split(SPLITTER));
+    expect(aliveProcessInfo.length).to.be(1);
   });
 });
