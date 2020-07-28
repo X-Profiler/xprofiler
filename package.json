@@ -64,7 +64,7 @@
     "@istanbuljs/schema": "^0.1.2",
     "autod": "^3.1.0",
     "clang-format": "^1.4.0",
-    "codecov": "^3.7.0",
+    "codecov": "^3.7.2",
     "eslint": "^6.8.0",
     "expect.js": "^0.3.1",
     "formstream": "^1.1.0",
