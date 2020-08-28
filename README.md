@@ -9,7 +9,7 @@
 
 Easy-Monitor v3.0 Node.js Runtime 插件，输出性能日志，并且可以进行实时的运行时状态采样。
 
-点击访问 [控制台 Demo](http://120.27.24.200:7443/) 进行体验，完整的性能监控部署文档：https://www.yuque.com/hyj1991/easy-monitor
+点击访问 [控制台 Demo](http://www.devtoolx.com/easy-monitor) 进行体验，完整的性能监控部署文档：https://www.yuque.com/hyj1991/easy-monitor
 
 ## I. 兼容性
 
@@ -45,7 +45,7 @@ npm i xprofiler --save --xprofiler_binary_host_mirror=https://npm.taobao.org/mir
 如果淘宝镜像暂时没同步的话，也可以执行阿里云镜像：
 
 ```bash
-npm i xprofiler --save --xprofiler_binary_host_mirror=http://120.27.24.200/xprofiler
+npm i xprofiler --save --xprofiler_binary_host_mirror=http://devtoolx.com/xprofiler
 ```
 
 > 这里使用了 `node-pre-gyp` 帮助开发者无需进行本地编译即可使用此插件，默认插件位于 [Github Release](https://github.com/X-Profiler/xprofiler/releases) 页面，国内访问可能较慢，你也可以自行镜像到其它位置加速安装。
