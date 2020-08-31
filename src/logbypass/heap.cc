@@ -70,47 +70,10 @@ void GetMemoryInfo() { uv_async_send(&memory_statistics_trigger); }
 void WriteMemoryInfoToLog(bool log_format_alinode) {
   if (log_format_alinode) {
     Info("heap",
-         "rss: %zu, "
-         "heap_used: %zu, "
-         "heap_available: %zu, "
-         "heap_total: %zu, "
-         "heap_limit: %zu, "
-         "heap_executeable: %zu, "
-         "total_physical_size: %zu, "
-         "malloced_memory: %zu, "
-         "amount_of_external_allocated_memory: %zu, "
-         "new_space_size: %zu, "
-         "new_space_used: %zu, "
-         "new_space_available: %zu, "
-         "new_space_committed: %zu, "
-         "old_space_size: %zu, "
-         "old_space_used: %zu, "
-         "old_space_available: %zu, "
-         "old_space_committed: %zu, "
-         "code_space_size: %zu, "
-         "code_space_used: %zu, "
-         "code_space_available: %zu, "
-         "code_space_committed: %zu, "
-         "map_space_size: %zu, "
-         "map_space_used: %zu, "
-         "map_space_available: %zu, "
-         "map_space_committed: %zu, "
-         "lo_space_size: %zu, "
-         "lo_space_used: %zu, "
-         "lo_space_available: %zu, "
-         "lo_space_committed: %zu, "
-         "read_only_space_size: %zu, "
-         "read_only_space_used: %zu, "
-         "read_only_space_available: %zu, "
-         "read_only_space_committed: %zu, "
-         "new_lo_space_size: %zu, "
-         "new_lo_space_used: %zu, "
-         "new_lo_space_available: %zu, "
-         "new_lo_space_committed: %zu, "
-         "code_lo_space_size: %zu, "
-         "code_lo_space_used: %zu, "
-         "code_lo_space_available: %zu, "
-         "code_lo_space_committed: %zu",
+         COMMON_INFO_FORMATTER SPACE_INFO_FORMATTER(new) SPACE_INFO_FORMATTER(
+             old) SPACE_INFO_FORMATTER(code) SPACE_INFO_FORMATTER(map)
+             SPACE_INFO_FORMATTER(lo) SPACE_INFO_FORMATTER(read_only)
+                 SPACE_INFO_FORMATTER(new_lo) SPACE_INFO_FORMATTER(code_lo),
          // rss
          rss,
          // heap statistics
@@ -127,48 +90,10 @@ void WriteMemoryInfoToLog(bool log_format_alinode) {
          LOG_SPACE_INFO(code_large_object));
   } else {
     Info("memory",
-         "memory_usage(byte) "
-         "rss: %zu, "
-         "heap_used: %zu, "
-         "heap_available: %zu, "
-         "heap_total: %zu, "
-         "heap_limit: %zu, "
-         "heap_executeable: %zu, "
-         "total_physical_size: %zu, "
-         "malloced_memory: %zu, "
-         "amount_of_external_allocated_memory: %zu, "
-         "new_space_size: %zu, "
-         "new_space_used: %zu, "
-         "new_space_available: %zu, "
-         "new_space_committed: %zu, "
-         "old_space_size: %zu, "
-         "old_space_used: %zu, "
-         "old_space_available: %zu, "
-         "old_space_committed: %zu, "
-         "code_space_size: %zu, "
-         "code_space_used: %zu, "
-         "code_space_available: %zu, "
-         "code_space_committed: %zu, "
-         "map_space_size: %zu, "
-         "map_space_used: %zu, "
-         "map_space_available: %zu, "
-         "map_space_committed: %zu, "
-         "lo_space_size: %zu, "
-         "lo_space_used: %zu, "
-         "lo_space_available: %zu, "
-         "lo_space_committed: %zu, "
-         "read_only_space_size: %zu, "
-         "read_only_space_used: %zu, "
-         "read_only_space_available: %zu, "
-         "read_only_space_committed: %zu, "
-         "new_lo_space_size: %zu, "
-         "new_lo_space_used: %zu, "
-         "new_lo_space_available: %zu, "
-         "new_lo_space_committed: %zu, "
-         "code_lo_space_size: %zu, "
-         "code_lo_space_used: %zu, "
-         "code_lo_space_available: %zu, "
-         "code_lo_space_committed: %zu",
+         COMMON_INFO_FORMATTERX SPACE_INFO_FORMATTER(new) SPACE_INFO_FORMATTER(
+             old) SPACE_INFO_FORMATTER(code) SPACE_INFO_FORMATTER(map)
+             SPACE_INFO_FORMATTER(lo) SPACE_INFO_FORMATTER(read_only)
+                 SPACE_INFO_FORMATTER(new_lo) SPACE_INFO_FORMATTER(code_lo),
          // rss
          rss,
          // heap statistics

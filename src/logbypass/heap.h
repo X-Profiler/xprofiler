@@ -27,6 +27,23 @@ using v8::HeapStatistics;
       heap_space_statistics->name##_space_available, \
       heap_space_statistics->name##_space_committed
 
+#define COMMON_INFO_FORMATTER  \
+  "rss: %zu, "                 \
+  "heap_used: %zu, "           \
+  "heap_available: %zu, "      \
+  "heap_total: %zu, "          \
+  "heap_limit: %zu, "          \
+  "heap_executeable: %zu, "    \
+  "total_physical_size: %zu, " \
+  "malloced_memory: %zu, "     \
+  "amount_of_external_allocated_memory: %zu, "
+
+#define COMMON_INFO_FORMATTERX "memory_usage(byte) " COMMON_INFO_FORMATTER
+
+#define SPACE_INFO_FORMATTER(name)                            \
+#name "_space_size: %zu, " #name "_space_used: %zu, " #name \
+        "_space_available: %zu, " #name "_space_committed: %zu, "
+
 // heap statistics struct
 typedef struct XprofilerHeapStatistics {
  public:
