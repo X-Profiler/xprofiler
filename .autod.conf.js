@@ -38,5 +38,6 @@ module.exports = {
     'eslint@6',
     'node-gyp@6',
     'mocha@7',
+    'yargs@15',
   ]
 };

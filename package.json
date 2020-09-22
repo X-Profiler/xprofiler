@@ -58,7 +58,7 @@
     "nan": "^2.14.1",
     "node-pre-gyp": "^0.15.0",
     "uuid": "^8.3.0",
-    "yargs": "^16.0.3"
+    "yargs": "^15.4.1"
   },
   "devDependencies": {
     "@istanbuljs/schema": "^0.1.2",
