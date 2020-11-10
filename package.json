@@ -54,17 +54,17 @@
   },
   "homepage": "https://github.com/X-Profiler/xprofiler#readme",
   "dependencies": {
-    "moment": "^2.28.0",
-    "nan": "^2.14.1",
-    "node-pre-gyp": "^0.15.0",
-    "uuid": "^8.3.0",
+    "moment": "^2.29.1",
+    "nan": "^2.14.2",
+    "node-pre-gyp": "^0.16.0",
+    "uuid": "^8.3.1",
     "yargs": "^15.4.1"
   },
   "devDependencies": {
     "@istanbuljs/schema": "^0.1.2",
-    "autod": "^3.1.0",
+    "autod": "^3.1.1",
     "clang-format": "^1.4.0",
-    "codecov": "^3.7.2",
+    "codecov": "^3.8.1",
     "eslint": "^6.8.0",
     "expect.js": "^0.3.1",
     "formstream": "^1.1.0",
