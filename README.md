@@ -2,7 +2,7 @@
 
 [![Npm](https://img.shields.io/npm/v/xprofiler)](https://www.npmjs.com/package/xprofiler)
 [![Codecov branch](https://img.shields.io/codecov/c/github/X-Profiler/xprofiler/master)](https://codecov.io/gh/X-Profiler/xprofiler/branch/master)
-[![Linux/osx build status](https://travis-ci.org/X-Profiler/xprofiler.svg?branch=master)](https://travis-ci.org/github/X-Profiler/xprofiler)
+[![Linux/osx build status](https://github.com/X-Profiler/xprofiler/workflows/Continuous%20integration/badge.svg)](https://github.com/X-Profiler/xprofiler/actions?query=branch%3Amaster)
 [![Windows build status](https://ci.appveyor.com/api/projects/status/e5xtotum6lbi3mt7/branch/master?svg=true)](https://ci.appveyor.com/project/hyj1991/xprofiler/branch/master)
 [![Npm](https://img.shields.io/npm/dm/xprofiler)](https://www.npmjs.com/package/xprofiler)
 [![License](https://img.shields.io/github/license/X-Profiler/xprofiler)](LICENSE)
