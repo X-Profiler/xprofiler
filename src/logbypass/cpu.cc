@@ -5,16 +5,16 @@ namespace xprofiler {
 #define INIT_CPU_PERIOD(period)                     \
   static double *cpu_##period = new double[period]; \
   static int cpu_##period##_array_index = 0;        \
-  static int cpu_##period##_array_length = period;
+  static int cpu_##period##_array_length = period;  \
+  static int cpu_##period##_array_not_full = true;
 
-#define SET_CPU_USAGE(period)                                   \
-  bool cpu_##period##_array_not_full =                          \
-      cpu_##period##_array_index < cpu_##period##_array_length; \
-  if (cpu_##period##_array_not_full) {                          \
-    cpu_##period[cpu_##period##_array_index++] = cpu_now;       \
-  } else {                                                      \
-    cpu_##period##_array_index = 0;                             \
-    cpu_##period[cpu_##period##_array_index++] = cpu_now;       \
+#define SET_CPU_USAGE(period)                                     \
+  if (cpu_##period##_array_index < cpu_##period##_array_length) { \
+    cpu_##period[cpu_##period##_array_index++] = cpu_now;         \
+  } else {                                                        \
+    cpu_##period##_array_index = 0;                               \
+    cpu_##period##_array_not_full = false;                        \
+    cpu_##period[cpu_##period##_array_index++] = cpu_now;         \
   }
 
 #define CALAULATE_AVERAGE(total_length, period) \
@@ -24,13 +24,11 @@ namespace xprofiler {
   if (total_length != 0)                        \
     cpu_##period##_average = cpu_##period##_average / total_length;
 
-#define CALAULATE_CPU_USAGE_IN_PERIOD(period)                   \
-  bool cpu_##period##_array_not_full =                          \
-      cpu_##period##_array_index < cpu_##period##_array_length; \
-  if (cpu_##period##_array_not_full) {                          \
-    CALAULATE_AVERAGE(cpu_##period##_array_index, period)       \
-  } else {                                                      \
-    CALAULATE_AVERAGE(cpu_##period##_array_length, period)      \
+#define CALAULATE_CPU_USAGE_IN_PERIOD(period)              \
+  if (cpu_##period##_array_not_full) {                     \
+    CALAULATE_AVERAGE(cpu_##period##_array_index, period)  \
+  } else {                                                 \
+    CALAULATE_AVERAGE(cpu_##period##_array_length, period) \
   }
 
 // init cpu now

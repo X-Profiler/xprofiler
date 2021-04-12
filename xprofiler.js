@@ -10,7 +10,7 @@ const moment = require('moment');
 const pkg = require('./package.json');
 
 // xprofiler.node
-const binary = require('node-pre-gyp');
+const binary = require('@mapbox/node-pre-gyp');
 const bindingPath = binary.find(path.resolve(path.join(__dirname, './package.json')));
 const xprofiler = require(bindingPath);
 
