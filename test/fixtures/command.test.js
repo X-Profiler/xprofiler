@@ -119,7 +119,7 @@ const diag = {
   osVersion: /^([\w\s()-_/.:~#]+|)$/,
   dumpTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
   loadTime: /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/,
-  vmState: /^[A-Z]+$/,
+  vmState: /^[A-Za-z]+$/,
   jsStacks: isArray,
   nativeStacks: isArray,
   heapStatistics: {
