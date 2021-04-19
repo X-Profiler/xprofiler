@@ -28,7 +28,8 @@
     "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js test/patch/*.test.js --timeout 0",
     "cov-single": "nyc --reporter=html --reporter=text --reporter=lcov mocha --timeout 0 -R spec",
     "upload": "node scripts/upload.js",
-    "ci": "npm run lint && npm run build && npm run cov && codecov && npm run upload",
+    "codecov": "codecov || echo 'warning: ignoring codecov failure'",
+    "ci": "npm run lint && npm run build && npm run cov && npm run codecov && npm run upload",
     "dep": "npm run build && npm run cov",
     "release": "node scripts/release.js",
     "autod": "autod"
