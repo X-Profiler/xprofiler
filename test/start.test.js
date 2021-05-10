@@ -53,8 +53,8 @@ describe(`xprofiler starting`, function () {
         expect(aliveProcess[1]).to.be(logdir);
       });
 
-      it(`.xprofiler cwd: ${aliveProcess[2]} should be ${/^([.\w()/\\:-]+|)$/}`, function () {
-        expect(/^([.\w()/\\:-]+|)$/.test(aliveProcess[2])).to.be.ok();
+      it(`.xprofiler cwd: ${aliveProcess[2]} should be ${/^([.\w()/\\:-@]+|)$/}`, function () {
+        expect(/^([.\w()/\\:-@]+|)$/.test(aliveProcess[2])).to.be.ok();
       });
 
       it(`.xprofiler executable: ${aliveProcess[3]} should be node-${process.version}`, function () {
@@ -66,8 +66,8 @@ describe(`xprofiler starting`, function () {
         expect(version).to.be(process.version);
       });
 
-      it(`.xprofiler file: ${aliveProcess[4]} should be ${/^([.\w()/\\:-]+|)$/}`, function () {
-        expect(/^([.\w()/\\:-]+|)$/.test(aliveProcess[4])).to.be.ok();
+      it(`.xprofiler file: ${aliveProcess[4]} should be ${/^([.\w()/\\:-@]+|)$/}`, function () {
+        expect(/^([.\w()/\\:-@]+|)$/.test(aliveProcess[4])).to.be.ok();
       });
 
       it(`.xprofiler module path: ${aliveProcess[5]} should be ${path.join(__dirname, '..')}`, function () {
