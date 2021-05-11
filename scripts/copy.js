@@ -6,7 +6,7 @@ const { promisify } = require('util');
 const exists = promisify(fs.exists);
 const mkdir = promisify(fs.mkdir);
 const copyFile = promisify(fs.copyFile);
-const versioning = require('node-pre-gyp/lib/util/versioning.js');
+const versioning = require('@mapbox/node-pre-gyp/lib/util/versioning.js');
 const { staged_tarball: packagePath } = versioning.evaluate(require('../package.json'));
 
 async function copy() {
