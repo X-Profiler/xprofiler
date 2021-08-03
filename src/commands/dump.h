@@ -34,7 +34,7 @@ typedef struct BaseDumpData {
 } dump_data_t;
 
 typedef struct CpuProfilerDumpData : BaseDumpData {
-  string title;
+  string title = "xprofiler";
 } cpuprofile_dump_data_t;
 
 typedef struct HeapdumpData : BaseDumpData {
