@@ -341,7 +341,7 @@ void UnrefDumpActionAsyncHandle() {
 
 template <typename T>
 static json DoDumpAction(json command, DumpAction action, string prefix,
-                         string ext, T *data, bool profliling, XpfError &err) {
+                         string ext, T *data, bool profiling, XpfError &err) {
   json result;
 
   // get traceid
@@ -401,7 +401,7 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   // send data
   NoticeMainJsThread(data);
 
-  if (!profliling) return result;
+  if (!profiling) return result;
 
   // get profiling time
   json options = command["options"];
@@ -418,60 +418,45 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   return result;
 }
 
-#define ACTION_HANDLE(action, data_type, profliling, prefix, ext) \
-  XpfError err;                                                   \
-  json result = DoDumpAction<data_type##dump_data_t>(             \
-      command, action, #prefix, #ext, data, profliling, err);     \
-  if (err.Fail()) {                                               \
-    error(format("%s", err.GetErrMessage()));                     \
-    return;                                                       \
-  }                                                               \
+#define ACTION_HANDLE(action, data_type, profiling, prefix, ext) \
+  XpfError err;                                                  \
+  json result = DoDumpAction<data_type##dump_data_t>(            \
+      command, action, #prefix, #ext, data, profiling, err);     \
+  if (err.Fail()) {                                              \
+    error(format("%s", err.GetErrMessage()));                    \
+    return;                                                      \
+  }                                                              \
   success(result);
 
-COMMAND_CALLBACK(StartCpuProfiling) {
-  cpuprofile_dump_data_t *data = new cpuprofile_dump_data_t;
-  data->title = "xprofiler";
-  ACTION_HANDLE(START_CPU_PROFILING, cpuprofile_, true, cpuprofile, cpuprofile)
-}
+#define V(func, data_type, action, profiling, prefix, ext)     \
+  COMMAND_CALLBACK(func) {                                     \
+    data_type##dump_data_t *data = new data_type##dump_data_t; \
+    ACTION_HANDLE(action, data_type, profiling, prefix, ext)   \
+  }
 
-COMMAND_CALLBACK(StopCpuProfiling) {
-  cpuprofile_dump_data_t *data = new cpuprofile_dump_data_t;
-  ACTION_HANDLE(STOP_CPU_PROFILING, cpuprofile_, false, cpuprofile, cpuprofile)
-}
+// cpu profiling
+V(StartCpuProfiling, cpuprofile_, START_CPU_PROFILING, true, cpuprofile,
+  cpuprofile)
+V(StopCpuProfiling, cpuprofile_, STOP_CPU_PROFILING, false, cpuprofile,
+  cpuprofile)
 
-COMMAND_CALLBACK(Heapdump) {
-  heapdump_data_t *data = new heapdump_data_t;
-  ACTION_HANDLE(HEAPDUMP, heap, false, heapdump, heapsnapshot)
-}
+// sampling heap profiling
+V(StartSamplingHeapProfiling, sampling_heapprofiler_,
+  START_SAMPLING_HEAP_PROFILING, true, heapprofile, heapprofile)
+V(StopSamplingHeapProfiling, sampling_heapprofiler_,
+  STOP_SAMPLING_HEAP_PROFILING, false, heapprofile, heapprofile)
 
-COMMAND_CALLBACK(StartSamplingHeapProfiling) {
-  sampling_heapprofiler_dump_data_t *data =
-      new sampling_heapprofiler_dump_data_t;
-  ACTION_HANDLE(START_SAMPLING_HEAP_PROFILING, sampling_heapprofiler_, true,
-                heapprofile, heapprofile)
-}
+// gc profiling
+V(StartGcProfiling, gcprofiler_, START_GC_PROFILING, true, gcprofile, gcprofile)
+V(StopGcProfiling, gcprofiler_, STOP_GC_PROFILING, false, gcprofile, gcprofile)
 
-COMMAND_CALLBACK(StopSamplingHeapProfiling) {
-  sampling_heapprofiler_dump_data_t *data =
-      new sampling_heapprofiler_dump_data_t;
-  ACTION_HANDLE(STOP_SAMPLING_HEAP_PROFILING, sampling_heapprofiler_, false,
-                heapprofile, heapprofile)
-}
+// heapdump
+V(Heapdump, heap, HEAPDUMP, false, heapdump, heapsnapshot)
 
-COMMAND_CALLBACK(StartGcProfiling) {
-  gcprofiler_dump_data_t *data = new gcprofiler_dump_data_t;
-  ACTION_HANDLE(START_GC_PROFILING, gcprofiler_, true, gcprofile, gcprofile)
-}
+// dynamic report
+V(GetNodeReport, node_report_, NODE_REPORT, false, diagreport, diag)
 
-COMMAND_CALLBACK(StopGcProfiling) {
-  gcprofiler_dump_data_t *data = new gcprofiler_dump_data_t;
-  ACTION_HANDLE(STOP_GC_PROFILING, gcprofiler_, false, gcprofile, gcprofile)
-}
-
-COMMAND_CALLBACK(GetNodeReport) {
-  node_report_dump_data_t *data = new node_report_dump_data_t;
-  ACTION_HANDLE(NODE_REPORT, node_report_, false, diagreport, diag)
-}
+#undef V
 
 #undef ACTION_HANDLE
 
