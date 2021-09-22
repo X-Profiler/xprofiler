@@ -157,6 +157,7 @@ exports = module.exports = function (logdir) {
         { key: 'data.log_level', rule: /^2$/ },
         { key: 'data.log_type', rule: /^1$/ },
         { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.enable_oom_hook', rule: { label: 'false', test: value => value === false } },
         { key: 'data.patch_http', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http_timeout', rule: /^30$/ },
         { key: 'data.check_throw', rule: { label: 'false', test: value => value === false } },
@@ -166,6 +167,7 @@ exports = module.exports = function (logdir) {
           + '  - check_throw: false\n'
           + '  - enable_fatal_error_hook: true\n'
           + '  - enable_log_uv_handles: true\n'
+          + '  - enable_oom_hook: false\n'
           + `  - log_dir: ${escape(logdir)}\n`
           + '  - log_format_alinode: false\n'
           + '  - log_interval: 60\n'
@@ -178,17 +180,22 @@ exports = module.exports = function (logdir) {
     },
     {
       cmd: 'set_config',
-      options: { enable_log_uv_handles: false, log_level: 2, log_type: 1, enable_fatal_error_hook: false },
+      options: {
+        enable_log_uv_handles: false, log_level: 2, log_type: 1,
+        enable_fatal_error_hook: false, enable_oom_hook: true
+      },
       xctlRules: [
         { key: 'data.enable_log_uv_handles', rule: { label: 'false', test: value => value === false } },
         { key: 'data.log_level', rule: /^2$/ },
         { key: 'data.log_type', rule: /^1$/ },
         { key: 'data.enable_fatal_error_hook', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.enable_oom_hook', rule: { label: 'true', test: value => value === true } },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 配置\\(pid ${data.pid}\\)成功:\n`
           + '  - enable_fatal_error_hook: false\n'
           + '  - enable_log_uv_handles: false\n'
+          + '  - enable_oom_hook: false\n'
           + '  - log_level: 2\n'
           + '  - log_type: 1')
         ];
@@ -294,6 +301,6 @@ exports = module.exports = function (logdir) {
   ];
 };
 
-exports.profileRule = { diag };
+exports.profileRule = { diag, heapsnapshot };
 
 exports.checkProfile = checkProfile;

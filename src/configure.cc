@@ -42,8 +42,7 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
   CONVERT_BOOL(enable_log_uv_handles)
   CONVERT_BOOL(log_format_alinode)
   CONVERT_BOOL(enable_fatal_error_hook)
-  // don't allow the developer to config `enable_oom_hook`
-  // CONVERT_BOOL(enable_oom_hook)
+  CONVERT_BOOL(enable_oom_hook)
   CONVERT_BOOL(patch_http)
   CONVERT_UINT32(patch_http_timeout)
   CONVERT_BOOL(check_throw)

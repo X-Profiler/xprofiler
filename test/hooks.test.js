@@ -10,15 +10,26 @@ const unlink = promisify(fs.unlink);
 const exists = promisify(fs.exists);
 const readFile = promisify(fs.readFile);
 const utils = require('./fixtures/utils');
-const { profileRule: { diag }, checkProfile } = require('./fixtures/command.test');
+const { profileRule: { diag, heapsnapshot }, checkProfile } = require('./fixtures/command.test');
 
 const logdir = utils.createLogDir('logdir_hooks');
 
-const cases = [{
-  title: 'fatal error hook is valid',
-  subTitle: 'x-fatal-error.diag is created when fatal error occured.',
-  jspath: path.join(__dirname, 'fixtures/fatal-error.js')
-}];
+const cases = [
+  {
+    title: 'fatal error hook is valid',
+    subTitle: 'x-fatal-error.diag is created when fatal error occured.',
+    jspath: path.join(__dirname, 'fixtures/fatal-error.js'),
+    hookFileRegexp: /x-fatal-error-(\d+)-(\d+)-(\d+).diag/,
+    profileRule: diag,
+  },
+  {
+    title: 'oom error hook is valid',
+    subTitle: 'x-oom-error.heapsnapshot is created when oom error occured.',
+    jspath: path.join(__dirname, 'fixtures/oom-error.js'),
+    hookFileRegexp: /x-oom-(\d+)-(\d+)-(\d+).heapsnapshot/,
+    profileRule: heapsnapshot,
+    env: { XPROFILER_ENABLE_OOM_HOOK: 'YES' }
+  }];
 const casesLength = cases.length;
 
 for (const cse of cases) {
@@ -31,13 +42,13 @@ for (const cse of cases) {
           XPROFILER_LOG_DIR: logdir,
           XPROFILER_LOG_LEVEL: 2,
           XPROFILER_LOG_TYPE: 1
-        })
+        }, cse.env)
       });
       await new Promise(resolve => p.on('close', resolve));
       await utils.sleep(2000);
       const files = await readdir(logdir);
       for (const file of files) {
-        if (/x-fatal-error-(\d+)-(\d+)-(\d+).diag/.test(file)) {
+        if (cse.hookFileRegexp.test(file)) {
           hookFile = path.join(logdir, file);
           const fileExists = await exists(hookFile);
           console.log('check hook file exists:', hookFile, fileExists);
@@ -72,7 +83,7 @@ for (const cse of cases) {
       describe(`it has expected structure`, function () {
         const content = fs.readFileSync(hookFile, 'utf8').trim();
         console.log('fatal error report:', content);
-        checkProfile(diag, JSON.parse(content));
+        checkProfile(cse.profileRule, JSON.parse(content));
       });
     });
   });

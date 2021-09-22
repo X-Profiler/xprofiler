@@ -39,6 +39,7 @@
                 "src/commands/report/system_statistics.cc",
                 "src/hooks/set_hooks.cc",
                 "src/hooks/fatal_error.cc",
+                "src/hooks/out_of_memory.cc",
             ],
             "include_dirs": ['<!(node -e "require(\'nan\')")'],
             'cflags_cc!': ['-fno-exceptions'],

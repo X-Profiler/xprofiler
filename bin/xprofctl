@@ -37,18 +37,21 @@ const args = yargs
   .command('set_config', '设置 xprofiler 配置',
     yargs => yargs
       .group(['enable_log_uv_handles', 'disable_log_uv_handles', 'log_level',
-        'log_type', 'enable_fatal_error_hook', 'disable_fatal_error_hook'], '配置项:')
+        'log_type', 'enable_fatal_error_hook', 'disable_fatal_error_hook',
+        'enable_oom_hook', 'disable_oom_hook'], '配置项:')
       .describe('enable_log_uv_handles', '开启 libuv 句柄详情采集')
       .describe('disable_log_uv_handles', '关闭 libuv 句柄详情采集')
       .describe('log_level', '日志级别: info, error, debug')
       .describe('log_type', '日志输出未知: 文件, 控制台')
       .describe('enable_fatal_error_hook', '开启 Fatal Error 钩子')
+      .describe('enable_oom_hook', '开启 Out Of Memory 钩子')
       .describe('disable_fatal_error_hook', '关闭 Fatal Error 钩子')
       .boolean('enable_log_uv_handles')
       .boolean('disable_log_uv_handles')
       .choices('log_level', [0, 1, 2])
       .choices('log_type', [0, 1])
       .boolean('enable_fatal_error_hook')
+      .boolean('enable_oom_hook')
       .boolean('disable_fatal_error_hook')
       .hide('v')
       .hide('h'))

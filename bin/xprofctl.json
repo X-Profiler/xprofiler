@@ -21,7 +21,9 @@
       "log_level": "number",
       "log_type": "number",
       "enable_fatal_error_hook": "boolean",
-      "disable_fatal_error_hook": "boolean"
+      "disable_fatal_error_hook": "boolean",
+      "enable_oom_hook": "boolean",
+      "disable_oom_hook": "boolean"
     }
   }
 ]

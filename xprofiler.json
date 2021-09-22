@@ -57,6 +57,14 @@
     "format": "boolean"
   },
   {
+    "name": "enable_oom_hook",
+    "env": "XPROFILER_ENABLE_OOM_HOOK",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
+  },
+  {
     "name": "patch_http",
     "env": "XPROFILER_PATCH_HTTP",
     "rules": [

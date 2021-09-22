@@ -100,6 +100,12 @@ const configure = {
     envValue: 'NO',
     userValue: false
   },
+  enable_oom_hook: {
+    defaultValue: false,
+    envKey: 'XPROFILER_ENABLE_OOM_HOOK',
+    envValue: 'YES',
+    userValue: true
+  },
   patch_http: {
     defaultValue: true,
     envKey: 'XPROFILER_PATCH_HTTP',

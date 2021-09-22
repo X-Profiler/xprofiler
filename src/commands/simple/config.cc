@@ -29,6 +29,7 @@ COMMAND_CALLBACK(GetXprofilerConfig) {
   data["log_level"] = GetLogLevel();
   data["log_type"] = GetLogType();
   data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
+  data["enable_oom_hook"] = GetEnableOOMErrorHook();
   data["patch_http"] = GetPatchHttp();
   data["patch_http_timeout"] = GetPatchHttpTimeout();
   data["check_throw"] = GetCheckThrow();
@@ -44,6 +45,7 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
   HANDLE_CONFIG_SETTING(LOG_TYPE, log_type, LogType)
   HANDLE_CONFIG_SETTING(bool, enable_log_uv_handles, EnableLogUvHandles)
   HANDLE_CONFIG_SETTING(bool, enable_fatal_error_hook, EnableFatalErrorHook)
+  HANDLE_CONFIG_SETTING(bool, enable_oom_hook, EnableOOMErrorHook)
 
   if (!setted)
     error(format("not support setting config %s", options.dump().c_str()));
