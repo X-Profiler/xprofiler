@@ -23,6 +23,7 @@ static LOG_TYPE log_type = LOG_TO_FILE;
 static bool enable_log_uv_handles = true;
 static bool log_format_alinode = false;
 static bool enable_fatal_error_hook = true;
+static bool enable_oom_hook = false;
 static bool patch_http = true;
 static uint32_t patch_http_timeout = 30;
 static bool check_throw = true;
@@ -41,6 +42,8 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
   CONVERT_BOOL(enable_log_uv_handles)
   CONVERT_BOOL(log_format_alinode)
   CONVERT_BOOL(enable_fatal_error_hook)
+  // don't allow the developer to config `enable_oom_hook`
+  // CONVERT_BOOL(enable_oom_hook)
   CONVERT_BOOL(patch_http)
   CONVERT_UINT32(patch_http_timeout)
   CONVERT_BOOL(check_throw)
@@ -58,6 +61,7 @@ void GetConfig(const FunctionCallbackInfo<Value> &info) {
   CONFIG_NATIVE_NUMBER(enable_log_uv_handles, Boolean)
   CONFIG_NATIVE_NUMBER(log_format_alinode, Boolean)
   CONFIG_NATIVE_NUMBER(enable_fatal_error_hook, Boolean)
+  CONFIG_NATIVE_NUMBER(enable_oom_hook, Boolean)
   CONFIG_NATIVE_NUMBER(patch_http, Boolean)
   CONFIG_NATIVE_NUMBER(patch_http_timeout, Number)
   CONFIG_NATIVE_NUMBER(check_throw, Boolean)
@@ -73,6 +77,7 @@ DEFINE_GET_SET_FUNCTION(LogType, LOG_TYPE, log_type)
 DEFINE_GET_SET_FUNCTION(FormatAsAlinode, bool, log_format_alinode)
 DEFINE_GET_SET_FUNCTION(EnableLogUvHandles, bool, enable_log_uv_handles)
 DEFINE_GET_SET_FUNCTION(EnableFatalErrorHook, bool, enable_fatal_error_hook)
+DEFINE_GET_SET_FUNCTION(EnableOOMErrorHook, bool, enable_oom_hook)
 DEFINE_GET_SET_FUNCTION(PatchHttp, bool, patch_http)
 DEFINE_GET_SET_FUNCTION(PatchHttpTimeout, uint32_t, patch_http_timeout)
 DEFINE_GET_SET_FUNCTION(CheckThrow, bool, check_throw)
