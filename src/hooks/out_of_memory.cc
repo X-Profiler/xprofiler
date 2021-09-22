@@ -12,7 +12,16 @@ using v8::Isolate;
 
 static const char module_type[] = "out_of_memory";
 
+static bool oom_flag = false;
+
 static void OnOutOfMemoryError(const char* location, bool is_heap_oom) {
+  if (oom_flag) {
+    Info(module_type, "heapdump hook before oom has been executed.");
+    return;
+  }
+
+  oom_flag = true;
+
   string filepath = GetLogDir() + GetSep() + "x-oom-" + to_string(GetPid()) +
                     "-" + ConvertTime("%Y%m%d") + "-" + RandNum() +
                     ".heapsnapshot";
