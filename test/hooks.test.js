@@ -37,7 +37,7 @@ for (const cse of cases) {
     let hookFile = '';
     before(async function () {
       const p = cp.fork(cse.jspath, {
-        execArgv: ['--max-old-space-size=64'],
+        execArgv: ['--max-old-space-size=128'],
         env: Object.assign({}, process.env, {
           XPROFILER_LOG_DIR: logdir,
           XPROFILER_LOG_LEVEL: 2,

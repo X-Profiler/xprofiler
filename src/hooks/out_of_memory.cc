@@ -19,9 +19,15 @@ Isolate* isolate_ = nullptr;
 
 size_t NearHeapLimitCallback(void* raw_data, size_t current_heap_limit,
                              size_t initial_heap_limit) {
-  Info(module_type, "current_heap_limit is %d, initial_heap_limit is %d.",
-       current_heap_limit, initial_heap_limit);
-  return initial_heap_limit + 500 * 1024 * 1024;
+  const size_t heapdump_factor = 2;
+  size_t max_limit = std::numeric_limits<size_t>::max() / 4;
+  size_t increased_heap =
+      std::min(max_limit, initial_heap_limit * heapdump_factor);
+  Info(module_type,
+       "current_heap_limit is %d, initial_heap_limit is %d, increased_heap is "
+       "%d.",
+       current_heap_limit, initial_heap_limit, increased_heap);
+  return increased_heap;
 }
 
 static void OnOutOfMemoryError(const char* location, bool is_heap_oom) {
