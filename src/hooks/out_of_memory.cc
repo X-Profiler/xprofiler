@@ -6,6 +6,7 @@
 #include "nan.h"
 
 namespace xprofiler {
+using Nan::HandleScope;
 using std::string;
 using std::to_string;
 using v8::Isolate;
@@ -14,10 +15,13 @@ static const char module_type[] = "out_of_memory";
 
 static bool oom_flag = false;
 
+Isolate* isolate_ = nullptr;
+
 size_t NearHeapLimitCallback(void* raw_data, size_t current_heap_limit,
                              size_t initial_heap_limit) {
-  Info(module_type, "current_heap_limit is %d.", current_heap_limit);
-  return initial_heap_limit + 200 * 1024 * 1024;
+  Info(module_type, "current_heap_limit is %d, initial_heap_limit is %d.",
+       current_heap_limit, initial_heap_limit);
+  return initial_heap_limit + 500 * 1024 * 1024;
 }
 
 static void OnOutOfMemoryError(const char* location, bool is_heap_oom) {
@@ -28,8 +32,12 @@ static void OnOutOfMemoryError(const char* location, bool is_heap_oom) {
   }
   oom_flag = true;
 
-  Isolate* isolate = Isolate::GetCurrent();
-  isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
+#if (NODE_MODULE_VERSION >= 64)
+  Info(module_type, "increase heap limit hook.");
+  HandleScope scope;
+  isolate_->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
+  Sleep(2);
+#endif
 
   // dump snapshot
   string filepath = GetLogDir() + GetSep() + "x-oom-" + to_string(GetPid()) +
@@ -43,6 +51,7 @@ static void OnOutOfMemoryError(const char* location, bool is_heap_oom) {
 
 void SetOOMErrorHandler() {
   Isolate* isolate = Isolate::GetCurrent();
+  isolate_ = isolate;
   isolate->SetOOMErrorHandler(OnOutOfMemoryError);
 }
 }  // namespace xprofiler
