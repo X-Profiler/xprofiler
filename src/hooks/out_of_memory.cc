@@ -20,7 +20,7 @@ Isolate* isolate_ = nullptr;
 size_t NearHeapLimitCallback(void* raw_data, size_t current_heap_limit,
                              size_t initial_heap_limit) {
   const size_t heapdump_factor = 2;
-  size_t max_limit = std::numeric_limits<size_t>::max() / 4;
+  size_t max_limit = (std::numeric_limits<size_t>::max)() / 4;
   size_t increased_heap =
       std::min(max_limit, initial_heap_limit * heapdump_factor);
   Info(module_type,
