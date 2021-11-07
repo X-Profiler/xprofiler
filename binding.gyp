@@ -44,7 +44,7 @@
             'cflags_cc!': ['-fno-exceptions'],
             "conditions": [
                 ["OS == 'linux'", {
-                    "cflags": ["-O2", "-std=c++11"],
+                    "cflags": ["-O2", "-std=c++14"],
                     "defines": [
                         'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.unix\")"',
                     ],
@@ -57,7 +57,10 @@
                 }],
                 ["OS == 'mac'", {
                     'xcode_settings': {
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [
+                            "-std=c++14"
+                        ]
                     },
                     "defines": [
                         'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.unix\")"',
