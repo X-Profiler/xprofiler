@@ -28,14 +28,14 @@ void Profile::Serialize(const CpuProfile *node, std::string filename) {
   Utf8String title(node->GetTitle());
   writer.json_keyvalue("title", *title);
 
-  // set head
-  writer.json_objectstart("head");
+  // set nodes
+  writer.json_arraystart("nodes");
   ProfileNode::SerializeNode(node->GetTopDownRoot(), &writer);
-  writer.json_objectend();
+  writer.json_arrayend();
 
   // set start/end time
-  writer.json_keyvalue("startTime", node->GetStartTime() / 1000000);
-  writer.json_keyvalue("endTime", node->GetEndTime() / 1000000);
+  writer.json_keyvalue("startTime", node->GetStartTime());
+  writer.json_keyvalue("endTime", node->GetEndTime());
 
   // set samples
   uint32_t count = node->GetSamplesCount();
@@ -46,9 +46,12 @@ void Profile::Serialize(const CpuProfile *node, std::string filename) {
   writer.json_arrayend();
 
   // set timestamps
-  writer.json_arraystart("timestamps");
+  writer.json_arraystart("timeDeltas");
   for (uint32_t index = 0; index < count; ++index) {
-    writer.json_element(node->GetSampleTimestamp(index));
+    uint32_t prev =
+        index == 0 ? node->GetStartTime() : node->GetSampleTimestamp(index - 1);
+    uint32_t delta = node->GetSampleTimestamp(index) - prev;
+    writer.json_element(delta);
   }
   writer.json_arrayend();
 

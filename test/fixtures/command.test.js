@@ -49,21 +49,23 @@ const isArray = value => Array.isArray(value);
 const cpuprofile = {
   typeId: /^xprofiler-cpu-profile$/,
   title: /^xprofiler$/,
-  head: {
-    functionName: /^([\w\s()]+|)$/,
-    url: /^([.\w()/\\:]+|)$/,
-    lineNumber: /^\d+$/,
-    columnNumber: /^\d+$/,
-    bailoutReason: /^([\w\s]+|)$/,
+  nodes: [{
     id: /^\d+$/,
-    scriptId: /^\d+$/,
     hitCount: /^\d+$/,
+    callFrame: {
+      functionName: /^([.\w\s()-_]+|)$/,
+      scriptId: /^\d+$/,
+      bailoutReason: /^([\w\s]+|)$/,
+      url: /^([.\w()/\\:_-]+|)$/,
+      lineNumber: /^\d+$/,
+      columnNumber: /^\d+$/,
+    },
     children: isArray
-  },
+  }],
   startTime: /^\d+$/,
   endTime: /^\d+$/,
   samples: isArray,
-  timestamps: isArray
+  timeDeltas: isArray
 };
 
 const heapsnapshot = {
@@ -94,9 +96,9 @@ const heapsnapshot = {
 const heapprofile = {
   head: {
     callFrame: {
-      functionName: /^([\w\s()]+|)$/,
+      functionName: /^([.\w\s()-_]+|)$/,
       scriptId: /^\d+$/,
-      url: /^([.\w()/\\:]+|)$/,
+      url: /^([.\w()/\\:_-]+|)$/,
       lineNumber: /^\d+$/,
       columnNumber: /^\d+$/
     },
