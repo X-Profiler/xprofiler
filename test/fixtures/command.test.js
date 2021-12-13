@@ -56,7 +56,7 @@ const cpuprofile = {
       functionName: /^([.\w\s()-_]+|)$/,
       scriptId: /^\d+$/,
       bailoutReason: /^([\w\s]+|)$/,
-      url: /^([.\w()/\\:_-]+|)$/,
+      url: /^([@.\w()/\\:_-]+|)$/,
       lineNumber: /^\d+$/,
       columnNumber: /^\d+$/,
     },
@@ -98,7 +98,7 @@ const heapprofile = {
     callFrame: {
       functionName: /^([.\w\s()-_]+|)$/,
       scriptId: /^\d+$/,
-      url: /^([.\w()/\\:_-]+|)$/,
+      url: /^([@.\w()/\\:_-]+|)$/,
       lineNumber: /^\d+$/,
       columnNumber: /^\d+$/
     },
