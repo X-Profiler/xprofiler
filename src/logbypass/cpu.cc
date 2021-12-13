@@ -2,11 +2,31 @@
 #include "../platform/platform.h"
 
 namespace xprofiler {
+#define EXTRA_SYMBOL
+
+#define CONCAT_SYMBOL(V) V EXTRA_SYMBOL
+
+#define PERIOD_LIST(V)  \
+  CONCAT_SYMBOL(V(15))  \
+  CONCAT_SYMBOL(V(30))  \
+  CONCAT_SYMBOL(V(60))  \
+  CONCAT_SYMBOL(V(180)) \
+  CONCAT_SYMBOL(V(300)) \
+  V(600)
+
 #define INIT_CPU_PERIOD(period)                     \
   static double *cpu_##period = new double[period]; \
   static int cpu_##period##_array_index = 0;        \
   static int cpu_##period##_array_length = period;  \
   static int cpu_##period##_array_not_full = true;
+
+#define INIT_CPU_AVERAGE(period) double cpu_##period##_average = 0.0;
+
+#define ALINODE_LOG_KEY(period) "cpu_" #period ": %.2lf"
+
+#define XPROFILER_LOG_KEY(period) "cpu_" #period ": %lf"
+
+#define CPU_AVERAGE_VAL(period) cpu_##period##_average
 
 #define SET_CPU_USAGE(period)                                     \
   if (cpu_##period##_array_index < cpu_##period##_array_length) { \
@@ -34,10 +54,8 @@ namespace xprofiler {
 // init cpu now
 double cpu_now = 0.0;
 
-// init cpu 15/30/60
-INIT_CPU_PERIOD(15)
-INIT_CPU_PERIOD(30)
-INIT_CPU_PERIOD(60)
+// init cpu period
+PERIOD_LIST(INIT_CPU_PERIOD)
 
 void SetNowCpuUsage() {
   double cpu_now_ = GetNowCpuUsage();
@@ -46,26 +64,31 @@ void SetNowCpuUsage() {
   }
   cpu_now = cpu_now_;
 
-  SET_CPU_USAGE(15)
-  SET_CPU_USAGE(30)
-  SET_CPU_USAGE(60)
+  PERIOD_LIST(SET_CPU_USAGE)
 }
 
 void WriteCpuUsageInPeriod(bool log_format_alinode) {
-  double cpu_15_average = 0.0, cpu_30_average = 0.0, cpu_60_average = 0.0;
+  PERIOD_LIST(INIT_CPU_AVERAGE)
 
-  CALAULATE_CPU_USAGE_IN_PERIOD(15)
-  CALAULATE_CPU_USAGE_IN_PERIOD(30)
-  CALAULATE_CPU_USAGE_IN_PERIOD(60)
+  PERIOD_LIST(CALAULATE_CPU_USAGE_IN_PERIOD)
 
   if (log_format_alinode)
-    Info(
-        "other",
-        "cpu_usage(%%) now: %.2lf, cpu_15: %.2lf, cpu_30: %.2lf, cpu_60: %.2lf",
-        cpu_now, cpu_15_average, cpu_30_average, cpu_60_average);
+    Info("other",
+#undef EXTRA_SYMBOL
+#define EXTRA_SYMBOL ", "
+         "cpu_usage(%%) now: %.2lf, " PERIOD_LIST(ALINODE_LOG_KEY),
+#undef EXTRA_SYMBOL
+#define EXTRA_SYMBOL ,
+         cpu_now, PERIOD_LIST(CPU_AVERAGE_VAL));
   else
     Info("cpu",
-         "cpu_usage(%%) cpu_now: %lf, cpu_15: %lf, cpu_30: %lf, cpu_60: %lf",
-         cpu_now, cpu_15_average, cpu_30_average, cpu_60_average);
+#undef EXTRA_SYMBOL
+#define EXTRA_SYMBOL ", "
+         "cpu_usage(%%) cpu_now: %lf, " PERIOD_LIST(XPROFILER_LOG_KEY),
+#undef EXTRA_SYMBOL
+#define EXTRA_SYMBOL ,
+         cpu_now, PERIOD_LIST(CPU_AVERAGE_VAL));
+#undef EXTRA_SYMBOL
+#define EXTRA_SYMBOL
 }
 }  // namespace xprofiler

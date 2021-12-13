@@ -60,7 +60,7 @@ function getUvRules(list, alinode) {
 
 // alinode log structure
 const alinodeLogStructure = {
-  other: getCpuRules(['now', 'cpu_15', 'cpu_30', 'cpu_60'], true),
+  other: getCpuRules(['now', 'cpu_15', 'cpu_30', 'cpu_60', 'cpu_180', 'cpu_300', 'cpu_600'], true),
   heap: getMemoryRules(memoryKeys, true),
   gc: getGcRules(['gc_time_during_last_min', 'total', 'scavange_duration', 'marksweep_duration'], true),
   timer: getUvRules(['total_timer', 'active_handles'], true),
@@ -74,7 +74,7 @@ const alinodeLogStructure = {
 
 // xprofiler log structure
 const xprofilerLogStructure = {
-  cpu: getCpuRules(['cpu_now', 'cpu_15', 'cpu_30', 'cpu_60']),
+  cpu: getCpuRules(['cpu_now', 'cpu_15', 'cpu_30', 'cpu_60', 'cpu_180', 'cpu_300', 'cpu_600']),
   memory: getMemoryRules(memoryKeys),
   gc: getGcRules(['uptime', 'total_gc_times', 'total_gc_duration', 'total_scavange_duration',
     'total_marksweep_duration', 'total_incremental_marking_duration', 'gc_time_during_last_record',
