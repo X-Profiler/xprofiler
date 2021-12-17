@@ -38,19 +38,19 @@ void Profile::Serialize(const CpuProfile *node, std::string filename) {
   writer.json_keyvalue("endTime", node->GetEndTime());
 
   // set samples
-  uint32_t count = node->GetSamplesCount();
+  int count = node->GetSamplesCount();
   writer.json_arraystart("samples");
-  for (uint32_t index = 0; index < count; ++index) {
+  for (int index = 0; index < count; ++index) {
     writer.json_element(node->GetSample(index)->GetNodeId());
   }
   writer.json_arrayend();
 
   // set timestamps
   writer.json_arraystart("timeDeltas");
-  for (uint32_t index = 0; index < count; ++index) {
-    uint32_t prev =
+  for (int index = 0; index < count; ++index) {
+    int64_t prev =
         index == 0 ? node->GetStartTime() : node->GetSampleTimestamp(index - 1);
-    uint32_t delta = node->GetSampleTimestamp(index) - prev;
+    int64_t delta = node->GetSampleTimestamp(index) - prev;
     writer.json_element(delta);
   }
   writer.json_arrayend();
