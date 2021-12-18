@@ -25,15 +25,15 @@ void ProfileNode::SerializeNode(const CpuProfileNode *node,
   writer->json_objectend();
 
   // set children
-  int32_t count = node->GetChildrenCount();
+  int count = node->GetChildrenCount();
   writer->json_arraystart("children");
-  for (int32_t index = 0; index < count; index++) {
+  for (int index = 0; index < count; index++) {
     writer->json_element(node->GetChild(index)->GetNodeId());
   }
   writer->json_arrayend();
   writer->json_end();
 
-  for (int32_t index = 0; index < count; index++) {
+  for (int index = 0; index < count; index++) {
     ProfileNode::SerializeNode(node->GetChild(index), writer);
   }
 }
