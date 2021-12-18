@@ -59,7 +59,9 @@
                     'xcode_settings': {
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [
-                            "-std=c++14"
+                            "-std=c++14",
+                            "-Wconversion",
+                            "-Wno-sign-conversion",
                         ]
                     },
                     "defines": [
