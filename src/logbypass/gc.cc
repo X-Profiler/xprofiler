@@ -18,7 +18,7 @@ unsigned int TotalGcTimes() {
   return gc_statistics->total_gc_times;
 }
 
-unsigned int TotalGcDuration() {
+unsigned long TotalGcDuration() {
   if (gc_statistics == nullptr) {
     return 0;
   }
@@ -44,7 +44,7 @@ NAN_GC_CALLBACK(GCEpilogueCallback) {
   }
 
   gc_statistics->total_gc_times++;
-  unsigned int duration = (now - start) / 10e5;  // cost, ms
+  unsigned int duration = static_cast<int>((now - start) / 10e5);  // cost, ms
 
   // check duration is legal
   if (duration >= 5 * 60 * 1000) {

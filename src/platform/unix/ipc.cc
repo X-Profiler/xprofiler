@@ -115,7 +115,7 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
 
     // read client data
     char data_buffer[CLIENT_BUFFER_SIZE] = {0};
-    int recv_res = recv(new_client_fd, data_buffer, CLIENT_BUFFER_SIZE, 0);
+    ssize_t recv_res = recv(new_client_fd, data_buffer, CLIENT_BUFFER_SIZE, 0);
     if (recv_res == -1) {
       TEARDOWN("recv client data error.")
       continue;
@@ -158,7 +158,7 @@ void CreateIpcClient(char *message) {
   }
 
   // send message
-  int send_res = send(client_fd, message, strlen(message), 0);
+  ssize_t send_res = send(client_fd, message, strlen(message), 0);
   if (send_res == -1) {
     Error("ipc", "send message failed: %s.", message);
     return;

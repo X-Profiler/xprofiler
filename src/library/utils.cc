@@ -22,7 +22,7 @@ string FmtMessage(const char *format, ...) {
 }
 
 string RandNum() {
-  srand(uv_hrtime() + rand());
+  srand(static_cast<int>(uv_hrtime() + rand()));
   return std::to_string(rand() % 900000 + 100000);
 }
 
