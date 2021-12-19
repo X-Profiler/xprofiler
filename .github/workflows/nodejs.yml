@@ -38,13 +38,13 @@ jobs:
     - name: Continuous Integration
       run: npm run ci || (sleep 60 && npm run ci) || (sleep 60 && npm run ci)
 
-    - name: Package Binary
-      run: npm run pack
+    # - name: Package Binary
+    #   run: npm run pack
 
-    - name: Draft Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: release/**
-        fail_on_unmatched_files: true
-        draft: true
+    # - name: Draft Release
+    #   uses: softprops/action-gh-release@v1
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   with:
+    #     files: release/**
+    #     fail_on_unmatched_files: true
+    #     draft: true
