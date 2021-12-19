@@ -2,7 +2,7 @@
     "targets": [
         {
             "target_name": "xprofiler",
-            'win_delay_load_hook': 'false',
+            "win_delay_load_hook": "false",
             "sources": [
                 "src/xprofiler.cc",
                 "src/configure.cc",
@@ -41,7 +41,7 @@
                 "src/hooks/fatal_error.cc",
             ],
             "include_dirs": ['<!(node -e "require(\'nan\')")'],
-            'cflags_cc!': ['-fno-exceptions'],
+            "cflags_cc!": ["-fno-exceptions"],
             "conditions": [
                 ["OS == 'linux'", {
                     "cflags": ["-O2", "-std=c++14"],
@@ -56,9 +56,9 @@
                     ]
                 }],
                 ["OS == 'mac'", {
-                    'xcode_settings': {
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [
+                    "xcode_settings": {
+                        "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
+                        "OTHER_CFLAGS": [
                             "-std=c++14",
                             "-Wconversion",
                             "-Wno-sign-conversion",
@@ -77,15 +77,15 @@
                 ["OS == 'win'", {
                     "libraries": ["dbghelp.lib", "Netapi32.lib", "PsApi.lib", "Ws2_32.lib"],
                     "dll_files": ["dbghelp.dll", "Netapi32.dll", "PsApi.dll", "Ws2_32.dll"],
-                    'msvs_settings': {
-                        'VCCLCompilerTool': {
-                            'ExceptionHandling': '2',
-                            'Optimization': '2',
+                    "msvs_settings": {
+                        "VCCLCompilerTool": {
+                            "ExceptionHandling": "2",
+                            "Optimization": "2",
                         },
                     },
                     "defines": [
                         'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.win32\")"',
-                        'WIN32_LEAN_AND_MEAN=1',
+                        "WIN32_LEAN_AND_MEAN=1",
                     ],
                     "sources": [
                         "src/platform/win/cpu_win.cc",

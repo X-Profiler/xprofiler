@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "1.3.0",
+  "version": "1.3.1-beta",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -32,7 +32,8 @@
     "ci": "npm run lint && npm run build && npm run cov && npm run codecov && npm run upload",
     "dep": "npm run build && npm run cov",
     "release": "node scripts/release.js",
-    "autod": "autod"
+    "autod": "autod",
+    "pack":"node scripts/clean.js && node-pre-gyp package && node-pre-gyp testpackage && npm run copy"
   },
   "repository": {
     "type": "git",

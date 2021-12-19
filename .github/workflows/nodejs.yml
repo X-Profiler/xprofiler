@@ -8,15 +8,24 @@ on:
     - cron: '0 2 * * *'
 jobs:
   Runner:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.ci-type.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        ci-type: [
+          {os: "windows-latest", arch: "x86"},
+          {os: "windows-latest", arch: "x64"},
+          {os: "macos-latest", arch: "x64"},
+          {os: "ubuntu-latest", arch: "x64"},
+        ]
         node-version: [ 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 ]
     steps:
     - name: Checkout Git Source
       uses: actions/checkout@master
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      if: ${{ matrix.ci-type.os == 'windows-latest' }}
 
     - name: Setup Node.js
       uses: actions/setup-node@v1
@@ -26,5 +35,16 @@ jobs:
     - name: Install Dependencies
       run: npm i -g npminstall && npminstall
 
-    - name: Continuous integration
+    - name: Continuous Integration
       run: npm run ci
+
+    - name: Package Binary
+      run: npm run pack
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: release/**
+        fail_on_unmatched_files: true
+        draft: true
