@@ -18,25 +18,10 @@ using v8::String;
 using v8::Value;
 
 static time_t load_time;
-static string global_node_version_string;
-
-static void SetGlobalNodeVersion() {
-  HandleScope scope;
-  Local<Value> global_process =
-      Get(GetCurrentContext()->Global(), New("process").ToLocalChecked())
-          .ToLocalChecked();
-  Local<Object> process_object = To<Object>(global_process).ToLocalChecked();
-  Local<Value> node_version_value =
-      Get(process_object, New("version").ToLocalChecked()).ToLocalChecked();
-  Local<String> node_version_string =
-      To<String>(node_version_value).ToLocalChecked();
-  Utf8String node_version(node_version_string);
-  global_node_version_string = (*node_version);
-}
+static string global_node_version_string = NODE_VERSION;
 
 void InitGlobalVariables() {
   time(&load_time);
-  SetGlobalNodeVersion();
 }
 
 unsigned long GetUptime() {
