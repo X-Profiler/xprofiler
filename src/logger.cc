@@ -8,7 +8,7 @@
 #include <time.h>
 #endif
 
-#include "configure.h"
+#include "configure-inl.h"
 #include "platform/platform.h"
 
 namespace xprofiler {

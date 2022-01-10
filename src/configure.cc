@@ -1,5 +1,7 @@
 #include "configure.h"
 
+#include "util-inl.h"
+
 namespace xprofiler {
 using Nan::FunctionCallbackInfo;
 using Nan::Get;
@@ -10,24 +12,58 @@ using Nan::To;
 using Nan::Utf8String;
 using std::string;
 using v8::Boolean;
+using v8::Isolate;
 using v8::Local;
 using v8::Number;
 using v8::Object;
 using v8::String;
 using v8::Value;
 
-static string log_dir = "/tmp";
-static uint32_t log_interval = 60;
-static LOG_LEVEL log_level = LOG_ERROR;
-static LOG_TYPE log_type = LOG_TO_FILE;
-static bool enable_log_uv_handles = true;
-static bool log_format_alinode = false;
-static bool enable_fatal_error_hook = true;
-static bool patch_http = true;
-static uint32_t patch_http_timeout = 30;
-static bool check_throw = true;
+namespace per_process {
+ConfigStore config_store;
+}
 
-void Configure(const FunctionCallbackInfo<Value> &info) {
+#define LOCAL_VALUE(key)     \
+  Local<Value> key##_value = \
+      Get(config, OneByteString(isolate, #key)).ToLocalChecked();
+
+#define COVERT_STRING(key)                                                 \
+  LOCAL_VALUE(key)                                                         \
+  if (key##_value->IsString()) {                                           \
+    Local<String> key##_string = To<String>(key##_value).ToLocalChecked(); \
+    Utf8String key##_utf8string(key##_string);                             \
+    per_process::config_store.key = *key##_utf8string;                     \
+  }
+
+#define CONVERT_UINT32(key)                                                \
+  LOCAL_VALUE(key)                                                         \
+  if (key##_value->IsUint32()) {                                           \
+    per_process::config_store.key = To<uint32_t>(key##_value).ToChecked(); \
+  }
+
+#define CONVERT_UINT32_WITH_TYPE(key, type)                       \
+  LOCAL_VALUE(key)                                                \
+  if (key##_value->IsUint32()) {                                  \
+    per_process::config_store.key =                               \
+        static_cast<type>(To<uint32_t>(key##_value).ToChecked()); \
+  }
+
+#define CONVERT_BOOL(key)                                              \
+  LOCAL_VALUE(key)                                                     \
+  if (key##_value->IsBoolean()) {                                      \
+    per_process::config_store.key = To<bool>(key##_value).ToChecked(); \
+  }
+
+#define CONFIG_LOCAL_STRING(key, type)      \
+  Set(config, OneByteString(isolate, #key), \
+      New<type>(per_process::config_store.key).ToLocalChecked());
+
+#define CONFIG_NATIVE_NUMBER(key, type)     \
+  Set(config, OneByteString(isolate, #key), \
+      New<type>(per_process::config_store.key));
+
+void Configure(const FunctionCallbackInfo<Value>& info) {
+  Isolate* isolate = info.GetIsolate();
   if (!info[0]->IsObject()) {
     ThrowTypeError(New<String>("config must be object!").ToLocalChecked());
     return;
@@ -48,7 +84,8 @@ void Configure(const FunctionCallbackInfo<Value> &info) {
   info.GetReturnValue().Set(New<Boolean>(true));
 }
 
-void GetConfig(const FunctionCallbackInfo<Value> &info) {
+void GetConfig(const FunctionCallbackInfo<Value>& info) {
+  Isolate* isolate = info.GetIsolate();
   Local<Object> config = New<Object>();
 
   CONFIG_LOCAL_STRING(log_dir, String)
@@ -65,15 +102,4 @@ void GetConfig(const FunctionCallbackInfo<Value> &info) {
   info.GetReturnValue().Set(config);
 }
 
-// define getter / setter
-DEFINE_GET_SET_FUNCTION(LogDir, string, log_dir)
-DEFINE_GET_SET_FUNCTION(LogInterval, uint32_t, log_interval)
-DEFINE_GET_SET_FUNCTION(LogLevel, LOG_LEVEL, log_level)
-DEFINE_GET_SET_FUNCTION(LogType, LOG_TYPE, log_type)
-DEFINE_GET_SET_FUNCTION(FormatAsAlinode, bool, log_format_alinode)
-DEFINE_GET_SET_FUNCTION(EnableLogUvHandles, bool, enable_log_uv_handles)
-DEFINE_GET_SET_FUNCTION(EnableFatalErrorHook, bool, enable_fatal_error_hook)
-DEFINE_GET_SET_FUNCTION(PatchHttp, bool, patch_http)
-DEFINE_GET_SET_FUNCTION(PatchHttpTimeout, uint32_t, patch_http_timeout)
-DEFINE_GET_SET_FUNCTION(CheckThrow, bool, check_throw)
 }  // namespace xprofiler

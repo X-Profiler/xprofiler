@@ -1,7 +1,7 @@
 #include "libuv.h"
 
-#include "../configure.h"
 #include "../logger.h"
+#include "configure-inl.h"
 #include "uv.h"
 
 namespace xprofiler {

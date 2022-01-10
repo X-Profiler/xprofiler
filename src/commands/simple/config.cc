@@ -1,6 +1,6 @@
-#include "../../configure.h"
 #include "../../library/json.hpp"
 #include "../../library/utils.h"
+#include "configure-inl.h"
 
 namespace xprofiler {
 using nlohmann::json;
@@ -43,7 +43,6 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
   HANDLE_CONFIG_SETTING(LOG_LEVEL, log_level, LogLevel)
   HANDLE_CONFIG_SETTING(LOG_TYPE, log_type, LogType)
   HANDLE_CONFIG_SETTING(bool, enable_log_uv_handles, EnableLogUvHandles)
-  HANDLE_CONFIG_SETTING(bool, enable_fatal_error_hook, EnableFatalErrorHook)
 
   if (!setted)
     error(format("not support setting config %s", options.dump().c_str()));
