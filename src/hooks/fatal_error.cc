@@ -1,8 +1,8 @@
 #include "../commands/report/node_report.h"
-#include "../configure.h"
 #include "../library/utils.h"
 #include "../logger.h"
 #include "../platform/platform.h"
+#include "configure-inl.h"
 #include "nan.h"
 
 namespace xprofiler {

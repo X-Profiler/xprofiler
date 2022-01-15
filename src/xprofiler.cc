@@ -54,5 +54,6 @@ NAN_MODULE_INIT(Initialize) {
   CREATE_JS_BINDING(addHttpStatusCode, AddHttpStatusCode)
 }
 
+// TODO(legendecas): declare context aware when ready.
 NODE_MODULE(xprofiler, Initialize)
 }  // namespace xprofiler

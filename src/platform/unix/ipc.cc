@@ -4,8 +4,8 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "../../configure.h"
 #include "../../logger.h"
+#include "configure-inl.h"
 
 namespace xprofiler {
 using Nan::FunctionCallbackInfo;

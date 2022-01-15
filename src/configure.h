@@ -1,74 +1,50 @@
-#ifndef _SRC_CONFIGURE_H
-#define _SRC_CONFIGURE_H
+#ifndef XPROFILER_SRC_CONFIGURE_H
+#define XPROFILER_SRC_CONFIGURE_H
 
 #include "library/common.h"
 #include "library/error.h"
 #include "nan.h"
 
 namespace xprofiler {
-using Nan::FunctionCallbackInfo;
-using std::string;
-using v8::Value;
 
-#define DECLARE_GETTER_FUNCTION(func_name, type) type Get##func_name()
+inline string GetLogDir();
+inline uint32_t GetLogInterval();
+inline LOG_LEVEL GetLogLevel();
+inline LOG_TYPE GetLogType();
+inline bool GetFormatAsAlinode();
+inline bool GetEnableLogUvHandles();
+inline bool GetEnableFatalErrorHook();
+inline bool GetPatchHttp();
+inline uint32_t GetPatchHttpTimeout();
+inline bool GetCheckThrow();
 
-#define DECLARE_SETTER_FUNCTION(func_name, type) void Set##func_name(type value)
-
-#define DECLARE_GET_SET_FUNCTION(func_name, type) \
-  DECLARE_GETTER_FUNCTION(func_name, type);       \
-  DECLARE_SETTER_FUNCTION(func_name, type);
-
-#define DEFINE_GET_SET_FUNCTION(func_name, type, vari)      \
-  DECLARE_GETTER_FUNCTION(func_name, type) { return vari; } \
-  DECLARE_SETTER_FUNCTION(func_name, type) { vari = value; }
-
-#define LOCAL_VALUE(key)     \
-  Local<Value> key##_value = \
-      Get(config, New<String>(#key).ToLocalChecked()).ToLocalChecked();
-
-#define COVERT_STRING(key)                                                 \
-  LOCAL_VALUE(key)                                                         \
-  if (key##_value->IsString()) {                                           \
-    Local<String> key##_string = To<String>(key##_value).ToLocalChecked(); \
-    Utf8String key##_utf8string(key##_string);                             \
-    key = *key##_utf8string;                                               \
-  }
-
-#define CONVERT_UINT32(key) \
-  LOCAL_VALUE(key)          \
-  if (key##_value->IsUint32()) key = To<uint32_t>(key##_value).ToChecked();
-
-#define CONVERT_UINT32_WITH_TYPE(key, type) \
-  LOCAL_VALUE(key)                          \
-  if (key##_value->IsUint32())              \
-    key = static_cast<type>(To<uint32_t>(key##_value).ToChecked());
-
-#define CONVERT_BOOL(key) \
-  LOCAL_VALUE(key)        \
-  if (key##_value->IsBoolean()) key = To<bool>(key##_value).ToChecked();
-
-#define CONFIG_LOCAL_STRING(key, type)            \
-  Set(config, New<String>(#key).ToLocalChecked(), \
-      New<type>(key).ToLocalChecked());
-
-#define CONFIG_NATIVE_NUMBER(key, type) \
-  Set(config, New<String>(#key).ToLocalChecked(), New<type>(key));
-
-// declare getter / setter
-DECLARE_GET_SET_FUNCTION(LogDir, string)
-DECLARE_GET_SET_FUNCTION(LogInterval, uint32_t)
-DECLARE_GET_SET_FUNCTION(LogLevel, LOG_LEVEL)
-DECLARE_GET_SET_FUNCTION(LogType, LOG_TYPE)
-DECLARE_GET_SET_FUNCTION(FormatAsAlinode, bool)
-DECLARE_GET_SET_FUNCTION(EnableLogUvHandles, bool)
-DECLARE_GET_SET_FUNCTION(EnableFatalErrorHook, bool)
-DECLARE_GET_SET_FUNCTION(PatchHttp, bool)
-DECLARE_GET_SET_FUNCTION(PatchHttpTimeout, uint32_t)
-DECLARE_GET_SET_FUNCTION(CheckThrow, bool)
+inline void SetLogLevel(LOG_LEVEL value);
+inline void SetLogType(LOG_TYPE value);
+inline void SetEnableLogUvHandles(bool value);
 
 // javascript accessible
-void Configure(const FunctionCallbackInfo<Value> &info);
-void GetConfig(const FunctionCallbackInfo<Value> &info);
+void Configure(const Nan::FunctionCallbackInfo<v8::Value> &info);
+void GetConfig(const Nan::FunctionCallbackInfo<v8::Value> &info);
+
+class ConfigStore {
+  // TODO(legendecas): accessors.
+ public:
+  std::string log_dir = "/tmp";
+  uint32_t log_interval = 60;
+  LOG_LEVEL log_level = LOG_ERROR;
+  LOG_TYPE log_type = LOG_TO_FILE;
+  bool enable_log_uv_handles = true;
+  bool log_format_alinode = false;
+  bool enable_fatal_error_hook = true;
+  bool patch_http = true;
+  uint32_t patch_http_timeout = 30;
+  bool check_throw = true;
+};
+
+namespace per_process {
+extern ConfigStore config_store;
+}
+
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_CONFIGURE_H */

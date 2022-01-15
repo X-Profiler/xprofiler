@@ -20,9 +20,7 @@ using v8::Value;
 static time_t load_time;
 static string global_node_version_string = NODE_VERSION;
 
-void InitGlobalVariables() {
-  time(&load_time);
-}
+void InitGlobalVariables() { time(&load_time); }
 
 unsigned long GetUptime() {
   time_t current_time;

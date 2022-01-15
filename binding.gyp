@@ -39,8 +39,12 @@
                 "src/commands/report/system_statistics.cc",
                 "src/hooks/set_hooks.cc",
                 "src/hooks/fatal_error.cc",
+                "src/util.cc",
             ],
-            "include_dirs": ['<!(node -e "require(\'nan\')")'],
+            "include_dirs": [
+                'src',
+                '<!(node -e "require(\'nan\')")'
+            ],
             "cflags_cc!": ["-fno-exceptions"],
             "conditions": [
                 ["OS == 'linux'", {

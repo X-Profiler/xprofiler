@@ -19,9 +19,7 @@
       "disable_log_uv_handles": "boolean",
       "enable_log_uv_handles": "boolean",
       "log_level": "number",
-      "log_type": "number",
-      "enable_fatal_error_hook": "boolean",
-      "disable_fatal_error_hook": "boolean"
+      "log_type": "number"
     }
   }
 ]

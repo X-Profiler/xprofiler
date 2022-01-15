@@ -1,6 +1,6 @@
-#include "../configure.h"
 #include "../library/utils.h"
 #include "../logger.h"
+#include "configure-inl.h"
 #include "cpu.h"
 #include "gc.h"
 #include "heap.h"

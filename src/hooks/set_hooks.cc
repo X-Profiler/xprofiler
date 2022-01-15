@@ -1,6 +1,6 @@
 #include "set_hooks.h"
 
-#include "../configure.h"
+#include "configure-inl.h"
 #include "fatal_error.h"
 
 namespace xprofiler {

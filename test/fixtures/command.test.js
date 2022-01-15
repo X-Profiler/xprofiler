@@ -180,16 +180,14 @@ exports = module.exports = function (logdir) {
     },
     {
       cmd: 'set_config',
-      options: { enable_log_uv_handles: false, log_level: 2, log_type: 1, enable_fatal_error_hook: false },
+      options: { enable_log_uv_handles: false, log_level: 2, log_type: 1 },
       xctlRules: [
         { key: 'data.enable_log_uv_handles', rule: { label: 'false', test: value => value === false } },
         { key: 'data.log_level', rule: /^2$/ },
         { key: 'data.log_type', rule: /^1$/ },
-        { key: 'data.enable_fatal_error_hook', rule: { label: 'false', test: value => value === false } },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 配置\\(pid ${data.pid}\\)成功:\n`
-          + '  - enable_fatal_error_hook: false\n'
           + '  - enable_log_uv_handles: false\n'
           + '  - log_level: 2\n'
           + '  - log_type: 1')

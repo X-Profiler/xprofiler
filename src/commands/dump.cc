@@ -1,8 +1,8 @@
 #include "dump.h"
 
-#include "../configure.h"
 #include "../logger.h"
 #include "../platform/platform.h"
+#include "configure-inl.h"
 #include "cpuprofiler/cpu_profiler.h"
 #include "gcprofiler/gc_profiler.h"
 #include "heapdump/heap_profiler.h"
