@@ -1,29 +1,20 @@
-#ifndef _SRC_LIBRARY_COMMON_H
-#define _SRC_LIBRARY_COMMON_H
+#ifndef XPROFILER_SRC_LIBRARY_COMMON_H
+#define XPROFILER_SRC_LIBRARY_COMMON_H
 
 #include "json.hpp"
 
 namespace xprofiler {
-using nlohmann::json;
-using std::function;
-using std::string;
-
-// xprofiler logger
-enum LOG_LEVEL { LOG_INFO, LOG_ERROR, LOG_DEBUG };
-enum LOG_TYPE { LOG_TO_FILE, LOG_TO_TTL };
-
-// global variables
-void InitGlobalVariables();
-string GetGlobalNodeVersion();
+void InitOnceLoadTime();
 
 // uptime
 unsigned long GetUptime();
-string GetStartTime(string format);
+std::string GetStartTime(std::string format);
 
 // commands
-#define COMMAND_CALLBACK(cb)                                 \
-  void cb(json command, string (*format)(const char *, ...), \
-          function<void(json)> success, function<void(string)> error)
+#define COMMAND_CALLBACK(cb)                                                \
+  void cb(nlohmann::json command, std::string (*format)(const char *, ...), \
+          std::function<void(nlohmann::json)> success,                      \
+          std::function<void(std::string)> error)
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_LIBRARY_COMMON_H */

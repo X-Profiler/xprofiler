@@ -3,6 +3,7 @@
 
 #include "library/common.h"
 #include "library/error.h"
+#include "logger.h"
 #include "nan.h"
 
 namespace xprofiler {
