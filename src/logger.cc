@@ -28,10 +28,10 @@ using v8::String;
   type##_stream.close();                       \
   uv_mutex_unlock(&logger_mutex);
 
-#define LOG_WITH_LEVEL(level)                    \
-  va_list args;                                  \
-  va_start(args, format);                        \
-  Log(LOG_LEVEL::level, log_type, format, args); \
+#define LOG_WITH_LEVEL(level)                     \
+  va_list args;                                   \
+  va_start(args, format);                         \
+  Log(LOG_LEVEL::level, log_type, format, &args); \
   va_end(args);
 
 #define JS_LOG_WITH_LEVEL(level)                                               \
@@ -90,7 +90,7 @@ static void WriteToFile(const LOG_LEVEL output_level, char *log) {
 }
 
 static void Log(const LOG_LEVEL output_level, const char *type,
-                const char *format, va_list arglist = nullptr) {
+                const char *format, va_list *arglist = nullptr) {
   LOG_LEVEL level = GetLogLevel();
   if (level < output_level) {
     return;
@@ -147,7 +147,7 @@ static void Log(const LOG_LEVEL output_level, const char *type,
   // compose log
   char tmp_log[kMaxMessageLength];
   if (arglist != nullptr)
-    vsnprintf(tmp_log, sizeof(tmp_log), tmp_format, arglist);
+    vsnprintf(tmp_log, sizeof(tmp_log), tmp_format, *arglist);
   else
     snprintf(tmp_log, sizeof(tmp_log), "%s", tmp_format);
 
