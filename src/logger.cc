@@ -10,6 +10,7 @@
 
 #include "configure-inl.h"
 #include "platform/platform.h"
+#include "util.h"
 
 namespace xprofiler {
 using Nan::New;
@@ -21,17 +22,10 @@ using std::to_string;
 using v8::Local;
 using v8::String;
 
-#define WRITET_TO_FILE(type)                   \
-  uv_mutex_lock(&logger_mutex);                \
-  type##_stream.open(filepath, std::ios::app); \
-  type##_stream << log;                        \
-  type##_stream.close();                       \
-  uv_mutex_unlock(&logger_mutex);
-
-#define LOG_WITH_LEVEL(level)                     \
-  va_list args;                                   \
-  va_start(args, format);                         \
-  Log(LOG_LEVEL::level, log_type, format, &args); \
+#define LOG_WITH_LEVEL(level)                    \
+  va_list args;                                  \
+  va_start(args, format);                        \
+  Log(LOG_LEVEL::level, log_type, format, args); \
   va_end(args);
 
 #define JS_LOG_WITH_LEVEL(level)                                               \
@@ -49,12 +43,9 @@ using v8::String;
 static const int kMaxMessageLength = 2048;
 static const int kMaxFormatLength = 2048;
 
-static uv_mutex_t logger_mutex;
-
-// output
-static std::ofstream info_stream;
-static std::ofstream error_stream;
-static std::ofstream debug_stream;
+namespace per_process {
+uv_mutex_t logger_mutex;
+}
 
 static void WriteToFile(const LOG_LEVEL output_level, char *log) {
   // get time of date
@@ -74,19 +65,23 @@ static void WriteToFile(const LOG_LEVEL output_level, char *log) {
   switch (output_level) {
     case LOG_LEVEL::LOG_INFO:
       filepath += file_prefix + time_string_day + ".log";
-      WRITET_TO_FILE(info)
       break;
     case LOG_LEVEL::LOG_ERROR:
       filepath += file_prefix + "error-" + time_string_day + ".log";
-      WRITET_TO_FILE(error)
       break;
     case LOG_LEVEL::LOG_DEBUG:
       filepath += file_prefix + "debug-" + time_string_day + ".log";
-      WRITET_TO_FILE(debug)
       break;
     default:
-      break;
+      UNREACHABLE();
   }
+
+  uv_mutex_lock(&per_process::logger_mutex);
+  {
+    std::ofstream ostream(filepath, std::ios::app);
+    ostream << log;
+  }
+  uv_mutex_unlock(&per_process::logger_mutex);
 }
 
 static void Log(const LOG_LEVEL output_level, const char *type,
@@ -167,9 +162,8 @@ static void Log(const LOG_LEVEL output_level, const char *type,
   }
 }
 
-int InitLogger() {
-  int rc = uv_mutex_init(&logger_mutex);
-  return rc;
+void InitOnceLogger() {
+  CHECK_EQ(uv_mutex_init(&per_process::logger_mutex), 0);
 }
 
 /* native logger */
