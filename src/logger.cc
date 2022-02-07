@@ -22,10 +22,10 @@ using std::to_string;
 using v8::Local;
 using v8::String;
 
-#define LOG_WITH_LEVEL(level)                    \
-  va_list args;                                  \
-  va_start(args, format);                        \
-  Log(LOG_LEVEL::level, log_type, format, args); \
+#define LOG_WITH_LEVEL(level)                     \
+  va_list args;                                   \
+  va_start(args, format);                         \
+  Log(LOG_LEVEL::level, log_type, format, &args); \
   va_end(args);
 
 #define JS_LOG_WITH_LEVEL(level)                                               \
