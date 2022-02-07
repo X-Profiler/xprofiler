@@ -1,44 +1,45 @@
-#ifndef _SRC_LOGBYPASS_GC_H
-#define _SRC_LOGBYPASS_GC_H
+#ifndef XPROFILER_SRC_LOGBYPASS_GC_H
+#define XPROFILER_SRC_LOGBYPASS_GC_H
 
 #include "nan.h"
+#include "xpf_mutex-inl.h"
 
 namespace xprofiler {
-typedef struct GcStatistics {
+class EnvironmentData;
+
+class GcStatistics {
  public:
   // total gc times
-  unsigned int total_gc_times = 0;
+  uint32_t total_gc_times = 0;
   // total gc duration
-  unsigned long total_gc_duration = 0;
-  unsigned long total_scavange_duration = 0;
-  unsigned long total_marksweep_duration = 0;
-  unsigned long total_incremental_marking_duration = 0;
+  uint32_t total_gc_duration = 0;
+  uint32_t total_scavange_duration = 0;
+  uint32_t total_marksweep_duration = 0;
+  uint32_t total_incremental_marking_duration = 0;
   // last record
-  unsigned long gc_time_during_last_record = 0;
-  unsigned long scavange_duration_last_record = 0;
-  unsigned long marksweep_duration_last_record = 0;
-  unsigned long incremental_marking_duration_last_record = 0;
+  uint32_t gc_time_during_last_record = 0;
+  uint32_t scavange_duration_last_record = 0;
+  uint32_t marksweep_duration_last_record = 0;
+  uint32_t incremental_marking_duration_last_record = 0;
+  uint64_t start = 0;
 
-  // record start
-  uint64_t &start() { return start_; }
+  Mutex mutex;
 
   // reset last record
   void reset() {
-    start_ = 0;
+    start = 0;
     gc_time_during_last_record = 0;
     scavange_duration_last_record = 0;
     marksweep_duration_last_record = 0;
     incremental_marking_duration_last_record = 0;
   }
+};
 
- private:
-  uint64_t start_ = 0;
-} gc_statistics_t;
+void InitGcStatusHooks();
+void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode);
 
-int InitGcStatusHooks();
-void WriteGcStatusToLog(bool log_format_alinode);
-unsigned int TotalGcTimes();
-unsigned long TotalGcDuration();
+uint32_t TotalGcTimes();
+uint32_t TotalGcDuration();
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_LOGBYPASS_GC_H */

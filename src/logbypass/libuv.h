@@ -1,7 +1,11 @@
-#ifndef _SRC_LOGBYPASS_LIBUV_H
-#define _SRC_LOGBYPASS_LIBUV_H
+#ifndef XPROFILER_SRC_LOGBYPASS_LIBUV_H
+#define XPROFILER_SRC_LOGBYPASS_LIBUV_H
+
+#include <stdint.h>
 
 namespace xprofiler {
+
+class EnvironmentData;
 
 #define HANDLE_DEFAULT_VALUE 0
 
@@ -13,7 +17,9 @@ namespace xprofiler {
   active_##name##_handles = HANDLE_DEFAULT_VALUE; \
   active_and_ref_##name##_handles = HANDLE_DEFAULT_VALUE;
 
-typedef struct UvHandleStatistics {
+struct UvHandleStatistics {
+  uint32_t active_handles = 0;
+
   INIT_UV_HANDLE(file)
   INIT_UV_HANDLE(tcp)
   INIT_UV_HANDLE(udp)
@@ -21,17 +27,17 @@ typedef struct UvHandleStatistics {
 
   // reset record
   void reset() {
+    active_handles = 0;
     RESET_UV_HANDLE(file)
     RESET_UV_HANDLE(tcp)
     RESET_UV_HANDLE(udp)
     RESET_UV_HANDLE(timer)
   }
-} uv_handle_statistics_t;
+};
 
-int InitLibuvAsyncCallback();
-void UnrefLibuvAsyncHandle();
-void GetLibuvHandles();
-void WriteLibuvHandleInfoToLog(bool log_format_alinode);
+void CollectLibuvHandleStatistics(EnvironmentData* env_data);
+void WriteLibuvHandleInfoToLog(EnvironmentData* env_data,
+                               bool log_format_alinode);
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_LOGBYPASS_LIBUV_H */

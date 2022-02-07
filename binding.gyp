@@ -4,6 +4,7 @@
             "target_name": "xprofiler",
             "win_delay_load_hook": "false",
             "sources": [
+                "src/environment_data.cc",
                 "src/xprofiler.cc",
                 "src/configure.cc",
                 "src/logger.cc",

@@ -1,11 +1,14 @@
-#include "../library/utils.h"
-#include "../logger.h"
+#include "log.h"
+
 #include "configure-inl.h"
 #include "cpu.h"
+#include "environment_data.h"
 #include "gc.h"
 #include "heap.h"
 #include "http.h"
+#include "library/utils.h"
 #include "libuv.h"
+#include "logger.h"
 #include "uv.h"
 
 namespace xprofiler {
@@ -13,9 +16,11 @@ using Nan::False;
 using Nan::ThrowTypeError;
 using Nan::True;
 
-static uv_thread_t uv_log_thread;
+namespace per_process {
+uv_thread_t uv_log_thread;
+}
 
-static void CreateLogThread(void *unused) {
+static void LogThreadMain(void* unused) {
   uint64_t last_loop_time = uv_hrtime();
   while (1) {
     // sleep 1s for releasing cpu
@@ -29,12 +34,9 @@ static void CreateLogThread(void *unused) {
       last_loop_time = uv_hrtime();
       bool log_format_alinode = GetFormatAsAlinode();
 
-      // get heap memory info
-      GetMemoryInfo();
+      EnvironmentData* env_data = EnvironmentData::GetCurrent();
 
-      // get libuv handles info
-      GetLibuvHandles();
-
+      env_data->SendCollectStatistics();
       // sleep 1s for executing async callback
       Sleep(1);
 
@@ -42,52 +44,28 @@ static void CreateLogThread(void *unused) {
       WriteCpuUsageInPeriod(log_format_alinode);
 
       // write heap memory info
-      WriteMemoryInfoToLog(log_format_alinode);
+      WriteMemoryInfoToLog(env_data, log_format_alinode);
 
       // write gc status
-      WriteGcStatusToLog(log_format_alinode);
+      WriteGcStatusToLog(env_data, log_format_alinode);
 
       // write libuv handle info
-      WriteLibuvHandleInfoToLog(log_format_alinode);
+      WriteLibuvHandleInfoToLog(env_data, log_format_alinode);
 
       // write http status
-      WriteHttpStatus(log_format_alinode, GetPatchHttpTimeout());
+      WriteHttpStatus(env_data, log_format_alinode, GetPatchHttpTimeout());
     }
   }
 }
 
-#define CHECK(fn, log)                  \
-  rc = fn();                            \
-  if (rc != 0) {                        \
-    ThrowTypeError("xprofiler: " log);  \
-    info.GetReturnValue().Set(False()); \
-    return;                             \
-  }
-
-void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
+void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
   int rc = 0;
-  // init memory statistics callback
-  CHECK(InitMemoryAsyncCallback,
-        "init memory statistics async callback failed!")
-  UnrefMemoryAsyncHandle();
-  Info("init", "logbypass: memory statistics async callback setted.");
-
-  // init libuv handle statistics callback
-  CHECK(InitLibuvAsyncCallback,
-        "init libuv handle statistics async callback failed!")
-  UnrefLibuvAsyncHandle();
-  Info("init", "logbypass: libuv handle statistics async callback setted.");
-
   // init gc hooks
-  CHECK(InitGcStatusHooks, "init gc hooks failed!")
+  InitGcStatusHooks();
   Info("init", "logbypass: gc hooks setted.");
 
-  // init http status
-  CHECK(InitHttpStatus, "init http status failed!")
-  Info("init", "logbypass: http status inited.");
-
   // init log thread
-  rc = uv_thread_create(&uv_log_thread, CreateLogThread, nullptr);
+  rc = uv_thread_create(&per_process::uv_log_thread, LogThreadMain, nullptr);
   if (rc != 0) {
     ThrowTypeError("xprofiler: create uv log thread failed!");
     info.GetReturnValue().Set(False());
@@ -97,6 +75,4 @@ void RunLogBypass(const FunctionCallbackInfo<Value> &info) {
 
   info.GetReturnValue().Set(True());
 }
-
-#undef CHECK
 }  // namespace xprofiler

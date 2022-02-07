@@ -15,7 +15,7 @@ namespace xprofiler {
   V(600)
 
 #define INIT_CPU_PERIOD(period)                     \
-  static double *cpu_##period = new double[period]; \
+  static double* cpu_##period = new double[period]; \
   static int cpu_##period##_array_index = 0;        \
   static int cpu_##period##_array_length = period;  \
   static int cpu_##period##_array_not_full = true;

@@ -1,22 +1,21 @@
 #include "libuv.h"
 
-#include "../logger.h"
 #include "configure-inl.h"
+#include "environment_data.h"
+#include "logger.h"
 #include "uv.h"
 
 namespace xprofiler {
-static uv_async_t uv_statistics_trigger;
-// libuv handles statistics
-unsigned int active_handles = 0;
-static uv_handle_statistics_t *uv_handle_statistics =
-    new uv_handle_statistics_t;
 
 #define UV_ADD(name)                                                    \
   if (uv_is_active(h)) uv_handle_statistics->active_##name##_handles++; \
   if (uv_is_active(h) && uv_has_ref(h))                                 \
     uv_handle_statistics->active_and_ref_##name##_handles++;
 
-void LibuvWalkHandle(uv_handle_t *h, void *unused) {
+void LibuvWalkHandle(uv_handle_t* h, void* arg) {
+  UvHandleStatistics* uv_handle_statistics =
+      reinterpret_cast<UvHandleStatistics*>(arg);
+
   switch (h->type) {
     case UV_UNKNOWN_HANDLE:
       break;
@@ -62,34 +61,28 @@ void LibuvWalkHandle(uv_handle_t *h, void *unused) {
   }
 }
 
-void GetLibuvHandles(uv_async_t *handle) {
-  active_handles = uv_default_loop()->active_handles;
+void CollectLibuvHandleStatistics(EnvironmentData* env_data) {
+  uv_loop_t* loop = node::GetCurrentEventLoop(env_data->isolate());
+  UvHandleStatistics* uv_handle_statistics = env_data->uv_handle_statistics();
+
   bool enable_log_uv_handles = GetEnableLogUvHandles();
   if (enable_log_uv_handles) {
     uv_handle_statistics->reset();
-    uv_walk(uv_default_loop(), LibuvWalkHandle, nullptr);
+    uv_walk(loop, LibuvWalkHandle, uv_handle_statistics);
   }
+  uv_handle_statistics->active_handles = loop->active_handles;
 }
 
-int InitLibuvAsyncCallback() {
-  int rc =
-      uv_async_init(uv_default_loop(), &uv_statistics_trigger, GetLibuvHandles);
-  return rc;
-}
-
-void UnrefLibuvAsyncHandle() {
-  uv_unref(reinterpret_cast<uv_handle_t *>(&uv_statistics_trigger));
-}
-
-void GetLibuvHandles() { uv_async_send(&uv_statistics_trigger); }
-
-void WriteLibuvHandleInfoToLog(bool log_format_alinode) {
+void WriteLibuvHandleInfoToLog(EnvironmentData* env_data,
+                               bool log_format_alinode) {
   bool enable_log_uv_handles = GetEnableLogUvHandles();
+  UvHandleStatistics* uv_handle_statistics = env_data->uv_handle_statistics();
 
-  if (log_format_alinode)
+  if (log_format_alinode) {
     Info("timer", "total_timer: %d, active_handles: %d",
-         uv_handle_statistics->active_timer_handles, active_handles);
-  else if (enable_log_uv_handles)
+         uv_handle_statistics->active_timer_handles,
+         uv_handle_statistics->active_handles);
+  } else if (enable_log_uv_handles) {
     Info("uv",
          "active_handles: %d, "
          "active_file_handles: %d, "
@@ -100,7 +93,8 @@ void WriteLibuvHandleInfoToLog(bool log_format_alinode) {
          "active_and_ref_udp_handles: %d, "
          "active_timer_handles: %d, "
          "active_and_ref_timer_handles: %d",
-         active_handles, uv_handle_statistics->active_file_handles,
+         uv_handle_statistics->active_handles,
+         uv_handle_statistics->active_file_handles,
          uv_handle_statistics->active_and_ref_file_handles,
          uv_handle_statistics->active_tcp_handles,
          uv_handle_statistics->active_and_ref_tcp_handles,
@@ -108,7 +102,8 @@ void WriteLibuvHandleInfoToLog(bool log_format_alinode) {
          uv_handle_statistics->active_and_ref_udp_handles,
          uv_handle_statistics->active_timer_handles,
          uv_handle_statistics->active_and_ref_timer_handles);
-  else
-    Info("uv", "active_handles: %d", active_handles);
+  } else {
+    Info("uv", "active_handles: %d", uv_handle_statistics->active_handles);
+  }
 }
 }  // namespace xprofiler

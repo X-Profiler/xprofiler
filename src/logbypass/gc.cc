@@ -1,59 +1,71 @@
 #include "gc.h"
 
-#include "../library/common.h"
-#include "../logger.h"
+#include "environment_data.h"
+#include "library/common.h"
+#include "logger.h"
 
 namespace xprofiler {
 using Nan::AddGCEpilogueCallback;
 using Nan::AddGCPrologueCallback;
 using v8::GCType;
+using v8::Isolate;
 
-static gc_statistics_t *gc_statistics = new gc_statistics_t;
-static uv_mutex_t gc_mutex;
-
-unsigned int TotalGcTimes() {
-  if (gc_statistics == nullptr) {
+uint32_t TotalGcTimes() {
+  Isolate* isolate = Isolate::GetCurrent();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  if (env_data == nullptr) {
     return 0;
   }
+  GcStatistics* gc_statistics = env_data->gc_statistics();
   return gc_statistics->total_gc_times;
 }
 
-unsigned long TotalGcDuration() {
-  if (gc_statistics == nullptr) {
+uint32_t TotalGcDuration() {
+  Isolate* isolate = Isolate::GetCurrent();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  if (env_data == nullptr) {
     return 0;
   }
+  GcStatistics* gc_statistics = env_data->gc_statistics();
   return gc_statistics->total_gc_duration;
 }
 
 // gc prologue hook
 NAN_GC_CALLBACK(GCPrologueCallback) {
-  uv_mutex_lock(&gc_mutex);
-  gc_statistics->start() = uv_hrtime();
-  uv_mutex_unlock(&gc_mutex);
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  if (env_data == nullptr) {
+    return;
+  }
+  GcStatistics* gc_statistics = env_data->gc_statistics();
+  Mutex::ScopedLock lock(gc_statistics->mutex);
+  gc_statistics->start = uv_hrtime();
 }
 
 // gc epilogue hook
 NAN_GC_CALLBACK(GCEpilogueCallback) {
-  uv_mutex_lock(&gc_mutex);
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  if (env_data == nullptr) {
+    return;
+  }
+  GcStatistics* gc_statistics = env_data->gc_statistics();
+  Mutex::ScopedLock lock(gc_statistics->mutex);
 
   uint64_t now = uv_hrtime();
-  uint64_t start = gc_statistics->start();
+  uint64_t start = gc_statistics->start;
   if (start == 0 || now < start) {
-    uv_mutex_unlock(&gc_mutex);
     return;
   }
 
   gc_statistics->total_gc_times++;
-  unsigned int duration = static_cast<int>((now - start) / 10e5);  // cost, ms
+  uint32_t duration = static_cast<uint32_t>((now - start) / 10e5);  // cost, ms
 
   // check duration is legal
   if (duration >= 5 * 60 * 1000) {
-    uv_mutex_unlock(&gc_mutex);
     return;
   }
 
   // reset gc start time
-  gc_statistics->start() = 0;
+  gc_statistics->start = 0;
 
   gc_statistics->total_gc_duration += duration;
   gc_statistics->gc_time_during_last_record += duration;
@@ -72,19 +84,18 @@ NAN_GC_CALLBACK(GCEpilogueCallback) {
     gc_statistics->total_incremental_marking_duration += duration;
     gc_statistics->incremental_marking_duration_last_record += duration;
   }
-  uv_mutex_unlock(&gc_mutex);
 }
 
-int InitGcStatusHooks() {
-  int rc = uv_mutex_init(&gc_mutex);
+void InitGcStatusHooks() {
   AddGCPrologueCallback(GCPrologueCallback);
   AddGCEpilogueCallback(GCEpilogueCallback);
-  return rc;
 }
 
-void WriteGcStatusToLog(bool log_format_alinode) {
+void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {
+  GcStatistics* gc_statistics = env_data->gc_statistics();
+  Mutex::ScopedLock lock(gc_statistics->mutex);
+
   // record gc status
-  uv_mutex_lock(&gc_mutex);
   if (log_format_alinode)
     Info("gc",
          "gc_time_during_last_min: %lu, total: %lu, scavange_duration: %lu, "
@@ -118,6 +129,5 @@ void WriteGcStatusToLog(bool log_format_alinode) {
          gc_statistics->incremental_marking_duration_last_record);
   // reset last record
   gc_statistics->reset();
-  uv_mutex_unlock(&gc_mutex);
 }
 }  // namespace xprofiler

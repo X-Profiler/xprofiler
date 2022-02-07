@@ -1,14 +1,11 @@
-#ifndef _SRC_LOGBYPASS_LOG_H
-#define _SRC_LOGBYPASS_LOG_H
+#ifndef XPROFILER_SRC_LOGBYPASS_LOG_H
+#define XPROFILER_SRC_LOGBYPASS_LOG_H
 
 #include "nan.h"
 
 namespace xprofiler {
-using Nan::FunctionCallbackInfo;
-using v8::Value;
-
 // javascript-accessible
-void RunLogBypass(const FunctionCallbackInfo<Value> &info);
+void RunLogBypass(const Nan::FunctionCallbackInfo<v8::Value>& info);
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_LOGBYPASS_LOG_H */

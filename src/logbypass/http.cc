@@ -1,83 +1,73 @@
 #include "http.h"
 
-#include "../logger.h"
+#include "environment_data.h"
+#include "logger.h"
 #include "uv.h"
 
 namespace xprofiler {
-using Nan::To;
-using std::string;
+constexpr char module_type[] = "http";
 
-static uv_mutex_t http_mutex;
-
-static const char module_type[] = "http";
-
-// http server
-static unsigned int live_http_request = 0;
-static unsigned int http_response_close = 0;
-static unsigned int http_response_sent = 0;
-static unsigned int http_request_timeout = 0;
-static unsigned int http_rt = 0;  // ms
-
-// http status code: 0 ~ 999
-static int status_codes[1000] = {0};
-
-int InitHttpStatus() {
-  int rc = uv_mutex_init(&http_mutex);
-  return rc;
+void AddLiveRequest(const FunctionCallbackInfo<Value>& info) {
+  HttpStatistics* http_statistics =
+      EnvironmentData::GetCurrent(info)->http_statistics();
+  Mutex::ScopedLock lock(http_statistics->mutex);
+  http_statistics->live_http_request++;
 }
 
-void AddLiveRequest(const FunctionCallbackInfo<Value> &info) {
-  uv_mutex_lock(&http_mutex);
-  live_http_request++;
-  uv_mutex_unlock(&http_mutex);
+void AddCloseRequest(const FunctionCallbackInfo<Value>& info) {
+  HttpStatistics* http_statistics =
+      EnvironmentData::GetCurrent(info)->http_statistics();
+  Mutex::ScopedLock lock(http_statistics->mutex);
+  http_statistics->http_response_close++;
 }
 
-void AddCloseRequest(const FunctionCallbackInfo<Value> &info) {
-  uv_mutex_lock(&http_mutex);
-  http_response_close++;
-  uv_mutex_unlock(&http_mutex);
-}
-
-void AddSentRequest(const FunctionCallbackInfo<Value> &info) {
+void AddSentRequest(const FunctionCallbackInfo<Value>& info) {
   if (!info[0]->IsNumber()) {
     Error(module_type, "request cost must be number!");
     return;
   }
 
-  unsigned int cost = To<uint32_t>(info[0]).ToChecked();
+  uint32_t cost = Nan::To<uint32_t>(info[0]).ToChecked();
 
-  uv_mutex_lock(&http_mutex);
-  http_response_sent++;
-  http_rt += cost;
-  uv_mutex_unlock(&http_mutex);
+  HttpStatistics* http_statistics =
+      EnvironmentData::GetCurrent(info)->http_statistics();
+  Mutex::ScopedLock lock(http_statistics->mutex);
+  http_statistics->http_response_sent++;
+  http_statistics->http_rt += cost;
 }
 
-void AddRequestTimeout(const FunctionCallbackInfo<Value> &info) {
-  uv_mutex_lock(&http_mutex);
-  http_request_timeout++;
-  uv_mutex_unlock(&http_mutex);
+void AddRequestTimeout(const FunctionCallbackInfo<Value>& info) {
+  HttpStatistics* http_statistics =
+      EnvironmentData::GetCurrent(info)->http_statistics();
+  Mutex::ScopedLock lock(http_statistics->mutex);
+  http_statistics->http_request_timeout++;
 }
 
-void AddHttpStatusCode(const FunctionCallbackInfo<Value> &info) {
+void AddHttpStatusCode(const FunctionCallbackInfo<Value>& info) {
   if (!info[0]->IsNumber()) {
     Error(module_type, "request cost must be number!");
     return;
   }
 
-  unsigned int status_code = To<uint32_t>(info[0]).ToChecked();
-  if (status_code > 0 && status_code < 1000) {
-    uv_mutex_lock(&http_mutex);
-    status_codes[status_code]++;
-    uv_mutex_unlock(&http_mutex);
+  uint32_t status_code = Nan::To<uint32_t>(info[0]).ToChecked();
+  if (status_code >= kMaxHttpStatusCode) {
+    return;
   }
+
+  HttpStatistics* http_statistics =
+      EnvironmentData::GetCurrent(info)->http_statistics();
+  Mutex::ScopedLock lock(http_statistics->mutex);
+  http_statistics->status_codes[status_code]++;
 }
 
-void WriteHttpStatus(bool log_format_alinode, uint32_t http_patch_timeout) {
-  uv_mutex_lock(&http_mutex);
+void WriteHttpStatus(EnvironmentData* env_data, bool log_format_alinode,
+                     uint32_t http_patch_timeout) {
+  HttpStatistics* http_statistics = env_data->http_statistics();
+  Mutex::ScopedLock lock(http_statistics->mutex);
 
   double rt = 0.00;
-  if (http_response_sent != 0) {
-    rt = http_rt * 1.00 / http_response_sent;
+  if (http_statistics->http_response_sent != 0) {
+    rt = http_statistics->http_rt * 1.00 / http_statistics->http_response_sent;
   }
 
   if (log_format_alinode)
@@ -86,11 +76,13 @@ void WriteHttpStatus(bool log_format_alinode, uint32_t http_patch_timeout) {
          "http_request_handled: %d, "
          "http_response_sent: %d, "
          "http_rt: %.2lf",
-         live_http_request, http_response_sent, http_response_sent, rt);
+         http_statistics->live_http_request,
+         http_statistics->http_response_sent,
+         http_statistics->http_response_sent, rt);
   else {
-    string format = "";
+    std::string format = "";
     for (int i = 0; i < 1000; i++) {
-      int count = status_codes[i];
+      uint32_t count = http_statistics->status_codes[i];
       if (count > 0 && format.length() < 1536) {
         format += "res" XPROFILER_BLURRY_TAG + std::to_string(i) + ": " +
                   std::to_string(count) + ", ";
@@ -105,20 +97,20 @@ void WriteHttpStatus(bool log_format_alinode, uint32_t http_patch_timeout) {
          "http_request_timeout: %d, "
          "http_patch_timeout: %d, "
          "http_rt: %.2lf",
-         format.c_str(), live_http_request, http_response_close,
-         http_response_sent, http_request_timeout, http_patch_timeout, rt);
+         format.c_str(), http_statistics->live_http_request,
+         http_statistics->http_response_close,
+         http_statistics->http_response_sent,
+         http_statistics->http_request_timeout, http_patch_timeout, rt);
   }
 
   // reset
-  live_http_request = 0;
-  http_response_sent = 0;
-  http_response_close = 0;
-  http_request_timeout = 0;
-  http_rt = 0;
-  for (int i = 0; i < 1000; i++) {
-    status_codes[i] = 0;
+  http_statistics->live_http_request = 0;
+  http_statistics->http_response_sent = 0;
+  http_statistics->http_response_close = 0;
+  http_statistics->http_request_timeout = 0;
+  http_statistics->http_rt = 0;
+  for (int i = 0; i < kMaxHttpStatusCode; i++) {
+    http_statistics->status_codes[i] = 0;
   }
-
-  uv_mutex_unlock(&http_mutex);
 }
 }  // namespace xprofiler
