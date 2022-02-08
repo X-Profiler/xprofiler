@@ -1,7 +1,8 @@
 #include "heap.h"
 
-#include "../library/utils.h"
-#include "../logger.h"
+#include "environment_data.h"
+#include "library/utils.h"
+#include "logger.h"
 #include "nan.h"
 #include "uv.h"
 
@@ -10,29 +11,54 @@ using Nan::GetHeapStatistics;
 using v8::HeapSpaceStatistics;
 using v8::Isolate;
 
-static uv_async_t memory_statistics_trigger;
-// memory statistics
-static size_t rss = 0;
-static heap_statistics_t *heap_statistics = new heap_statistics_t;
-static heap_space_statistics_t *heap_space_statistics =
-    new heap_space_statistics_t;
+#define COMMON_INFO_FORMATTER  \
+  "rss: %zu, "                 \
+  "heap_used: %zu, "           \
+  "heap_available: %zu, "      \
+  "heap_total: %zu, "          \
+  "heap_limit: %zu, "          \
+  "heap_executeable: %zu, "    \
+  "total_physical_size: %zu, " \
+  "malloced_memory: %zu, "     \
+  "amount_of_external_allocated_memory: %zu, "
 
-void SetRss() {
-  int err = uv_resident_set_memory(&rss);
+#define COMMON_INFO_FORMATTERX "memory_usage(byte) " COMMON_INFO_FORMATTER
+
+#define SPACE_INFO_FORMATTER(name)                            \
+#name "_space_size: %zu, " #name "_space_used: %zu, " #name \
+        "_space_available: %zu, " #name "_space_committed: %zu, "
+
+#define LOG_SPACE_INFO(name)                         \
+  heap_space_statistics->name##_space_size,          \
+      heap_space_statistics->name##_space_used,      \
+      heap_space_statistics->name##_space_available, \
+      heap_space_statistics->name##_space_committed
+
+#define SET_SPACE_INFO(name)                                            \
+  if (strcmp(s.space_name(), #name) == 0) {                             \
+    heap_space_statistics->name##_size = s.space_size();                \
+    heap_space_statistics->name##_used = s.space_used_size();           \
+    heap_space_statistics->name##_available = s.space_available_size(); \
+    heap_space_statistics->name##_committed = s.physical_space_size();  \
+  }
+
+void GetRss(size_t* rss) {
+  int err = uv_resident_set_memory(rss);
   if (err != 0) rss = 0;
 }
 
-void SetHeapStatistics() {
+void SetHeapStatistics(XprofilerHeapStatistics* heap_statistics) {
   GetHeapStatistics(heap_statistics->handle());
 #if (NODE_MODULE_VERSION < 72)
-  Isolate *isolate = Isolate::GetCurrent();
+  Isolate* isolate = Isolate::GetCurrent();
   heap_statistics->external_memory() =
       isolate->AdjustAmountOfExternalAllocatedMemory(0);
 #endif
 }
 
-void SetHeapSpaceStatistics() {
-  Isolate *isolate = Isolate::GetCurrent();
+void SetHeapSpaceStatistics(
+    XprofilerHeapSpaceStatistics* heap_space_statistics) {
+  Isolate* isolate = Isolate::GetCurrent();
   HeapSpaceStatistics s;
   size_t number_of_heap_spaces = isolate->NumberOfHeapSpaces();
   for (size_t i = 0; i < number_of_heap_spaces; i++) {
@@ -49,25 +75,22 @@ void SetHeapSpaceStatistics() {
   }
 }
 
-void GetMemoryStatistics(uv_async_t *handle) {
-  SetRss();
-  SetHeapStatistics();
-  SetHeapSpaceStatistics();
+void CollectMemoryStatistics(EnvironmentData* env_data) {
+  MemoryStatistics* memory_statistics = env_data->memory_statistics();
+  SetHeapStatistics(&memory_statistics->heap_statistics);
+  SetHeapSpaceStatistics(&memory_statistics->heap_space_statistics);
 }
 
-int InitMemoryAsyncCallback() {
-  int rc = uv_async_init(uv_default_loop(), &memory_statistics_trigger,
-                         GetMemoryStatistics);
-  return rc;
-}
+void WriteMemoryInfoToLog(EnvironmentData* env_data, bool log_format_alinode) {
+  size_t rss;
+  GetRss(&rss);
 
-void UnrefMemoryAsyncHandle() {
-  uv_unref(reinterpret_cast<uv_handle_t *>(&memory_statistics_trigger));
-}
+  MemoryStatistics* memory_statistics = env_data->memory_statistics();
+  XprofilerHeapStatistics* heap_statistics =
+      &memory_statistics->heap_statistics;
+  XprofilerHeapSpaceStatistics* heap_space_statistics =
+      &memory_statistics->heap_space_statistics;
 
-void GetMemoryInfo() { uv_async_send(&memory_statistics_trigger); }
-
-void WriteMemoryInfoToLog(bool log_format_alinode) {
   if (log_format_alinode) {
     Info("heap",
          COMMON_INFO_FORMATTER SPACE_INFO_FORMATTER(new) SPACE_INFO_FORMATTER(

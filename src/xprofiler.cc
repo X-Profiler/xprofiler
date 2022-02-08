@@ -1,5 +1,6 @@
 #include "commands/listener.h"
 #include "configure.h"
+#include "environment_data.h"
 #include "hooks/set_hooks.h"
 #include "library/common.h"
 #include "logbypass/http.h"
@@ -13,6 +14,7 @@ using Nan::GetFunction;
 using Nan::New;
 using Nan::Set;
 using v8::FunctionTemplate;
+using v8::Isolate;
 using v8::String;
 
 NODE_C_CTOR(Main) {
@@ -26,6 +28,9 @@ NODE_C_CTOR(Main) {
       GetFunction(New<FunctionTemplate>(native_func)).ToLocalChecked())
 
 NAN_MODULE_INIT(Initialize) {
+  Isolate* isolate = target->GetIsolate();
+  EnvironmentData::Create(isolate);
+
   // config
   CREATE_JS_BINDING(configure, Configure);
   CREATE_JS_BINDING(getConfig, GetConfig);
