@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "util.h"
+#include "xpf_node.h"
 
 namespace xprofiler {
 using Nan::HandleScope;
@@ -40,14 +41,7 @@ EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate) {
 
   per_process::environment_data =
       std::unique_ptr<EnvironmentData>(new EnvironmentData(isolate));
-#if NODE_MAJOR_VERSION >= 10
-  // node::GetCurrentEnvironment is available since v10.x.
-  // We don't need to support multiple environments before v10.x, not releasing
-  // the per_process::environment_data is find.
-  node::Environment* env =
-      node::GetCurrentEnvironment(isolate->GetCurrentContext());
-  node::AtExit(env, AtExit, nullptr);
-#endif
+  xprofiler::AtExit(isolate, AtExit, nullptr);
 
   return per_process::environment_data.get();
 }
