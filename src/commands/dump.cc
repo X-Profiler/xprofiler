@@ -221,11 +221,11 @@ void HandleAction(void *data, string notify_type) {
       break;
     }
     case START_GC_PROFILING: {
-      GcProfiler::StartGCProfiling(gcprofile_filepath);
+      GcProfiler::StartGCProfiling(node_isolate, gcprofile_filepath);
       break;
     }
     case STOP_GC_PROFILING: {
-      GcProfiler::StopGCProfiling();
+      GcProfiler::StopGCProfiling(node_isolate);
       AfterDumpFile(gcprofile_filepath, notify_type, unique_key);
       action_map.erase(START_GC_PROFILING);
       action_map.erase(STOP_GC_PROFILING);
