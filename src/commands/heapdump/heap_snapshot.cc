@@ -1,22 +1,35 @@
 #include "heap_snapshot.h"
 
-#include "../../library/writer.h"
-#include "../../logger.h"
+#include "library/writer.h"
+#include "logger.h"
 
 namespace xprofiler {
 using v8::OutputStream;
 
-class FileOutputStream : public OutputStream {
+class FileOutputStream final : public OutputStream {
  public:
-  FileOutputStream(FILE *stream) : stream_(stream) {}
+  FileOutputStream(std::string filename) {
+    stream_ = fopen(filename.c_str(), "w");
+  }
+  ~FileOutputStream() {
+    if (stream_ != nullptr) {
+      fclose(stream_);
+    }
+  }
 
-  virtual int GetChunkSize() {
+  // Delete copy
+  FileOutputStream(const FileOutputStream& other) = delete;
+  FileOutputStream& operator=(const FileOutputStream& other) = delete;
+
+  bool is_open() { return stream_ != nullptr; }
+
+  int GetChunkSize() override {
     return 65536;  // big chunks == faster
   }
 
-  virtual void EndOfStream() {}
+  void EndOfStream() override {}
 
-  virtual WriteResult WriteAsciiChunk(char *data, int size) {
+  WriteResult WriteAsciiChunk(char* data, int size) override {
     const size_t len = static_cast<size_t>(size);
     size_t off = 0;
 
@@ -27,18 +40,16 @@ class FileOutputStream : public OutputStream {
   }
 
  private:
-  FILE *stream_;
+  FILE* stream_ = nullptr;
 };
 
-void Snapshot::Serialize(const HeapSnapshot *profile, string filename) {
-  FILE *fp = fopen(filename.c_str(), "w");
-  if (fp == NULL) {
+void HeapSnapshot::Serialize(HeapSnapshotPointer profile,
+                             std::string filename) {
+  FileOutputStream stream(filename);
+  if (!stream.is_open()) {
     Error("heapdump", "open file %s failed.", filename.c_str());
     return;
   }
-  FileOutputStream stream(fp);
-  profile->Serialize(&stream, HeapSnapshot::kJSON);
-  fclose(fp);
-  const_cast<HeapSnapshot *>(profile)->Delete();
+  profile->Serialize(&stream, v8::HeapSnapshot::kJSON);
 }
 }  // namespace xprofiler

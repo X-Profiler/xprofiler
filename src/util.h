@@ -114,6 +114,15 @@ constexpr size_t arraysize(const T (&)[N]) {
   return N;
 }
 
+template <typename T, void (*function)(T*)>
+struct FunctionDeleter {
+  void operator()(T* pointer) const { function(pointer); }
+  using Pointer = std::unique_ptr<T, FunctionDeleter>;
+};
+
+template <typename T, void (*function)(T*)>
+using DeleteFnPtr = typename FunctionDeleter<T, function>::Pointer;
+
 // Convenience wrapper around v8::String::NewFromOneByte
 inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
                                            const char* data, int length = -1);

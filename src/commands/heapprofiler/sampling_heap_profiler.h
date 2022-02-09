@@ -1,19 +1,16 @@
-#ifndef _SRC_COMMANDS_HEAPPROFILER_SAMPLING_HEAP_PROFILER_H
-#define _SRC_COMMANDS_HEAPPROFILER_SAMPLING_HEAP_PROFILER_H
+#ifndef XPROFILER_SRC_COMMANDS_HEAPPROFILER_SAMPLING_HEAP_PROFILER_H
+#define XPROFILER_SRC_COMMANDS_HEAPPROFILER_SAMPLING_HEAP_PROFILER_H
 
 #include "nan.h"
 #include "v8-profiler.h"
 
 namespace xprofiler {
-using std::string;
-
-class SamplingHeapProfile {
+class SamplingHeapProfiler final {
  public:
-  SamplingHeapProfile();
-  virtual ~SamplingHeapProfile();
-  static void StartSamplingHeapProfiling();
-  static void StopSamplingHeapProfiling(string filename);
+  static void StartSamplingHeapProfiling(v8::Isolate* isolate);
+  static void StopSamplingHeapProfiling(v8::Isolate* isolate,
+                                        std::string filename);
 };
 
 }  // namespace xprofiler
-#endif
+#endif /* XPROFILER_SRC_COMMANDS_HEAPPROFILER_SAMPLING_HEAP_PROFILER_H */

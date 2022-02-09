@@ -146,7 +146,7 @@ static void AfterDumpFile(string &filepath, string notify_type,
   filepath = "";
 }
 
-#define CHECK(func)                                              \
+#define CHECK_ERR(func)                                          \
   func;                                                          \
   if (err.Fail()) {                                              \
     Debug(module_type, "<%s> %s error: %s", notify_type.c_str(), \
@@ -181,10 +181,10 @@ void HandleAction(void *data, string notify_type) {
         unique_key.c_str());
 
   // check conflict action running
-  CHECK(ConflictActionRunning(action, err))
+  CHECK_ERR(ConflictActionRunning(action, err))
 
   // check dependent action running
-  CHECK(DependentActionRunning(action, err))
+  CHECK_ERR(DependentActionRunning(action, err))
 
   // start run action
   switch (action) {
@@ -203,18 +203,18 @@ void HandleAction(void *data, string notify_type) {
       break;
     }
     case HEAPDUMP: {
-      HeapProfiler::TakeSnapshot(heapsnapshot_filepath);
+      HeapProfiler::TakeSnapshot(node_isolate, heapsnapshot_filepath);
       AfterDumpFile(heapsnapshot_filepath, notify_type, unique_key);
       action_map.erase(HEAPDUMP);
       break;
     }
     case START_SAMPLING_HEAP_PROFILING: {
-      SamplingHeapProfile::StartSamplingHeapProfiling();
+      SamplingHeapProfiler::StartSamplingHeapProfiling(node_isolate);
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
-      SamplingHeapProfile::StopSamplingHeapProfiling(
-          sampling_heapprofile_filepath);
+      SamplingHeapProfiler::StopSamplingHeapProfiling(
+          node_isolate, sampling_heapprofile_filepath);
       AfterDumpFile(sampling_heapprofile_filepath, notify_type, unique_key);
       action_map.erase(START_SAMPLING_HEAP_PROFILING);
       action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
@@ -243,7 +243,7 @@ void HandleAction(void *data, string notify_type) {
   }
 }
 
-#undef CHECK
+#undef CHECK_ERR
 
 static void RequestInterruptCallback(Isolate *isolate, void *data) {
   HandleAction(data, "v8_request_interrupt");
@@ -335,8 +335,8 @@ void UnrefDumpActionAsyncHandle() {
   uv_unref(reinterpret_cast<uv_handle_t *>(&async_send_callback));
 }
 
-#define CHECK(func) \
-  func;             \
+#define CHECK_ERR(func) \
+  func;                 \
   if (err.Fail()) return result;
 
 template <typename T>
@@ -345,16 +345,16 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   json result;
 
   // get traceid
-  CHECK(string traceid = GetJsonValue<string>(command, "traceid", err))
+  CHECK_ERR(string traceid = GetJsonValue<string>(command, "traceid", err))
 
   // check action running
-  CHECK(ActionRunning(action, err))
+  CHECK_ERR(ActionRunning(action, err))
 
   // check conflict action running
-  CHECK(ConflictActionRunning(action, err))
+  CHECK_ERR(ConflictActionRunning(action, err))
 
   // check dependent action running
-  CHECK(DependentActionRunning(action, err))
+  CHECK_ERR(DependentActionRunning(action, err))
 
   // set action running flag
   action_map.insert(make_pair(action, true));
@@ -460,5 +460,5 @@ V(GetNodeReport, node_report_, NODE_REPORT, false, diagreport, diag)
 
 #undef ACTION_HANDLE
 
-#undef CHECK
+#undef CHECK_ERR
 }  // namespace xprofiler
