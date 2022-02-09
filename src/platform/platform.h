@@ -1,14 +1,11 @@
-#ifndef _SRC_PLATFORM_H
-#define _SRC_PLATFORM_H
+#ifndef XPROFILER_SRC_PLATFORM_PLATFORM_H
+#define XPROFILER_SRC_PLATFORM_PLATFORM_H
 #include <string>
 
-#include "../library/writer.h"
+#include "library/writer.h"
 #include "nan.h"
 
 namespace xprofiler {
-using Nan::FunctionCallbackInfo;
-using std::string;
-using v8::Value;
 
 // cpu
 double GetNowCpuUsage();
@@ -19,7 +16,7 @@ void CreateIpcClient(char *message);
 
 // utils
 void SleepCrossPlatform(int seconds);
-string GetSep();
+std::string GetSep();
 int GetPid();
 // for node-v8.x & ndoe-v10.x
 #if (NODE_MODULE_VERSION < NODE_12_0_MODULE_VERSION)
@@ -31,15 +28,15 @@ int uv_gettimeofday(uv_timeval64_t *tv);
 #endif
 
 // node report
-string GetPcAddress(void *pc);
-string GetOsVersion();
+std::string GetPcAddress(void* pc);
+std::string GetOsVersion();
 void PrintNativeStack(JSONWriter *writer);
 void PrintSystemEnv(JSONWriter *writer);
 void PrintResourceLimits(JSONWriter *writer);
 void PrintLoadedLibraries(JSONWriter *writer);
 
 // js binding
-void CheckSocketPath(const FunctionCallbackInfo<Value> &info);
+void CheckSocketPath(const Nan::FunctionCallbackInfo<v8::Value>& info);
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_PLATFORM_PLATFORM_H */

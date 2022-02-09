@@ -1,7 +1,10 @@
-#include "native_stack.h"
-
-#include "../../platform/platform.h"
+#include "node_report.h"
+#include "platform/platform.h"
 
 namespace xprofiler {
-void SetNativeStack(JSONWriter* writer) { PrintNativeStack(writer); }
+
+void NodeReport::SetNativeStack(JSONWriter* writer) {
+  PrintNativeStack(writer);
+}
+
 }  // namespace xprofiler

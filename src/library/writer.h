@@ -1,20 +1,18 @@
-#ifndef _SRC_LIBRARY_WRITER_H
-#define _SRC_LIBRARY_WRITER_H
+#ifndef XPROFILER_SRC_LIBRARY_WRITER_H
+#define XPROFILER_SRC_LIBRARY_WRITER_H
 
 #include <fstream>
 #include <limits>
 #include <string>
 
 namespace xprofiler {
-using std::ostream;
-using std::string;
 // JSON compiler definitions.
 // from node-v12.13.0 src/node_report.h
-string EscapeJsonChars(const string &str);
+std::string EscapeJsonChars(const std::string& str);
 
 class JSONWriter {
  public:
-  explicit JSONWriter(ostream &out) : out_(out) {}
+  explicit JSONWriter(std::ostream& out) : out_(out) {}
 
   inline void indent() { indent_ += 2; }
   inline void deindent() { indent_ -= 2; }
@@ -108,18 +106,18 @@ class JSONWriter {
 
   inline void write_value(Null null) { out_ << "null"; }
   inline void write_value(const char *str) { write_string(str); }
-  inline void write_value(const string &str) { write_string(str); }
+  inline void write_value(const std::string& str) { write_string(str); }
 
-  inline void write_string(const string &str) {
+  inline void write_string(const std::string& str) {
     out_ << '"' << EscapeJsonChars(str) << '"';
   }
-  inline void write_string(const char *str) { write_string(string(str)); }
+  inline void write_string(const char* str) { write_string(std::string(str)); }
 
   enum JSONState { kObjectStart, kAfterValue };
-  ostream &out_;
+  std::ostream& out_;
   int indent_ = 0;
   int state_ = kObjectStart;
 };
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_LIBRARY_WRITER_H */

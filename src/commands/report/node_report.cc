@@ -2,26 +2,20 @@
 
 #include <fstream>
 
-#include "../../library/common.h"
-#include "../../library/utils.h"
-#include "../../library/writer.h"
-#include "../../logger.h"
-#include "../../platform/platform.h"
-#include "heap_statistics.h"
-#include "javascript_stack.h"
-#include "native_stack.h"
-#include "system_statistics.h"
-#include "uv_statistics.h"
+#include "library/common.h"
+#include "library/utils.h"
+#include "library/writer.h"
+#include "logger.h"
+#include "platform/platform.h"
 
 namespace xprofiler {
 using std::ios;
 using std::ofstream;
 
-NodeReport::NodeReport() {}
-NodeReport::~NodeReport() {}
+NodeReport::NodeReport(v8::Isolate* isolate) : isolate_(isolate) {}
 
-static void WriteNodeReport(JSONWriter *writer, string location, string message,
-                            bool fatal_error) {
+void NodeReport::WriteNodeReport(JSONWriter* writer, std::string location,
+                                 std::string message, bool fatal_error) {
   writer->json_start();
 
   writer->json_keyvalue("pid", GetPid());
@@ -41,8 +35,10 @@ static void WriteNodeReport(JSONWriter *writer, string location, string message,
   writer->json_end();
 }
 
-void NodeReport::GetNodeReport(string filepath, string location, string message,
+void NodeReport::GetNodeReport(v8::Isolate* isolate, std::string filepath,
+                               std::string location, std::string message,
                                bool fatal_error) {
+  NodeReport report(isolate);
   ofstream outfile;
   outfile.open(filepath, ios::out | ios::binary);
   if (!outfile.is_open()) {
@@ -51,7 +47,7 @@ void NodeReport::GetNodeReport(string filepath, string location, string message,
     return;
   }
   JSONWriter writer(outfile);
-  WriteNodeReport(&writer, location, message, fatal_error);
+  report.WriteNodeReport(&writer, location, message, fatal_error);
   outfile.close();
 }
 }  // namespace xprofiler

@@ -1,5 +1,4 @@
-#include "heap_statistics.h"
-
+#include "node_report.h"
 #include "v8.h"
 
 namespace xprofiler {
@@ -7,10 +6,9 @@ using v8::HeapSpaceStatistics;
 using v8::HeapStatistics;
 using v8::Isolate;
 
-void SetHeapStatistics(JSONWriter* writer) {
-  Isolate* isolate = Isolate::GetCurrent();
+void NodeReport::SetHeapStatistics(JSONWriter* writer) {
   HeapStatistics v8_heap_stats;
-  isolate->GetHeapStatistics(&v8_heap_stats);
+  isolate_->GetHeapStatistics(&v8_heap_stats);
 
   writer->json_objectstart("heapStatistics");
   writer->json_keyvalue("heapTotal", v8_heap_stats.total_heap_size());
@@ -24,8 +22,8 @@ void SetHeapStatistics(JSONWriter* writer) {
 
   HeapSpaceStatistics v8_heap_space_stats;
   writer->json_arraystart("heapSpaceStatistics");
-  for (size_t i = 0; i < isolate->NumberOfHeapSpaces(); i++) {
-    isolate->GetHeapSpaceStatistics(&v8_heap_space_stats, i);
+  for (size_t i = 0; i < isolate_->NumberOfHeapSpaces(); i++) {
+    isolate_->GetHeapSpaceStatistics(&v8_heap_space_stats, i);
     writer->json_start();
     writer->json_keyvalue("name", v8_heap_space_stats.space_name());
     writer->json_keyvalue("size", v8_heap_space_stats.space_size());

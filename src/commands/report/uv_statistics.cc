@@ -1,8 +1,7 @@
-#include "uv_statistics.h"
-
 #include <sstream>
 
-#include "../../platform/platform.h"
+#include "node_report.h"
+#include "platform/platform.h"
 #include "uv.h"
 
 namespace xprofiler {
@@ -382,9 +381,11 @@ static void walkHandle(uv_handle_t *h, void *arg) {
   writer->json_end();
 }
 
-void SetUvStatistics(JSONWriter *writer) {
+void NodeReport::SetUvStatistics(JSONWriter* writer) {
+  uv_loop_t* loop = node::GetCurrentEventLoop(isolate_);
+
   writer->json_arraystart("libuvHandles");
-  uv_walk(uv_default_loop(), walkHandle, (void *)writer);
+  uv_walk(loop, walkHandle, (void*)writer);
   writer->json_arrayend();
 }
 }  // namespace xprofiler

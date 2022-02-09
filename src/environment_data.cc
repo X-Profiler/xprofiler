@@ -4,9 +4,9 @@
 
 #include "util.h"
 #include "xpf_node.h"
+#include "xpf_v8.h"
 
 namespace xprofiler {
-using Nan::HandleScope;
 using v8::Isolate;
 
 namespace per_process {
@@ -36,8 +36,7 @@ EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate) {
   // TODO(legendecas): environment registry.
   CHECK_EQ(per_process::environment_data, nullptr);
 
-  CHECK_EQ(isolate, Isolate::GetCurrent());
-  HandleScope scope;
+  HandleScope scope(isolate);
 
   per_process::environment_data =
       std::unique_ptr<EnvironmentData>(new EnvironmentData(isolate));

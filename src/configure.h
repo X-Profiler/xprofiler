@@ -8,7 +8,7 @@
 
 namespace xprofiler {
 
-inline string GetLogDir();
+inline std::string GetLogDir();
 inline uint32_t GetLogInterval();
 inline LOG_LEVEL GetLogLevel();
 inline LOG_TYPE GetLogType();
