@@ -14,7 +14,7 @@ using v8::String;
 Profiler::Profiler() {}
 Profiler::~Profiler() {}
 
-#if (NODE_MODULE_VERSION > 0x0039)
+#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
 static int started_profiles_count = 0;
 static int sampling_interval = 0;
 static CpuProfiler* current_cpuprofiler = nullptr;
@@ -24,7 +24,7 @@ void Profiler::StartProfiling(std::string t) {
   HandleScope scope;
   Local<String> title = New<String>(t).ToLocalChecked();
 
-#if (NODE_MODULE_VERSION > 0x0039)
+#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
   if (!started_profiles_count) {
     current_cpuprofiler = CpuProfiler::New(Isolate::GetCurrent());
   }
@@ -43,7 +43,7 @@ void Profiler::StopProfiling(string t, string filename) {
   HandleScope scope;
   Local<String> title = New<String>(t).ToLocalChecked();
 
-#if (NODE_MODULE_VERSION > 0x0039)
+#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
   profile = current_cpuprofiler->StopProfiling(title);
 #else
   profile = Isolate::GetCurrent()->GetCpuProfiler()->StopProfiling(title);
@@ -51,7 +51,7 @@ void Profiler::StopProfiling(string t, string filename) {
 
   Profile::Serialize(profile, filename);
 
-#if (NODE_MODULE_VERSION > 0x0039)
+#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
   const_cast<CpuProfile*>(profile)->Delete();
   --started_profiles_count;
   if (!started_profiles_count) {
@@ -62,7 +62,7 @@ void Profiler::StopProfiling(string t, string filename) {
 }
 
 void Profiler::SetSamplingInterval(uint32_t sample) {
-#if (NODE_MODULE_VERSION > 0x0039)
+#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
   sampling_interval = sample;
 #else
   Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(sample);

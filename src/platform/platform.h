@@ -22,7 +22,7 @@ void SleepCrossPlatform(int seconds);
 string GetSep();
 int GetPid();
 // for node-v8.x & ndoe-v10.x
-#if (NODE_MODULE_VERSION < 72)
+#if (NODE_MODULE_VERSION < NODE_12_0_MODULE_VERSION)
 typedef struct {
   int64_t tv_sec;
   int32_t tv_usec;

@@ -1,7 +1,7 @@
-#ifndef _SRC_LOGBYPASS_HEAP_H
-#define _SRC_LOGBYPASS_HEAP_H
+#ifndef XPROFILER_SRC_LOGBYPASS_HEAP_H
+#define XPROFILER_SRC_LOGBYPASS_HEAP_H
 
-#include "node_version.h"
+#include "nan.h"
 #include "v8.h"
 
 namespace xprofiler {
@@ -31,14 +31,14 @@ struct XprofilerHeapStatistics {
     return heap_statistics_.total_physical_size();
   }
   size_t malloced_memory() { return heap_statistics_.malloced_memory(); }
-#if (NODE_MODULE_VERSION >= 72)
+#if (NODE_MODULE_VERSION >= NODE_12_0_MODULE_VERSION)
   size_t external_memory() { return heap_statistics_.external_memory(); }
 #else
   size_t& external_memory() { return external_memory_; }
 #endif
 
  private:
-#if (NODE_MODULE_VERSION < 72)
+#if (NODE_MODULE_VERSION < NODE_12_0_MODULE_VERSION)
   // external memory
   size_t external_memory_ = 0;
 #endif
@@ -66,4 +66,4 @@ void CollectMemoryStatistics(EnvironmentData* env_data);
 void WriteMemoryInfoToLog(EnvironmentData* env_data, bool log_format_alinode);
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_LOGBYPASS_HEAP_H */

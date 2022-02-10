@@ -4,7 +4,7 @@
 #include "nan.h"
 
 static const unsigned kMaxFramesCount = 255;
-#if (NODE_MODULE_VERSION >= 0x003b)
+#if (NODE_MODULE_VERSION >= NODE_9_0_MODULE_VERSION)
 static const char* v8_states[] = {
     "JS",       "GC",    "PARSER",   "BYTECODE_COMPILER",
     "COMPILER", "OTHER", "EXTERNAL", "IDLE"};

@@ -11,7 +11,7 @@ string GetSep() { return "\\"; }
 
 int GetPid() { return getpid(); }
 
-#if (NODE_MODULE_VERSION < 72)
+#if (NODE_MODULE_VERSION < NODE_12_0_MODULE_VERSION)
 // from libuv: uv/src/unix
 int uv_gettimeofday(uv_timeval64_t *tv) {
   const uint64_t epoch = (uint64_t)116444736000000000ULL;
