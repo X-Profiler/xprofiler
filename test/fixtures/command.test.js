@@ -5,6 +5,8 @@ const moment = require('moment');
 const expect = require('expect.js');
 const pkg = require('../../package.json');
 
+const REGEXP_NUMBER = /^\d+(\.\d+)?$/;
+
 function escape(str) {
   str = JSON.stringify(str);
   return str.slice(1, str.length - 1);
@@ -15,7 +17,12 @@ if (os.platform() === 'win32') {
   sep = '\\';
 }
 
-function checkProfile(rules, obj) {
+function checkProfile(rules, obj, rawKey) {
+  if (rules instanceof RegExp) {
+    rules = { [rawKey]: rules };
+    obj = { [rawKey]: obj };
+  }
+
   for (const [key, rule] of Object.entries(rules)) {
     const value = obj[key];
     if (rule instanceof RegExp) {
@@ -23,8 +30,12 @@ function checkProfile(rules, obj) {
         expect(rule.test(value)).to.be.ok();
       });
     } else if (Array.isArray(rule)) {
+      let checkTimes = 0;
       for (const v of value) {
-        checkProfile(rule[0], v);
+        checkProfile(rule[0], v, `${key}[${checkTimes++}]`);
+        if (checkTimes > 5) {
+          break;
+        }
       }
     } else if (typeof rule === 'function') {
       let label = value;
@@ -50,22 +61,22 @@ const cpuprofile = {
   typeId: /^xprofiler-cpu-profile$/,
   title: /^xprofiler$/,
   nodes: [{
-    id: /^\d+$/,
-    hitCount: /^\d+$/,
+    id: REGEXP_NUMBER,
+    hitCount: REGEXP_NUMBER,
     callFrame: {
       functionName: /^([$.\w\s()-_]+|)$/,
-      scriptId: /^\d+$/,
+      scriptId: REGEXP_NUMBER,
       bailoutReason: /^([\w\s]+|)$/,
       url: /^([@.\w()/\\:_-\s]+|)$/,
-      lineNumber: /^\d+$/,
-      columnNumber: /^\d+$/,
+      lineNumber: REGEXP_NUMBER,
+      columnNumber: REGEXP_NUMBER,
     },
-    children: isArray
+    children: [REGEXP_NUMBER]
   }],
-  startTime: /^\d+$/,
-  endTime: /^\d+$/,
-  samples: isArray,
-  timeDeltas: isArray
+  startTime: REGEXP_NUMBER,
+  endTime: REGEXP_NUMBER,
+  samples: [REGEXP_NUMBER],
+  timeDeltas: [REGEXP_NUMBER]
 };
 
 const heapsnapshot = {
@@ -80,12 +91,12 @@ const heapsnapshot = {
       sample_fields: isArray,
       // location_fields: isArray
     },
-    node_count: /^\d+$/,
-    edge_count: /^\d+$/,
-    trace_function_count: /^\d+$/
+    node_count: REGEXP_NUMBER,
+    edge_count: REGEXP_NUMBER,
+    trace_function_count: REGEXP_NUMBER
   },
-  nodes: isArray,
-  edges: isArray,
+  nodes: [REGEXP_NUMBER],
+  edges: [REGEXP_NUMBER],
   trace_function_infos: isArray,
   trace_tree: isArray,
   samples: isArray,
@@ -97,24 +108,45 @@ const heapprofile = {
   head: {
     callFrame: {
       functionName: /^([$.\w\s()-_]+|)$/,
-      scriptId: /^\d+$/,
+      scriptId: REGEXP_NUMBER,
       url: /^([@.\w()/\\:_-\s]+|)$/,
-      lineNumber: /^\d+$/,
-      columnNumber: /^\d+$/
+      lineNumber: REGEXP_NUMBER,
+      columnNumber: REGEXP_NUMBER
     },
-    selfSize: /^\d+$/,
+    selfSize: REGEXP_NUMBER,
     children: isArray
   }
 };
 
 const gcprofile = {
-  startTime: /^\d+$/,
-  gc: isArray,
-  stopTime: /^\d+$/,
+  startTime: REGEXP_NUMBER,
+  gc: [{
+    totalSpentfromStart: REGEXP_NUMBER,
+    totalTimesfromStart: REGEXP_NUMBER,
+    timeFromStart: REGEXP_NUMBER,
+    start: REGEXP_NUMBER,
+    type: /^(scavenge|marksweep|marking|weakcallbacks)$/,
+    before: [{
+      name: /^(.*)_space$/,
+      space_size: REGEXP_NUMBER,
+      space_used_size: REGEXP_NUMBER,
+      space_available_size: REGEXP_NUMBER,
+      physical_space_size: REGEXP_NUMBER,
+    }],
+    end: REGEXP_NUMBER,
+    after: [{
+      name: /^(.*)_space$/,
+      space_size: REGEXP_NUMBER,
+      space_used_size: REGEXP_NUMBER,
+      space_available_size: REGEXP_NUMBER,
+      physical_space_size: REGEXP_NUMBER,
+    }],
+  }],
+  stopTime: REGEXP_NUMBER,
 };
 
 const diag = {
-  pid: /^\d+$/,
+  pid: REGEXP_NUMBER,
   location: /^([\w\s()-:]+|)$/,
   message: /^([\w\s()-:]+|)$/,
   nodeVersion: new RegExp(`^${process.version}$`),
@@ -125,11 +157,11 @@ const diag = {
   jsStacks: isArray,
   nativeStacks: isArray,
   heapStatistics: {
-    heapTotal: /^\d+$/,
-    heapTotalCommitted: /^\d+$/,
-    heapTotalUsed: /^\d+$/,
-    heapTotalAvailable: /^\d+$/,
-    heapLimit: /^\d+$/
+    heapTotal: REGEXP_NUMBER,
+    heapTotalCommitted: REGEXP_NUMBER,
+    heapTotalUsed: REGEXP_NUMBER,
+    heapTotalAvailable: REGEXP_NUMBER,
+    heapLimit: REGEXP_NUMBER
   },
   heapSpaceStatistics: isArray,
   libuvHandles: isArray,
