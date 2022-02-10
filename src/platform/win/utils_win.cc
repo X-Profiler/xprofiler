@@ -7,7 +7,7 @@
 namespace xprofiler {
 void SleepCrossPlatform(int seconds) { Sleep(seconds * 1000); }
 
-string GetSep() { return "\\"; }
+std::string GetSep() { return "\\"; }
 
 int GetPid() { return getpid(); }
 

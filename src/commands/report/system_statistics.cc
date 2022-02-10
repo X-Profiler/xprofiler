@@ -1,9 +1,8 @@
-#include "system_statistics.h"
-
-#include "../../platform/platform.h"
+#include "node_report.h"
+#include "platform/platform.h"
 
 namespace xprofiler {
-void SetSystemStatistics(JSONWriter* writer) {
+void NodeReport::SetSystemStatistics(JSONWriter* writer) {
   writer->json_objectstart("system");
 
   PrintSystemEnv(writer);

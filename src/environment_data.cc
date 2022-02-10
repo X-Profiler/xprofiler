@@ -4,9 +4,9 @@
 
 #include "util.h"
 #include "xpf_node.h"
+#include "xpf_v8.h"
 
 namespace xprofiler {
-using Nan::HandleScope;
 using v8::Isolate;
 
 namespace per_process {
@@ -36,18 +36,19 @@ EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate) {
   // TODO(legendecas): environment registry.
   CHECK_EQ(per_process::environment_data, nullptr);
 
-  CHECK_EQ(isolate, Isolate::GetCurrent());
-  HandleScope scope;
+  HandleScope scope(isolate);
+  uv_loop_t* loop = node::GetCurrentEventLoop(isolate);
+  CHECK_NOT_NULL(loop);
 
   per_process::environment_data =
-      std::unique_ptr<EnvironmentData>(new EnvironmentData(isolate));
+      std::unique_ptr<EnvironmentData>(new EnvironmentData(isolate, loop));
   xprofiler::AtExit(isolate, AtExit, nullptr);
 
   return per_process::environment_data.get();
 }
 
-EnvironmentData::EnvironmentData(v8::Isolate* isolate) : isolate_(isolate) {
-  uv_loop_t* loop = node::GetCurrentEventLoop(isolate);
+EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
+    : isolate_(isolate), loop_(loop) {
   CHECK_EQ(0, uv_async_init(loop, &statistics_async_, CollectStatistics));
   uv_unref(reinterpret_cast<uv_handle_t*>(&statistics_async_));
 }

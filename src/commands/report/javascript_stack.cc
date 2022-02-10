@@ -1,9 +1,10 @@
-#include "javascript_stack.h"
-
-#include "../../platform/platform.h"
 #include "nan.h"
+#include "node_report.h"
+#include "platform/platform.h"
+#include "util.h"
+#include "xpf_v8.h"
 
-static const unsigned kMaxFramesCount = 255;
+static const size_t kMaxFramesCount = 255;
 #if (NODE_MODULE_VERSION >= NODE_9_0_MODULE_VERSION)
 static const char* v8_states[] = {
     "JS",       "GC",    "PARSER",   "BYTECODE_COMPILER",
@@ -15,7 +16,6 @@ static const char* v8_states[] = {
 #endif
 
 namespace xprofiler {
-using Nan::HandleScope;
 using Nan::Utf8String;
 using v8::Isolate;
 using v8::Local;
@@ -24,11 +24,10 @@ using v8::SampleInfo;
 using v8::StackFrame;
 using v8::StackTrace;
 
-void SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
-  HandleScope scope;
+void NodeReport::SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
+  HandleScope scope(isolate_);
   RegisterState state;
   SampleInfo info;
-  Isolate* isolate = Isolate::GetCurrent();
 
   // init state
   state.pc = nullptr;
@@ -39,10 +38,10 @@ void SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
   void* samples[kMaxFramesCount];
 
   // get instruction pointer
-  isolate->GetStackSample(state, samples, kMaxFramesCount, &info);
+  isolate_->GetStackSample(state, samples, kMaxFramesCount, &info);
 
   // set current vm state
-  if (static_cast<size_t>(info.vm_state) < 8) {
+  if (static_cast<size_t>(info.vm_state) < arraysize(v8_states)) {
     writer->json_keyvalue("vmState", v8_states[info.vm_state]);
   } else {
     writer->json_keyvalue("vmState", "unknown");
@@ -56,7 +55,7 @@ void SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
 
   // get js stacks
   Local<StackTrace> stack = StackTrace::CurrentStackTrace(
-      isolate, kMaxFramesCount, StackTrace::kDetailed);
+      isolate_, kMaxFramesCount, StackTrace::kDetailed);
   writer->json_arraystart("jsStacks");
   for (int i = 0; i < stack->GetFrameCount(); i++) {
     writer->json_start();
@@ -68,7 +67,7 @@ void SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
 
 #if (NODE_VERSION_AT_LEAST(10, 12, 0))
     // needs v8 version >= 6.8
-    Local<StackFrame> frame = stack->GetFrame(isolate, i);
+    Local<StackFrame> frame = stack->GetFrame(isolate_, i);
 #else
     Local<StackFrame> frame = stack->GetFrame(i);
 #endif

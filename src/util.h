@@ -109,6 +109,11 @@ constexpr ContainerOfHelper<Inner, Outer> ContainerOf(Inner Outer::*field,
   return ContainerOfHelper<Inner, Outer>(field, pointer);
 }
 
+template <typename T, size_t N>
+constexpr size_t arraysize(const T (&)[N]) {
+  return N;
+}
+
 // Convenience wrapper around v8::String::NewFromOneByte
 inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
                                            const char* data, int length = -1);

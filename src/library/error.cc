@@ -9,6 +9,6 @@ XpfError XpfError::Failure(const char *format, ...) {
   va_start(arglist, format);
   vsnprintf(tmp, sizeof(tmp), format, arglist);
   va_end(arglist);
-  return XpfError(true, string(tmp));
+  return XpfError(true, std::string(tmp));
 }
 }  // namespace xprofiler

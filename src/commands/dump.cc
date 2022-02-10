@@ -232,7 +232,7 @@ void HandleAction(void *data, string notify_type) {
       break;
     }
     case NODE_REPORT: {
-      NodeReport::GetNodeReport(node_report_filepath);
+      NodeReport::GetNodeReport(node_isolate, node_report_filepath);
       AfterDumpFile(node_report_filepath, notify_type, unique_key);
       action_map.erase(NODE_REPORT);
       break;

@@ -21,6 +21,7 @@ class EnvironmentData {
   void SendCollectStatistics();
 
   inline v8::Isolate* isolate() { return isolate_; }
+  inline uv_loop_t* loop() { return loop_; }
 
   inline GcStatistics* gc_statistics() { return &gc_statistics_; }
   inline HttpStatistics* http_statistics() { return &http_statistics_; }
@@ -32,9 +33,10 @@ class EnvironmentData {
  private:
   static void AtExit(void* arg);
   static void CollectStatistics(uv_async_t* handle);
-  EnvironmentData(v8::Isolate* isolate);
+  EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop);
 
   v8::Isolate* isolate_;
+  uv_loop_t* loop_;
   uv_async_t statistics_async_;
 
   GcStatistics gc_statistics_;
