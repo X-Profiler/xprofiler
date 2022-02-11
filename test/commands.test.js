@@ -44,6 +44,7 @@ for (let i = 0; i < testConfig.length; i++) {
       let resByXctl = '';
       let resByXprofctl = '';
       let pid = 0;
+      let exitInfo = { code: null, signal: null };
       before(async function () {
         mm(os, 'homedir', () => tmphome);
         console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'start fork.');
@@ -72,7 +73,7 @@ for (let i = 0; i < testConfig.length; i++) {
         });
         resByXprofctl = resByXprofctl.stderr.trim() + resByXprofctl.stdout.trim();
         console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'wait for child process done.');
-        await new Promise(resolve => p.on('close', resolve));
+        exitInfo = await utils.getChildProcessExitInfo(p);
       });
 
       after(function () {
@@ -81,6 +82,11 @@ for (let i = 0; i < testConfig.length; i++) {
           utils.cleanDir(logdir);
           utils.cleanDir(tmphome);
         }
+      });
+
+      it(`child process should be exited with code 0`, function () {
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, `exit info: ${JSON.stringify(exitInfo)}`);
+        utils.checkChildProcessExitInfo(expect, exitInfo);
       });
 
       it(`response with xctl should be ok`, function () {

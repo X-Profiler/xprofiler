@@ -57,6 +57,17 @@ exports.getNestingValue = function (origin, key) {
   return origin;
 };
 
-exports.arrayEqual = function arrayEqual(arr1, arr2) {
+exports.arrayEqual = function (arr1, arr2) {
   return arr1.every(a1 => arr2.includes(a1)) && arr2.every(a2 => arr1.includes(a2));
+};
+
+exports.getChildProcessExitInfo = function (proc) {
+  return new Promise(resolve => proc.on('close', (code, signal) => resolve({ code, signal })));
+};
+
+exports.checkChildProcessExitInfo = function (expect, exitInfo) {
+  const { code, signal } = exitInfo;
+  // One of the code | signal will always be non-null.
+  expect(code === 0).to.be.ok();
+  expect(signal === null).to.be.ok();
 };

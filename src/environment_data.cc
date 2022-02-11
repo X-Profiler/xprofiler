@@ -55,7 +55,8 @@ EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
 
 void EnvironmentData::AtExit(void* arg) {
   // TODO(legendecas): environment registry.
-  per_process::environment_data.reset();
+  // TODO(hyj1991): avoid 0xC0000005 on windows
+  // per_process::environment_data.reset();
 }
 
 void EnvironmentData::SendCollectStatistics() {
