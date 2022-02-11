@@ -10,7 +10,7 @@ using v8::CpuProfile;
 
 class Profile {
  public:
-  static void Serialize(const CpuProfile *node, string filename);
+  static void Serialize(const CpuProfile* node, string filename);
 };
 
 }  // namespace xprofiler

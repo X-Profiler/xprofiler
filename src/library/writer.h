@@ -73,7 +73,7 @@ class JSONWriter {
     state_ = kAfterValue;
   }
   template <typename T, typename U>
-  inline void json_keyvalue(const T &key, const U &value) {
+  inline void json_keyvalue(const T& key, const U& value) {
     if (state_ == kAfterValue) out_ << ',';
     out_ << '\n';
     advance();
@@ -84,7 +84,7 @@ class JSONWriter {
   }
 
   template <typename U>
-  inline void json_element(const U &value) {
+  inline void json_element(const U& value) {
     if (state_ == kAfterValue) out_ << ',';
     out_ << '\n';
     advance();
@@ -105,7 +105,7 @@ class JSONWriter {
   }
 
   inline void write_value(Null null) { out_ << "null"; }
-  inline void write_value(const char *str) { write_string(str); }
+  inline void write_value(const char* str) { write_string(str); }
   inline void write_value(const std::string& str) { write_string(str); }
 
   inline void write_string(const std::string& str) {

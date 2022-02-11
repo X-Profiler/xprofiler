@@ -3,7 +3,7 @@
 #include <stdarg.h>
 
 namespace xprofiler {
-XpfError XpfError::Failure(const char *format, ...) {
+XpfError XpfError::Failure(const char* format, ...) {
   char tmp[kMaxMessageLength];
   va_list arglist;
   va_start(arglist, format);

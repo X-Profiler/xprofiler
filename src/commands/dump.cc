@@ -18,7 +18,7 @@ using v8::Isolate;
 
 static const char module_type[] = "dump_action";
 
-static Isolate *node_isolate;
+static Isolate* node_isolate;
 static uv_mutex_t node_isolate_mutex;
 static uv_mutex_t async_data_mutex;
 static uv_async_t async_send_callback;
@@ -83,13 +83,13 @@ static string Action2String(DumpAction action) {
   return name;
 }
 
-static void ActionRunning(DumpAction action, XpfError &err) {
+static void ActionRunning(DumpAction action, XpfError& err) {
   if (action_map.find(action) != action_map.end()) {
     err = XpfError::Failure("%s is running.", Action2String(action).c_str());
   }
 }
 
-static void ConflictActionRunning(DumpAction action, XpfError &err) {
+static void ConflictActionRunning(DumpAction action, XpfError& err) {
   if (conflict_map.find(action) != conflict_map.end()) {
     for (DumpAction confilct : conflict_map.at(action)) {
       ActionRunning(confilct, err);
@@ -103,7 +103,7 @@ static void ConflictActionRunning(DumpAction action, XpfError &err) {
   }
 }
 
-static void DependentActionRunning(DumpAction action, XpfError &err) {
+static void DependentActionRunning(DumpAction action, XpfError& err) {
   if (dependent_map.find(action) != dependent_map.end()) {
     DumpAction dependent_action = dependent_map.at(action);
     ActionRunning(dependent_action, err);
@@ -117,7 +117,7 @@ static void DependentActionRunning(DumpAction action, XpfError &err) {
 }
 
 static void TransactionDone(string thread_name, string unique_key,
-                            XpfError &err) {
+                            XpfError& err) {
   if (request_map.find(unique_key) != request_map.end()) {
     err = XpfError::Failure("<%s> %s has been executed by other thread.",
                             thread_name.c_str(), unique_key.c_str());
@@ -125,21 +125,21 @@ static void TransactionDone(string thread_name, string unique_key,
 }
 
 template <typename T>
-static T *GetProfilingData(void *data, string notify_type, string unique_key) {
-  T *dump_data = static_cast<T *>(data);
+static T* GetProfilingData(void* data, string notify_type, string unique_key) {
+  T* dump_data = static_cast<T*>(data);
   Debug(module_type, "<%s> %s action start.", notify_type.c_str(),
         unique_key.c_str());
   return dump_data;
 }
 
 template <typename T>
-static T *GetDumpData(void *data) {
-  T *dump_data = static_cast<T *>(data);
+static T* GetDumpData(void* data) {
+  T* dump_data = static_cast<T*>(data);
   if (!dump_data->run_once) dump_data->run_once = true;
   return dump_data;
 }
 
-static void AfterDumpFile(string &filepath, string notify_type,
+static void AfterDumpFile(string& filepath, string notify_type,
                           string unique_key) {
   Debug(module_type, "<%s> %s dump file: %s.", notify_type.c_str(),
         unique_key.c_str(), filepath.c_str());
@@ -154,8 +154,8 @@ static void AfterDumpFile(string &filepath, string notify_type,
     return;                                                      \
   }
 
-void HandleAction(void *data, string notify_type) {
-  dump_data_t *dump_data = static_cast<dump_data_t *>(data);
+void HandleAction(void* data, string notify_type) {
+  dump_data_t* dump_data = static_cast<dump_data_t*>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
 
@@ -189,13 +189,13 @@ void HandleAction(void *data, string notify_type) {
   // start run action
   switch (action) {
     case START_CPU_PROFILING: {
-      cpuprofile_dump_data_t *tmp = GetProfilingData<cpuprofile_dump_data_t>(
+      cpuprofile_dump_data_t* tmp = GetProfilingData<cpuprofile_dump_data_t>(
           data, notify_type, unique_key);
       Profiler::StartProfiling(tmp->title);
       break;
     }
     case STOP_CPU_PROFILING: {
-      cpuprofile_dump_data_t *tmp = GetDumpData<cpuprofile_dump_data_t>(data);
+      cpuprofile_dump_data_t* tmp = GetDumpData<cpuprofile_dump_data_t>(data);
       Profiler::StopProfiling(tmp->title, cpuprofile_filepath);
       AfterDumpFile(cpuprofile_filepath, notify_type, unique_key);
       action_map.erase(START_CPU_PROFILING);
@@ -245,14 +245,14 @@ void HandleAction(void *data, string notify_type) {
 
 #undef CHECK_ERR
 
-static void RequestInterruptCallback(Isolate *isolate, void *data) {
+static void RequestInterruptCallback(Isolate* isolate, void* data) {
   HandleAction(data, "v8_request_interrupt");
 }
 
-static void AsyncSendCallback(uv_async_t *handle) {
+static void AsyncSendCallback(uv_async_t* handle) {
   // get data from async handle
   uv_mutex_lock(&async_data_mutex);
-  void *data = handle->data;
+  void* data = handle->data;
   handle->data = nullptr;
   uv_mutex_unlock(&async_data_mutex);
 
@@ -267,7 +267,7 @@ static void ProfilingTime(uint64_t profiling_time) {
   }
 }
 
-static void NoticeMainJsThread(void *data) {
+static void NoticeMainJsThread(void* data) {
   uv_mutex_lock(&node_isolate_mutex);
   node_isolate->RequestInterrupt(RequestInterruptCallback, data);
   uv_mutex_unlock(&node_isolate_mutex);
@@ -279,15 +279,15 @@ static void NoticeMainJsThread(void *data) {
 }
 
 template <typename T>
-void StopProfiling(void *data, DumpAction stop_action) {
-  T *dump_data = static_cast<T *>(data);
+void StopProfiling(void* data, DumpAction stop_action) {
+  T* dump_data = static_cast<T*>(data);
   ProfilingTime(dump_data->profiling_time);
   dump_data->action = stop_action;
   NoticeMainJsThread(data);
 }
 
-static void ProfilingWatchDog(void *data) {
-  dump_data_t *dump_data = static_cast<dump_data_t *>(data);
+static void ProfilingWatchDog(void* data) {
+  dump_data_t* dump_data = static_cast<dump_data_t*>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
   switch (action) {
@@ -332,7 +332,7 @@ int InitDumpAction() {
 }
 
 void UnrefDumpActionAsyncHandle() {
-  uv_unref(reinterpret_cast<uv_handle_t *>(&async_send_callback));
+  uv_unref(reinterpret_cast<uv_handle_t*>(&async_send_callback));
 }
 
 #define CHECK_ERR(func) \
@@ -341,7 +341,7 @@ void UnrefDumpActionAsyncHandle() {
 
 template <typename T>
 static json DoDumpAction(json command, DumpAction action, string prefix,
-                         string ext, T *data, bool profiling, XpfError &err) {
+                         string ext, T* data, bool profiling, XpfError& err) {
   json result;
 
   // get traceid
@@ -410,7 +410,7 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
     data->run_once = false;
     data->profiling_time = profiling_time;
     uv_thread_create(&uv_profiling_callback_thread, ProfilingWatchDog,
-                     (void *)data);
+                     (void*)data);
   } else {
     err = XpfError::Succeed();
   }
@@ -430,7 +430,7 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
 
 #define V(func, data_type, action, profiling, prefix, ext)     \
   COMMAND_CALLBACK(func) {                                     \
-    data_type##dump_data_t *data = new data_type##dump_data_t; \
+    data_type##dump_data_t* data = new data_type##dump_data_t; \
     ACTION_HANDLE(action, data_type, profiling, prefix, ext)   \
   }
 

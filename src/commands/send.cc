@@ -9,7 +9,7 @@ using std::string;
   result["ok"] = ok;           \
   result["traceid"] = traceid; \
   result[#res] = res;          \
-  CreateIpcClient(const_cast<char *>(result.dump().c_str()));
+  CreateIpcClient(const_cast<char*>(result.dump().c_str()));
 
 void ErrorValue(string traceid, string message) {
   json result;

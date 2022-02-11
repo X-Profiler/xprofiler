@@ -4,7 +4,7 @@ namespace xprofiler {
 using std::string;
 
 // from node-v12.13.0 src/node_report_utils.cc
-string EscapeJsonChars(const string &str) {
+string EscapeJsonChars(const string& str) {
   const string control_symbols[0x20] = {
       "\\u0000", "\\u0001", "\\u0002", "\\u0003", "\\u0004", "\\u0005",
       "\\u0006", "\\u0007", "\\b",     "\\t",     "\\n",     "\\v",

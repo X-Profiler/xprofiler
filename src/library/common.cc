@@ -18,7 +18,7 @@ unsigned long GetUptime() {
 
 std::string GetStartTime(std::string format) {
   char time_string_day[32];
-  struct tm *ptm = localtime(&per_process::load_time);
+  struct tm* ptm = localtime(&per_process::load_time);
   strftime(time_string_day, sizeof(time_string_day), format.c_str(), ptm);
   return std::string(time_string_day);
 }

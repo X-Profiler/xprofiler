@@ -12,11 +12,11 @@ using Nan::True;
 
 static uv_thread_t uv_commands_listener_thread;
 
-static void CreateCommandsListenerThread(void *unused) {
+static void CreateCommandsListenerThread(void* unused) {
   CreateIpcServer(ParseCmd);
 }
 
-void RunCommandsListener(const FunctionCallbackInfo<Value> &info) {
+void RunCommandsListener(const FunctionCallbackInfo<Value>& info) {
   int rc = 0;
   // init commands listener thread
   rc = uv_thread_create(&uv_commands_listener_thread,

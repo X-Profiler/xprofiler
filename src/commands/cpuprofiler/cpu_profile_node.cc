@@ -4,8 +4,8 @@ namespace xprofiler {
 using Nan::HandleScope;
 using Nan::Utf8String;
 
-void ProfileNode::SerializeNode(const CpuProfileNode *node,
-                                JSONWriter *writer) {
+void ProfileNode::SerializeNode(const CpuProfileNode* node,
+                                JSONWriter* writer) {
   HandleScope scope;
   Utf8String funcion_name(node->GetFunctionName());
   Utf8String url(node->GetScriptResourceName());

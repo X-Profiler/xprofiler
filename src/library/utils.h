@@ -11,18 +11,18 @@ using std::string;
 
 void Sleep(int seconds);
 
-string FmtMessage(const char *format, ...);
+string FmtMessage(const char* format, ...);
 
 string RandNum();
 
 string ConvertTime(string format);
 
 template <typename T>
-T GetJsonValue(json data, string key, XpfError &err) {
+T GetJsonValue(json data, string key, XpfError& err) {
   T result = T();
   try {
     result = data[key].get<T>();
-  } catch (json::exception &e) {
+  } catch (json::exception& e) {
     // format error message
     // ref: https://en.cppreference.com/w/cpp/error/exception/what
     char error_message[256];

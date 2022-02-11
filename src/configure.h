@@ -24,8 +24,8 @@ inline void SetLogType(LOG_TYPE value);
 inline void SetEnableLogUvHandles(bool value);
 
 // javascript accessible
-void Configure(const Nan::FunctionCallbackInfo<v8::Value> &info);
-void GetConfig(const Nan::FunctionCallbackInfo<v8::Value> &info);
+void Configure(const Nan::FunctionCallbackInfo<v8::Value>& info);
+void GetConfig(const Nan::FunctionCallbackInfo<v8::Value>& info);
 
 class ConfigStore {
   // TODO(legendecas): accessors.

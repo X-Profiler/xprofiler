@@ -22,12 +22,12 @@ using std::string;
     handled = true;                                                   \
   }
 
-void ParseCmd(char *command) {
+void ParseCmd(char* command) {
   Debug("parser", "received command: %s", command);
   json parsed;
   try {
     parsed = json::parse(command);
-  } catch (exception &e) {
+  } catch (exception& e) {
     Error("parser", "parse command error: %s", e.what());
     return;
   }
