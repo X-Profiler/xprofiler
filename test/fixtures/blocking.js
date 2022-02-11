@@ -41,4 +41,4 @@ while (Date.now() - start < 8000) {
 
 mm.restore();
 console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking done.');
-process.exit(0);
+// process.exit(0);
