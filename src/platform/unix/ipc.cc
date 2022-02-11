@@ -46,7 +46,7 @@ static bool CheckSocketPathIllegal(bool log_error) {
   return illegal;
 }
 
-void CheckSocketPath(const FunctionCallbackInfo<Value> &info) {
+void CheckSocketPath(const FunctionCallbackInfo<Value>& info) {
   bool log_error = false;
   if (info[0]->IsBoolean()) {
     log_error = To<bool>(info[0]).ToChecked();
@@ -54,7 +54,7 @@ void CheckSocketPath(const FunctionCallbackInfo<Value> &info) {
   info.GetReturnValue().Set(New<Boolean>(!CheckSocketPathIllegal(log_error)));
 }
 
-void CreateIpcServer(void (*parsecmd)(char *)) {
+void CreateIpcServer(void (*parsecmd)(char*)) {
   // create unix domain socket
   int server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (server_fd == -1) {
@@ -77,7 +77,7 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
 
   // bind fd
   int bind_res =
-      bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+      bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
   if (bind_res == -1) {
     Error(module_type, "bind fd %d failed.", server_fd);
     return;
@@ -128,7 +128,7 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
   }
 }
 
-void CreateIpcClient(char *message) {
+void CreateIpcClient(char* message) {
   // create unix domain socket
   int client_fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (client_fd == -1) {
@@ -151,7 +151,7 @@ void CreateIpcClient(char *message) {
 
   // connect server
   int connect_res =
-      connect(client_fd, (struct sockaddr *)&client_addr, sizeof(client_addr));
+      connect(client_fd, (struct sockaddr*)&client_addr, sizeof(client_addr));
   if (connect_res == -1) {
     Error(module_type, "create client connect failed: %s.\n", filename.c_str());
     return;

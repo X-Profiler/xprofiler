@@ -6,7 +6,7 @@
 namespace xprofiler {
 using Nan::FunctionCallbackInfo;
 using v8::Value;
-void SetHooks(const FunctionCallbackInfo<Value> &info);
+void SetHooks(const FunctionCallbackInfo<Value>& info);
 }  // namespace xprofiler
 
 #endif

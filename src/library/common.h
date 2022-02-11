@@ -11,9 +11,9 @@ unsigned long GetUptime();
 std::string GetStartTime(std::string format);
 
 // commands
-#define COMMAND_CALLBACK(cb)                                                \
-  void cb(nlohmann::json command, std::string (*format)(const char *, ...), \
-          std::function<void(nlohmann::json)> success,                      \
+#define COMMAND_CALLBACK(cb)                                               \
+  void cb(nlohmann::json command, std::string (*format)(const char*, ...), \
+          std::function<void(nlohmann::json)> success,                     \
           std::function<void(std::string)> error)
 }  // namespace xprofiler
 

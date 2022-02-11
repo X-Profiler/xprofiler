@@ -47,11 +47,11 @@ namespace per_process {
 uv_mutex_t logger_mutex;
 }
 
-static void WriteToFile(const LOG_LEVEL output_level, char *log) {
+static void WriteToFile(const LOG_LEVEL output_level, char* log) {
   // get time of date
   char time_string_day[32];
   time_t tt = time(NULL);
-  struct tm *ptm = localtime(&tt);
+  struct tm* ptm = localtime(&tt);
   strftime(time_string_day, sizeof(time_string_day), "%Y%m%d", ptm);
 
   // get filepath and write to file
@@ -84,8 +84,8 @@ static void WriteToFile(const LOG_LEVEL output_level, char *log) {
   uv_mutex_unlock(&per_process::logger_mutex);
 }
 
-static void Log(const LOG_LEVEL output_level, const char *type,
-                const char *format, va_list *arglist = nullptr) {
+static void Log(const LOG_LEVEL output_level, const char* type,
+                const char* format, va_list* arglist = nullptr) {
   LOG_LEVEL level = GetLogLevel();
   if (level < output_level) {
     return;
@@ -98,7 +98,7 @@ static void Log(const LOG_LEVEL output_level, const char *type,
   char time_string_ms[64];
   char time_string_ms_alinode[64];
   time_t tt = time(NULL);
-  struct tm *ptm = localtime(&tt);
+  struct tm* ptm = localtime(&tt);
   strftime(time_string_ms, sizeof(time_string_ms), "%Y-%m-%d %H:%M:%S", ptm);
   if (log_format_alinode) {
     uv_timeval64_t tv;
@@ -167,28 +167,28 @@ void InitOnceLogger() {
 }
 
 /* native logger */
-void Info(const char *log_type, const char *format, ...) {
+void Info(const char* log_type, const char* format, ...) {
   LOG_WITH_LEVEL(LOG_INFO)
 }
 
-void Error(const char *log_type, const char *format, ...) {
+void Error(const char* log_type, const char* format, ...) {
   LOG_WITH_LEVEL(LOG_ERROR)
 }
 
-void Debug(const char *log_type, const char *format, ...) {
+void Debug(const char* log_type, const char* format, ...) {
   LOG_WITH_LEVEL(LOG_DEBUG)
 }
 
 /* js binding logger */
-void JsInfo(const FunctionCallbackInfo<Value> &info) {
+void JsInfo(const FunctionCallbackInfo<Value>& info) {
   JS_LOG_WITH_LEVEL(LOG_INFO)
 }
 
-void JsError(const FunctionCallbackInfo<Value> &info) {
+void JsError(const FunctionCallbackInfo<Value>& info) {
   JS_LOG_WITH_LEVEL(LOG_ERROR)
 }
 
-void JsDebug(const FunctionCallbackInfo<Value> &info) {
+void JsDebug(const FunctionCallbackInfo<Value>& info) {
   JS_LOG_WITH_LEVEL(LOG_DEBUG)
 }
 };  // namespace xprofiler

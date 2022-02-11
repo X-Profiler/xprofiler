@@ -29,22 +29,22 @@ static const char module_type[] = "ipc";
       PIPE_UNLIMITED_INSTANCES, IN_AND_OUT_BUFFER_SIZE,               \
       IN_AND_OUT_BUFFER_SIZE, 0, NULL);
 
-wstring String2LPCWSTR(const string &s) {
+wstring String2LPCWSTR(const string& s) {
   int len;
   int slength = (int)s.length() + 1;
   len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
-  wchar_t *buf = new wchar_t[len];
+  wchar_t* buf = new wchar_t[len];
   MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
   wstring r(buf);
   delete[] buf;
   return r;
 }
 
-void CheckSocketPath(const FunctionCallbackInfo<Value> &info) {
+void CheckSocketPath(const FunctionCallbackInfo<Value>& info) {
   info.GetReturnValue().Set(New<Boolean>(true));
 }
 
-void CreateIpcServer(void (*parsecmd)(char *)) {
+void CreateIpcServer(void (*parsecmd)(char*)) {
   HANDLE named_pipe = NULL;
   string lp_name_string = "\\\\.\\pipe\\" + GetLogDir() +
                           "\\xprofiler-named-pipe-" + std::to_string(getpid());
@@ -128,7 +128,7 @@ void CreateIpcServer(void (*parsecmd)(char *)) {
   }
 }
 
-void CreateIpcClient(char *message) {
+void CreateIpcClient(char* message) {
   HANDLE named_pipe_client = NULL;
   string lp_name_string =
       "\\\\.\\pipe\\" + GetLogDir() + "\\" + XPROFILER_IPC_PATH;

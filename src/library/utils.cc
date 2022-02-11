@@ -11,7 +11,7 @@ namespace xprofiler {
 using std::string;
 void Sleep(int seconds) { SleepCrossPlatform(seconds); }
 
-string FmtMessage(const char *format, ...) {
+string FmtMessage(const char* format, ...) {
   char message[1024];
   va_list args;
   va_start(args, format);
@@ -29,7 +29,7 @@ string RandNum() {
 string ConvertTime(string format) {
   char time_string_day[32];
   time_t tt = time(NULL);
-  struct tm *ptm = localtime(&tt);
+  struct tm* ptm = localtime(&tt);
   strftime(time_string_day, sizeof(time_string_day), format.c_str(), ptm);
   return (string)time_string_day;
 }

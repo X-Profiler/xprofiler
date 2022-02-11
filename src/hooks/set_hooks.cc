@@ -4,7 +4,7 @@
 #include "fatal_error.h"
 
 namespace xprofiler {
-void SetHooks(const FunctionCallbackInfo<Value> &info) {
+void SetHooks(const FunctionCallbackInfo<Value>& info) {
   // set fatal error hook
   if (GetEnableFatalErrorHook()) {
     SetFatalErrorHandler();

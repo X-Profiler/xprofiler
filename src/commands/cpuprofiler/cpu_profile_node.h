@@ -10,7 +10,7 @@ using v8::CpuProfileNode;
 
 class ProfileNode {
  public:
-  static void SerializeNode(const CpuProfileNode *node, JSONWriter *writer);
+  static void SerializeNode(const CpuProfileNode* node, JSONWriter* writer);
 };
 
 }  // namespace xprofiler

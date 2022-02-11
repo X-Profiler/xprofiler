@@ -11,8 +11,8 @@ namespace xprofiler {
 double GetNowCpuUsage();
 
 // ipc
-void CreateIpcServer(void (*parsecmd)(char *));
-void CreateIpcClient(char *message);
+void CreateIpcServer(void (*parsecmd)(char*));
+void CreateIpcClient(char* message);
 
 // utils
 void SleepCrossPlatform(int seconds);
@@ -24,16 +24,16 @@ typedef struct {
   int64_t tv_sec;
   int32_t tv_usec;
 } uv_timeval64_t;
-int uv_gettimeofday(uv_timeval64_t *tv);
+int uv_gettimeofday(uv_timeval64_t* tv);
 #endif
 
 // node report
 std::string GetPcAddress(void* pc);
 std::string GetOsVersion();
-void PrintNativeStack(JSONWriter *writer);
-void PrintSystemEnv(JSONWriter *writer);
-void PrintResourceLimits(JSONWriter *writer);
-void PrintLoadedLibraries(JSONWriter *writer);
+void PrintNativeStack(JSONWriter* writer);
+void PrintSystemEnv(JSONWriter* writer);
+void PrintResourceLimits(JSONWriter* writer);
+void PrintLoadedLibraries(JSONWriter* writer);
 
 // js binding
 void CheckSocketPath(const Nan::FunctionCallbackInfo<v8::Value>& info);

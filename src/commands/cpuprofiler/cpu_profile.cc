@@ -9,7 +9,7 @@ using Nan::HandleScope;
 using Nan::Utf8String;
 using std::ofstream;
 
-void Profile::Serialize(const CpuProfile *node, std::string filename) {
+void Profile::Serialize(const CpuProfile* node, std::string filename) {
   HandleScope scope;
   ofstream outfile;
   outfile.open(filename, std::ios::out | std::ios::binary);

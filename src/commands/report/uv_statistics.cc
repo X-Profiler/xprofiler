@@ -9,7 +9,7 @@ namespace xprofiler {
 using std::ostringstream;
 using std::string;
 
-static const char *SignoString(int signo) {
+static const char* SignoString(int signo) {
 #define SIGNO_CASE(e) \
   case e:             \
     return #e;
@@ -135,11 +135,11 @@ static const char *SignoString(int signo) {
   }
 }
 
-static void reportPath(uv_handle_t *h, ostringstream &out) {
-  char *buffer = nullptr;
+static void reportPath(uv_handle_t* h, ostringstream& out) {
+  char* buffer = nullptr;
   int rc = -1;
   size_t size = 0;
-  uv_any_handle *handle = (uv_any_handle *)h;
+  uv_any_handle* handle = (uv_any_handle*)h;
   switch (h->type) {
     case UV_FS_EVENT: {
       rc = uv_fs_event_getpath(&(handle->fs_event), buffer, &size);
@@ -153,7 +153,7 @@ static void reportPath(uv_handle_t *h, ostringstream &out) {
       break;
   }
   if (rc == UV_ENOBUFS) {
-    buffer = static_cast<char *>(malloc(size));
+    buffer = static_cast<char*>(malloc(size));
     switch (h->type) {
       case UV_FS_EVENT: {
         rc = uv_fs_event_getpath(&(handle->fs_event), buffer, &size);
@@ -174,28 +174,28 @@ static void reportPath(uv_handle_t *h, ostringstream &out) {
   }
 }
 
-static void reportEndpoint(uv_handle_t *h, struct sockaddr *addr,
-                           const char *prefix, ostringstream &out) {
+static void reportEndpoint(uv_handle_t* h, struct sockaddr* addr,
+                           const char* prefix, ostringstream& out) {
   char host[INET6_ADDRSTRLEN];
   const int family = addr->sa_family;
-  const void *src =
+  const void* src =
       family == AF_INET
-          ? static_cast<void *>(
-                &(reinterpret_cast<sockaddr_in *>(addr)->sin_addr))
-          : static_cast<void *>(
-                &(reinterpret_cast<sockaddr_in6 *>(addr)->sin6_addr));
+          ? static_cast<void*>(
+                &(reinterpret_cast<sockaddr_in*>(addr)->sin_addr))
+          : static_cast<void*>(
+                &(reinterpret_cast<sockaddr_in6*>(addr)->sin6_addr));
   if (uv_inet_ntop(family, src, host, sizeof(host)) == 0) {
     const int port = ntohs(
-        family == AF_INET ? reinterpret_cast<sockaddr_in *>(addr)->sin_port
-                          : reinterpret_cast<sockaddr_in6 *>(addr)->sin6_port);
+        family == AF_INET ? reinterpret_cast<sockaddr_in*>(addr)->sin_port
+                          : reinterpret_cast<sockaddr_in6*>(addr)->sin6_port);
     out << prefix << host << ":" << port;
   }
 }
 
-static void reportEndpoints(uv_handle_t *h, ostringstream &out) {
+static void reportEndpoints(uv_handle_t* h, ostringstream& out) {
   struct sockaddr_storage addr_storage;
-  struct sockaddr *addr = (sockaddr *)&addr_storage;
-  uv_any_handle *handle = (uv_any_handle *)h;
+  struct sockaddr* addr = (sockaddr*)&addr_storage;
+  uv_any_handle* handle = (uv_any_handle*)h;
   int addr_size = sizeof(addr_storage);
   int rc = -1;
 
@@ -225,8 +225,8 @@ static void reportEndpoints(uv_handle_t *h, ostringstream &out) {
   }
 }
 
-static void walkHandle(uv_handle_t *h, void *arg) {
-  uv_any_handle *handle = reinterpret_cast<uv_any_handle *>(h);
+static void walkHandle(uv_handle_t* h, void* arg) {
+  uv_any_handle* handle = reinterpret_cast<uv_any_handle*>(h);
 
   ostringstream data;
   // const char *type = uv_handle_type_name(h->type);
@@ -342,7 +342,7 @@ static void walkHandle(uv_handle_t *h, void *arg) {
   if (h->type == UV_TCP || h->type == UV_NAMED_PIPE || h->type == UV_TTY ||
       h->type == UV_UDP || h->type == UV_POLL) {
     uv_os_fd_t fd_v;
-    uv_os_fd_t *fd = &fd_v;
+    uv_os_fd_t* fd = &fd_v;
     int rc = uv_fileno(h, fd);
 #ifndef _WIN32
     if (rc == 0) {
@@ -370,12 +370,12 @@ static void walkHandle(uv_handle_t *h, void *arg) {
          << (uv_is_writable(&handle->stream) ? ", writable" : "");
   }
 
-  JSONWriter *writer = static_cast<JSONWriter *>(arg);
+  JSONWriter* writer = static_cast<JSONWriter*>(arg);
   string detail = data.str();
 
   writer->json_start();
   writer->json_keyvalue("type", type);
-  writer->json_keyvalue("address", GetPcAddress(static_cast<void *>(h)));
+  writer->json_keyvalue("address", GetPcAddress(static_cast<void*>(h)));
   writer->json_keyvalue("hasRef", uv_has_ref(h));
   writer->json_keyvalue("isActive", uv_is_active(h));
   writer->json_keyvalue("detail", detail);

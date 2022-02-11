@@ -8,7 +8,7 @@ using Nan::FunctionCallbackInfo;
 using v8::Value;
 
 // javascript-accessible
-void RunCommandsListener(const FunctionCallbackInfo<Value> &info);
+void RunCommandsListener(const FunctionCallbackInfo<Value>& info);
 }  // namespace xprofiler
 
 #endif

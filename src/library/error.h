@@ -9,10 +9,10 @@ class XpfError {
  public:
   XpfError() : failed_(false), msg_("") {}
   XpfError(bool failed, std::string msg) : failed_(failed), msg_(msg) {}
-  static XpfError Failure(const char *format, ...);
+  static XpfError Failure(const char* format, ...);
   static XpfError Succeed() { return XpfError(); };
 
-  inline const char *GetErrMessage() { return msg_.c_str(); }
+  inline const char* GetErrMessage() { return msg_.c_str(); }
   inline bool Success() const { return !Fail(); }
   inline bool Fail() const { return failed_; }
 
