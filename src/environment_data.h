@@ -1,6 +1,7 @@
 #ifndef XPROFILER_SRC_ENVIRONMENT_DATA_H
 #define XPROFILER_SRC_ENVIRONMENT_DATA_H
 
+#include "commands/gcprofiler/gc_profiler.h"
 #include "logbypass/gc.h"
 #include "logbypass/heap.h"
 #include "logbypass/http.h"
@@ -29,6 +30,8 @@ class EnvironmentData {
   inline UvHandleStatistics* uv_handle_statistics() {
     return &uv_handle_statistics_;
   }
+
+  std::unique_ptr<GcProfiler> gc_profiler;
 
  private:
   static void AtExit(void* arg);
