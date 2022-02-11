@@ -25,6 +25,9 @@ using v8::StackFrame;
 using v8::StackTrace;
 
 void NodeReport::SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
+  if (isolate_ == nullptr) {
+    return;
+  }
   HandleScope scope(isolate_);
   RegisterState state;
   SampleInfo info;

@@ -1,12 +1,10 @@
-#ifndef _SRC_HOOKS_SET_HOOKS_H
-#define _SRC_HOOKS_SET_HOOKS_H
+#ifndef XPROFILER_SRC_HOOKS_SET_HOOKS_H
+#define XPROFILER_SRC_HOOKS_SET_HOOKS_H
 
 #include "nan.h"
 
 namespace xprofiler {
-using Nan::FunctionCallbackInfo;
-using v8::Value;
-void SetHooks(const FunctionCallbackInfo<Value>& info);
+void SetHooks(const Nan::FunctionCallbackInfo<v8::Value>& info);
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_HOOKS_SET_HOOKS_H */

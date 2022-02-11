@@ -3,6 +3,9 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include "hooks/fatal_error.h"
+#include "platform/platform.h"
+
 namespace xprofiler {
 [[noreturn]] void Abort() {
   std::fflush(stderr);
@@ -10,11 +13,11 @@ namespace xprofiler {
 }
 
 [[noreturn]] void Assert(const AssertionInfo& info) {
-  fprintf(stderr, "xprofiler: %s:%s%s Assertion `%s' failed.\n", info.file_line,
-          info.function, *info.function ? ":" : "", info.message);
-  fflush(stderr);
-
-  Abort();
+  std::string location =
+      std::string(info.file_line) + ":" + std::string(info.function);
+  std::string message =
+      "Assertion `" + std::string(info.message) + "' failed.\n";
+  OnFatalError(location.c_str(), message.c_str());
 }
 
 }  // namespace xprofiler

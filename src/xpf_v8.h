@@ -33,6 +33,15 @@ class HandleScope {
   void* operator new(size_t size) = delete;
   void operator delete(void*, size_t) = delete;
 };
+
+inline v8::Isolate* TryGetCurrentIsolate() {
+#if NODE_MODULE_VERSION > NODE_16_0_MODULE_VERSION
+  return v8::Isolate::TryGetCurrent();
+#else
+  return v8::Isolate::GetCurrent();
+#endif
+}
+
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_XPF_V8_H */
