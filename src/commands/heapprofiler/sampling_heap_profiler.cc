@@ -52,6 +52,7 @@ void SamplingHeapProfiler::StopSamplingHeapProfiling(v8::Isolate* isolate,
     Error("sampling_heap_profiler", "open file %s failed.", filename.c_str());
     return;
   }
+  HandleScope scope(isolate);
   // get allocationProfile
   std::unique_ptr<AllocationProfile> profile =
       std::unique_ptr<AllocationProfile>(
@@ -59,7 +60,7 @@ void SamplingHeapProfiler::StopSamplingHeapProfiling(v8::Isolate* isolate,
   // stop sampling heap profile
   isolate->GetHeapProfiler()->StopSamplingHeapProfiler();
 
-  AllocationProfile::Node *root = profile->GetRootNode();
+  AllocationProfile::Node* root = profile->GetRootNode();
   JSONWriter writer(outfile);
   writer.json_start();
   writer.json_objectstart("head");
