@@ -29,7 +29,7 @@ NODE_C_CTOR(Main) {
 
 NAN_MODULE_INIT(Initialize) {
   Isolate* isolate = target->GetIsolate();
-  EnvironmentData::Create(isolate);
+  EnvironmentData::Create(isolate, EnvironmentData::Role::kMain);
 
   // config
   CREATE_JS_BINDING(configure, Configure);

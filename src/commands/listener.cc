@@ -1,8 +1,11 @@
-#include "../logger.h"
-#include "../platform/platform.h"
+#include "listener.h"
+
 #include "dump.h"
+#include "logger.h"
 #include "nan.h"
 #include "parser.h"
+#include "platform/platform.h"
+#include "util.h"
 #include "uv.h"
 
 namespace xprofiler {
@@ -10,26 +13,32 @@ using Nan::False;
 using Nan::ThrowTypeError;
 using Nan::True;
 
-static uv_thread_t uv_commands_listener_thread;
+class CommandListenerThread {
+ public:
+  CommandListenerThread() {
+    // init log thread
+    CHECK_EQ(0, uv_thread_create(&thread_, Main, nullptr));
+    Info("init", "commands listener: listener thread created.");
+  }
 
-static void CreateCommandsListenerThread(void* unused) {
-  CreateIpcServer(ParseCmd);
+  ~CommandListenerThread() { CHECK_EQ(0, uv_thread_join(&thread_)); }
+
+  static void Main(void* unused) { CreateIpcServer(ParseCmd); }
+
+ private:
+  uv_thread_t thread_;
+};
+
+namespace per_process {
+std::unique_ptr<CommandListenerThread> command_listener_thread;
 }
 
 void RunCommandsListener(const FunctionCallbackInfo<Value>& info) {
-  int rc = 0;
-  // init commands listener thread
-  rc = uv_thread_create(&uv_commands_listener_thread,
-                        CreateCommandsListenerThread, nullptr);
-  if (rc != 0) {
-    ThrowTypeError("xprofiler: create uv commands listener thread failed!");
-    info.GetReturnValue().Set(False());
-    return;
-  }
-  Info("init", "commands listener: listener thread created.");
+  per_process::command_listener_thread =
+      std::make_unique<CommandListenerThread>();
 
   // init dump action node isolate
-  rc = InitDumpAction();
+  int rc = InitDumpAction();
   if (rc != 0) {
     ThrowTypeError("xprofiler: init dump action failed!");
     info.GetReturnValue().Set(False());
@@ -40,4 +49,6 @@ void RunCommandsListener(const FunctionCallbackInfo<Value>& info) {
 
   info.GetReturnValue().Set(True());
 }
+
+void StopCommandsListener() { per_process::command_listener_thread.reset(); }
 }  // namespace xprofiler

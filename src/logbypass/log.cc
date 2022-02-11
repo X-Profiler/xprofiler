@@ -16,63 +16,71 @@ using Nan::False;
 using Nan::ThrowTypeError;
 using Nan::True;
 
-namespace per_process {
-uv_thread_t uv_log_thread;
-}
+class LogThread {
+ public:
+  LogThread() {
+    // init log thread
+    CHECK_EQ(0, uv_thread_create(&thread_, Main, nullptr));
+    Info("init", "logbypass: log thread created.");
+  }
 
-static void LogThreadMain(void* unused) {
-  uint64_t last_loop_time = uv_hrtime();
-  while (1) {
-    // sleep 1s for releasing cpu
-    Sleep(1);
+  ~LogThread() { CHECK_EQ(0, uv_thread_join(&thread_)); }
 
-    // set now cpu usage
-    SetNowCpuUsage();
-
-    // check if need to write performance logs to file
-    if (uv_hrtime() - last_loop_time >= GetLogInterval() * 10e8) {
-      last_loop_time = uv_hrtime();
-      bool log_format_alinode = GetFormatAsAlinode();
-
-      EnvironmentData* env_data = EnvironmentData::GetCurrent();
-
-      env_data->SendCollectStatistics();
-      // sleep 1s for executing async callback
+  static void Main(void* unused) {
+    uint64_t last_loop_time = uv_hrtime();
+    while (1) {
+      // sleep 1s for releasing cpu
       Sleep(1);
 
-      // write cpu info
-      WriteCpuUsageInPeriod(log_format_alinode);
+      // set now cpu usage
+      SetNowCpuUsage();
 
-      // write heap memory info
-      WriteMemoryInfoToLog(env_data, log_format_alinode);
+      // check if need to write performance logs to file
+      if (uv_hrtime() - last_loop_time >= GetLogInterval() * 10e8) {
+        last_loop_time = uv_hrtime();
+        bool log_format_alinode = GetFormatAsAlinode();
 
-      // write gc status
-      WriteGcStatusToLog(env_data, log_format_alinode);
+        EnvironmentData* env_data = EnvironmentData::GetCurrent();
 
-      // write libuv handle info
-      WriteLibuvHandleInfoToLog(env_data, log_format_alinode);
+        env_data->SendCollectStatistics();
+        // sleep 1s for executing async callback
+        Sleep(1);
 
-      // write http status
-      WriteHttpStatus(env_data, log_format_alinode, GetPatchHttpTimeout());
+        // write cpu info
+        WriteCpuUsageInPeriod(log_format_alinode);
+
+        // write heap memory info
+        WriteMemoryInfoToLog(env_data, log_format_alinode);
+
+        // write gc status
+        WriteGcStatusToLog(env_data, log_format_alinode);
+
+        // write libuv handle info
+        WriteLibuvHandleInfoToLog(env_data, log_format_alinode);
+
+        // write http status
+        WriteHttpStatus(env_data, log_format_alinode, GetPatchHttpTimeout());
+      }
     }
   }
+
+ private:
+  uv_thread_t thread_;
+};
+
+namespace per_process {
+std::unique_ptr<LogThread> log_thread;
 }
 
 void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
-  int rc = 0;
   // init gc hooks
   InitGcStatusHooks();
   Info("init", "logbypass: gc hooks setted.");
 
-  // init log thread
-  rc = uv_thread_create(&per_process::uv_log_thread, LogThreadMain, nullptr);
-  if (rc != 0) {
-    ThrowTypeError("xprofiler: create uv log thread failed!");
-    info.GetReturnValue().Set(False());
-    return;
-  }
-  Info("init", "logbypass: log thread created.");
-
+  per_process::log_thread = std::make_unique<LogThread>();
   info.GetReturnValue().Set(True());
 }
+
+void StopLogBypass() { per_process::log_thread.reset(); }
+
 }  // namespace xprofiler

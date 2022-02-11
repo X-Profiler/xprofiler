@@ -12,15 +12,22 @@ namespace xprofiler {
 
 class EnvironmentData {
  public:
+  enum class Role {
+    kMain,
+    kWorker,
+  };
+
   // TODO(legendecas): remove this no-args GetCurrent.
   static EnvironmentData* GetCurrent();
   static EnvironmentData* GetCurrent(v8::Isolate* isolate);
   static EnvironmentData* GetCurrent(
       const Nan::FunctionCallbackInfo<v8::Value>& info);
-  static EnvironmentData* Create(v8::Isolate* isolate);
+  static EnvironmentData* Create(v8::Isolate* isolate, Role role);
+  ~EnvironmentData();
 
   void SendCollectStatistics();
 
+  inline Role role() { return role_; }
   inline v8::Isolate* isolate() { return isolate_; }
   inline uv_loop_t* loop() { return loop_; }
 
@@ -36,8 +43,9 @@ class EnvironmentData {
  private:
   static void AtExit(void* arg);
   static void CollectStatistics(uv_async_t* handle);
-  EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop);
+  EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop, Role role);
 
+  Role role_;
   v8::Isolate* isolate_;
   uv_loop_t* loop_;
   uv_async_t statistics_async_;

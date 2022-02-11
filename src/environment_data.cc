@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "commands/listener.h"
+#include "logbypass/log.h"
 #include "util.h"
 #include "xpf_node.h"
 #include "xpf_v8.h"
@@ -32,7 +34,7 @@ EnvironmentData* EnvironmentData::GetCurrent(
   return per_process::environment_data.get();
 }
 
-EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate) {
+EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate, Role role) {
   // TODO(legendecas): environment registry.
   CHECK_EQ(per_process::environment_data, nullptr);
 
@@ -40,17 +42,25 @@ EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate) {
   uv_loop_t* loop = node::GetCurrentEventLoop(isolate);
   CHECK_NOT_NULL(loop);
 
-  per_process::environment_data =
-      std::unique_ptr<EnvironmentData>(new EnvironmentData(isolate, loop));
+  per_process::environment_data = std::unique_ptr<EnvironmentData>(
+      new EnvironmentData(isolate, loop, role));
   xprofiler::AtExit(isolate, AtExit, nullptr);
 
   return per_process::environment_data.get();
 }
 
-EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
-    : isolate_(isolate), loop_(loop) {
+EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop,
+                                 Role role)
+    : isolate_(isolate), loop_(loop), role_(role) {
   CHECK_EQ(0, uv_async_init(loop, &statistics_async_, CollectStatistics));
   uv_unref(reinterpret_cast<uv_handle_t*>(&statistics_async_));
+}
+
+EnvironmentData::~EnvironmentData() {
+  if (role_ == Role::kMain) {
+    StopCommandsListener();
+    StopLogBypass();
+  }
 }
 
 void EnvironmentData::AtExit(void* arg) {

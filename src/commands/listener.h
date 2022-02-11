@@ -1,5 +1,5 @@
-#ifndef _SRC_COMMANDS_LISTENER_H
-#define _SRC_COMMANDS_LISTENER_H
+#ifndef XPROFILER_SRC_COMMANDS_LISTENER_H
+#define XPROFILER_SRC_COMMANDS_LISTENER_H
 
 #include "nan.h"
 
@@ -9,6 +9,7 @@ using v8::Value;
 
 // javascript-accessible
 void RunCommandsListener(const FunctionCallbackInfo<Value>& info);
+void StopCommandsListener();
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_COMMANDS_LISTENER_H */
