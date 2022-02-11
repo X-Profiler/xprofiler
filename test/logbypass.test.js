@@ -3,6 +3,7 @@
 const fs = require('fs');
 const cp = require('child_process');
 const expect = require('expect.js');
+const moment = require('moment');
 const pack = require('../package.json');
 const utils = require('./fixtures/utils');
 const getTestCases = require('./fixtures/logbypass.test');
@@ -77,10 +78,11 @@ for (const testCase of cases) {
       /*eslint no-loop-func: "off" */
       let logContent;
       let pid;
+      let exitInfo = { code: null, signal: null };
       before(async function () {
         const p = cp.fork(target.file, { env: Object.assign({ XPROFILER_LOG_TYPE: 1 }, testCase.env, target.env) });
         pid = p.pid;
-        await new Promise(resolve => p.on('close', resolve));
+        exitInfo = await utils.getChildProcessExitInfo(p);
         logContent = fs.readFileSync(target.logfile, 'utf8');
       });
 
@@ -96,6 +98,11 @@ for (const testCase of cases) {
             utils.cleanDir(logdirNonBlockingForHttp);
           }
         }
+      });
+
+      it(`child process should be exited with code 0`, function () {
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, `exit info: ${JSON.stringify(exitInfo)}`);
+        utils.checkChildProcessExitInfo(expect, exitInfo);
       });
 
       const types = Object.keys(testCase.struct);
