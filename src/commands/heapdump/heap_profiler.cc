@@ -1,19 +1,21 @@
 #include "heap_profiler.h"
 
 #include "heap_snapshot.h"
+#include "util.h"
+#include "xpf_v8.h"
 
 namespace xprofiler {
-using Nan::HandleScope;
-using v8::HeapSnapshot;
 using v8::Isolate;
 
-HeapProfiler::HeapProfiler() {}
-HeapProfiler::~HeapProfiler() {}
-
-void HeapProfiler::TakeSnapshot(string filename) {
-  Isolate *isolate = Isolate::GetCurrent();
-  HandleScope scope;
-  const HeapSnapshot *snap = isolate->GetHeapProfiler()->TakeHeapSnapshot();
-  Snapshot::Serialize(snap, filename);
+void DeleteHeapSnapshot(const v8::HeapSnapshot* snapshot) {
+  const_cast<v8::HeapSnapshot*>(snapshot)->Delete();
 }
+
+void HeapProfiler::TakeSnapshot(v8::Isolate* isolate, std::string filename) {
+  HandleScope scope(isolate);
+  HeapSnapshotPointer snap =
+      HeapSnapshotPointer(isolate->GetHeapProfiler()->TakeHeapSnapshot());
+  HeapSnapshot::Serialize(std::move(snap), filename);
+}
+
 }  // namespace xprofiler

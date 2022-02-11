@@ -1,21 +1,18 @@
 #include "sampling_heap_profiler.h"
 
-#include "../../library/writer.h"
-#include "../../logger.h"
+#include "library/writer.h"
+#include "logger.h"
+#include "xpf_v8.h"
 
 namespace xprofiler {
-using Nan::HandleScope;
 using Nan::Utf8String;
 using std::ofstream;
 using v8::AllocationProfile;
 using v8::Isolate;
 
-SamplingHeapProfile::SamplingHeapProfile() {}
-SamplingHeapProfile::~SamplingHeapProfile() {}
-
-void TranslateAllocationProfile(AllocationProfile::Node *node,
-                                JSONWriter *writer) {
-  HandleScope scope;
+void TranslateAllocationProfile(Isolate* isolate, AllocationProfile::Node* node,
+                                JSONWriter* writer) {
+  HandleScope scope(isolate);
   writer->json_objectstart("callFrame");
   Utf8String function_name(node->name);
   Utf8String url(node->script_name);
@@ -27,7 +24,7 @@ void TranslateAllocationProfile(AllocationProfile::Node *node,
   writer->json_objectend();
 
   // add self size
-  int selfSize = 0;
+  size_t selfSize = 0;
   for (size_t i = 0; i < node->allocations.size(); i++) {
     AllocationProfile::Allocation alloc = node->allocations[i];
     selfSize += alloc.size * alloc.count;
@@ -38,38 +35,37 @@ void TranslateAllocationProfile(AllocationProfile::Node *node,
   writer->json_arraystart("children");
   for (size_t i = 0; i < node->children.size(); i++) {
     writer->json_start();
-    TranslateAllocationProfile(node->children[i], writer);
+    TranslateAllocationProfile(isolate, node->children[i], writer);
     writer->json_end();
   }
   writer->json_arrayend();
 }
 
-void SamplingHeapProfile::StartSamplingHeapProfiling() {
-  Isolate::GetCurrent()->GetHeapProfiler()->StartSamplingHeapProfiler();
+void SamplingHeapProfiler::StartSamplingHeapProfiling(v8::Isolate* isolate) {
+  isolate->GetHeapProfiler()->StartSamplingHeapProfiler();
 }
 
-void SamplingHeapProfile::StopSamplingHeapProfiling(string filename) {
-  HandleScope scope;
-  ofstream outfile;
-  outfile.open(filename, std::ios::out | std::ios::binary);
+void SamplingHeapProfiler::StopSamplingHeapProfiling(v8::Isolate* isolate,
+                                                     std::string filename) {
+  ofstream outfile(filename, std::ios::out | std::ios::binary);
   if (!outfile.is_open()) {
     Error("sampling_heap_profiler", "open file %s failed.", filename.c_str());
-    outfile.close();
     return;
   }
+  HandleScope scope(isolate);
   // get allocationProfile
-  AllocationProfile *profile =
-      Isolate::GetCurrent()->GetHeapProfiler()->GetAllocationProfile();
-  AllocationProfile::Node *root = profile->GetRootNode();
+  std::unique_ptr<AllocationProfile> profile =
+      std::unique_ptr<AllocationProfile>(
+          isolate->GetHeapProfiler()->GetAllocationProfile());
+  // stop sampling heap profile
+  isolate->GetHeapProfiler()->StopSamplingHeapProfiler();
+
+  AllocationProfile::Node* root = profile->GetRootNode();
   JSONWriter writer(outfile);
   writer.json_start();
   writer.json_objectstart("head");
-  TranslateAllocationProfile(root, &writer);
+  TranslateAllocationProfile(isolate, root, &writer);
   writer.json_objectend();
   writer.json_end();
-  outfile.close();
-  free(profile);
-  // stop sampling heap profile
-  Isolate::GetCurrent()->GetHeapProfiler()->StopSamplingHeapProfiler();
 }
 }  // namespace xprofiler

@@ -1,15 +1,14 @@
-#ifndef _SRC_COMMANDS_HEAPDUMP_HEAP_SNAPSHOT_H
-#define _SRC_COMMANDS_HEAPDUMP_HEAP_SNAPSHOT_H
+#ifndef XPROFILER_SRC_COMMANDS_HEAPDUMP_HEAP_SNAPSHOT_H
+#define XPROFILER_SRC_COMMANDS_HEAPDUMP_HEAP_SNAPSHOT_H
 
+#include "heap_profiler.h"
 #include "v8-profiler.h"
 
 namespace xprofiler {
-using std::string;
-using v8::HeapSnapshot;
-
-class Snapshot {
+class HeapSnapshot {
  public:
-  static void Serialize(const HeapSnapshot *profile, string filename);
+  static void Serialize(HeapSnapshotPointer profile, std::string filename);
 };
 }  // namespace xprofiler
-#endif  // NODE_SNAPSHOT_
+
+#endif /* XPROFILER_SRC_COMMANDS_HEAPDUMP_HEAP_SNAPSHOT_H */
