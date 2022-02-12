@@ -1,12 +1,14 @@
 #include "cpu_profile_node.h"
 
+#include "xpf_v8.h"
+
 namespace xprofiler {
-using Nan::HandleScope;
 using Nan::Utf8String;
 
-void ProfileNode::SerializeNode(const CpuProfileNode* node,
-                                JSONWriter* writer) {
-  HandleScope scope;
+void CpuProfileNode::SerializeNode(v8::Isolate* isolate,
+                                   const v8::CpuProfileNode* node,
+                                   JSONWriter* writer) {
+  HandleScope scope(isolate);
   Utf8String funcion_name(node->GetFunctionName());
   Utf8String url(node->GetScriptResourceName());
 
@@ -34,7 +36,7 @@ void ProfileNode::SerializeNode(const CpuProfileNode* node,
   writer->json_end();
 
   for (int index = 0; index < count; index++) {
-    ProfileNode::SerializeNode(node->GetChild(index), writer);
+    CpuProfileNode::SerializeNode(isolate, node->GetChild(index), writer);
   }
 }
 

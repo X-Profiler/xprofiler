@@ -1,71 +1,69 @@
 #include "cpu_profiler.h"
 
 #include "cpu_profile.h"
+#include "environment_data.h"
+#include "xpf_v8.h"
 
 namespace xprofiler {
-using Nan::HandleScope;
 using Nan::New;
-using v8::CpuProfile;
-using v8::CpuProfiler;
 using v8::Isolate;
 using v8::Local;
 using v8::String;
 
-Profiler::Profiler() {}
-Profiler::~Profiler() {}
-
+void CpuProfiler::DeleteCpuProfiler(v8::CpuProfiler* profiler) {
 #if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
-static int started_profiles_count = 0;
-static int sampling_interval = 0;
-static CpuProfiler* current_cpuprofiler = nullptr;
-#endif
-
-void Profiler::StartProfiling(std::string t) {
-  HandleScope scope;
-  Local<String> title = New<String>(t).ToLocalChecked();
-
-#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
-  if (!started_profiles_count) {
-    current_cpuprofiler = CpuProfiler::New(Isolate::GetCurrent());
-  }
-  if (sampling_interval) {
-    current_cpuprofiler->SetSamplingInterval(sampling_interval);
-  }
-  ++started_profiles_count;
-  current_cpuprofiler->StartProfiling(title, true);
-#else
-  Isolate::GetCurrent()->GetCpuProfiler()->StartProfiling(title, true);
+  profiler->Dispose();
 #endif
 }
 
-void Profiler::StopProfiling(string t, string filename) {
-  const CpuProfile* profile;
-  HandleScope scope;
-  Local<String> title = New<String>(t).ToLocalChecked();
-
-#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
-  profile = current_cpuprofiler->StopProfiling(title);
-#else
-  profile = Isolate::GetCurrent()->GetCpuProfiler()->StopProfiling(title);
-#endif
-
-  Profile::Serialize(profile, filename);
-
-#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
-  const_cast<CpuProfile*>(profile)->Delete();
-  --started_profiles_count;
-  if (!started_profiles_count) {
-    current_cpuprofiler->Dispose();
-    current_cpuprofiler = nullptr;
+void CpuProfiler::StartProfiling(v8::Isolate* isolate, std::string t) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  if (env_data->cpu_profiler == nullptr) {
+    env_data->cpu_profiler =
+        std::unique_ptr<CpuProfiler>(new CpuProfiler(isolate));
   }
+  env_data->cpu_profiler->StartProfiling(t);
+}
+
+void CpuProfiler::StopProfiling(v8::Isolate* isolate, std::string t,
+                                std::string filename) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  if (env_data->cpu_profiler == nullptr) {
+    return;
+  }
+  env_data->cpu_profiler->StopProfiling(t, filename);
+  if (env_data->cpu_profiler->started_profiles_count() == 0) {
+    env_data->cpu_profiler.reset();
+  }
+}
+
+CpuProfiler::CpuProfiler(v8::Isolate* isolate) : isolate_(isolate) {
+#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
+  cpu_profiler_ = CpuProfilerPtr(v8::CpuProfiler::New(Isolate::GetCurrent()));
+#else
+  cpu_profiler_ = CpuProfilerPtr(isolate->GetCpuProfiler());
 #endif
 }
 
-void Profiler::SetSamplingInterval(uint32_t sample) {
-#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
-  sampling_interval = sample;
-#else
-  Isolate::GetCurrent()->GetCpuProfiler()->SetSamplingInterval(sample);
-#endif
+CpuProfiler::~CpuProfiler() {}
+
+void CpuProfiler::StartProfiling(std::string t) {
+  HandleScope scope(isolate_);
+  Local<String> title = New<String>(t).ToLocalChecked();
+
+  ++started_profiles_count_;
+  cpu_profiler_->StartProfiling(title, true);
+}
+
+void CpuProfiler::StopProfiling(std::string t, std::string filename) {
+  HandleScope scope(isolate_);
+  Local<String> title = New<String>(t).ToLocalChecked();
+
+  CpuProfile::CpuProfilePtr profile =
+      CpuProfile::CpuProfilePtr(cpu_profiler_->StopProfiling(title));
+
+  CpuProfile::Serialize(isolate_, std::move(profile), filename);
+
+  --started_profiles_count_;
 }
 }  // namespace xprofiler

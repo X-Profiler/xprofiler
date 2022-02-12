@@ -191,12 +191,12 @@ void HandleAction(void* data, string notify_type) {
     case START_CPU_PROFILING: {
       cpuprofile_dump_data_t* tmp = GetProfilingData<cpuprofile_dump_data_t>(
           data, notify_type, unique_key);
-      Profiler::StartProfiling(tmp->title);
+      CpuProfiler::StartProfiling(node_isolate, tmp->title);
       break;
     }
     case STOP_CPU_PROFILING: {
       cpuprofile_dump_data_t* tmp = GetDumpData<cpuprofile_dump_data_t>(data);
-      Profiler::StopProfiling(tmp->title, cpuprofile_filepath);
+      CpuProfiler::StopProfiling(node_isolate, tmp->title, cpuprofile_filepath);
       AfterDumpFile(cpuprofile_filepath, notify_type, unique_key);
       action_map.erase(START_CPU_PROFILING);
       action_map.erase(STOP_CPU_PROFILING);
