@@ -1,21 +1,27 @@
 #include "cpu_profile.h"
 
-#include "../../library/writer.h"
-#include "../../logger.h"
 #include "cpu_profile_node.h"
+#include "library/writer.h"
+#include "logger.h"
+#include "xpf_v8.h"
 
 namespace xprofiler {
-using Nan::HandleScope;
 using Nan::Utf8String;
 using std::ofstream;
 
-void Profile::Serialize(const CpuProfile* node, std::string filename) {
-  HandleScope scope;
+void CpuProfile::DeleteCpuProfile(const v8::CpuProfile* profile) {
+#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
+  const_cast<v8::CpuProfile*>(profile)->Delete();
+#endif
+}
+
+void CpuProfile::Serialize(v8::Isolate* isolate, CpuProfilePtr node,
+                           std::string filename) {
+  HandleScope scope(isolate);
   ofstream outfile;
   outfile.open(filename, std::ios::out | std::ios::binary);
   if (!outfile.is_open()) {
     Error("cpu_profile", "open file %s failed.", filename.c_str());
-    outfile.close();
     return;
   }
 
@@ -30,7 +36,7 @@ void Profile::Serialize(const CpuProfile* node, std::string filename) {
 
   // set nodes
   writer.json_arraystart("nodes");
-  ProfileNode::SerializeNode(node->GetTopDownRoot(), &writer);
+  CpuProfileNode::SerializeNode(isolate, node->GetTopDownRoot(), &writer);
   writer.json_arrayend();
 
   // set start/end time
@@ -57,6 +63,5 @@ void Profile::Serialize(const CpuProfile* node, std::string filename) {
 
   // write to file
   writer.json_end();
-  outfile.close();
 }
 }  // namespace xprofiler

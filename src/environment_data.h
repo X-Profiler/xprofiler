@@ -1,6 +1,7 @@
 #ifndef XPROFILER_SRC_ENVIRONMENT_DATA_H
 #define XPROFILER_SRC_ENVIRONMENT_DATA_H
 
+#include "commands/cpuprofiler/cpu_profiler.h"
 #include "commands/gcprofiler/gc_profiler.h"
 #include "logbypass/gc.h"
 #include "logbypass/heap.h"
@@ -32,6 +33,7 @@ class EnvironmentData {
   }
 
   std::unique_ptr<GcProfiler> gc_profiler;
+  std::unique_ptr<CpuProfiler> cpu_profiler;
 
  private:
   static void AtExit(void* arg);
