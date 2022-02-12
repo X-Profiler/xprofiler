@@ -7,6 +7,9 @@ using v8::HeapStatistics;
 using v8::Isolate;
 
 void NodeReport::SetHeapStatistics(JSONWriter* writer) {
+  if (isolate_ == nullptr) {
+    return;
+  }
   HeapStatistics v8_heap_stats;
   isolate_->GetHeapStatistics(&v8_heap_stats);
 

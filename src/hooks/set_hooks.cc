@@ -7,7 +7,7 @@ namespace xprofiler {
 void SetHooks(const FunctionCallbackInfo<Value>& info) {
   // set fatal error hook
   if (GetEnableFatalErrorHook()) {
-    SetFatalErrorHandler();
+    SetFatalErrorHandler(info.GetIsolate());
   }
 }
 }  // namespace xprofiler
