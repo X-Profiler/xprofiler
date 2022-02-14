@@ -1,6 +1,9 @@
 #ifndef XPROFILER_SRC_ENVIRONMENT_DATA_H
 #define XPROFILER_SRC_ENVIRONMENT_DATA_H
 
+#include <functional>
+#include <list>
+
 #include "commands/cpuprofiler/cpu_profiler.h"
 #include "commands/gcprofiler/gc_profiler.h"
 #include "logbypass/gc.h"
@@ -8,8 +11,16 @@
 #include "logbypass/http.h"
 #include "logbypass/libuv.h"
 #include "nan.h"
+#include "xpf_mutex.h"
 
 namespace xprofiler {
+
+enum class InterruptKind {
+  kBusy,
+  kIdle,
+};
+
+using InterruptCallback = std::function<void(EnvironmentData*, InterruptKind)>;
 
 class EnvironmentData {
  public:
@@ -21,6 +32,8 @@ class EnvironmentData {
   static EnvironmentData* Create(v8::Isolate* isolate);
 
   void SendCollectStatistics();
+
+  void RequestInterrupt(InterruptCallback interrupt);
 
   inline v8::Isolate* isolate() { return isolate_; }
   inline uv_loop_t* loop() { return loop_; }
@@ -37,12 +50,19 @@ class EnvironmentData {
 
  private:
   static void AtExit(void* arg);
+  static void InterruptBusyCallback(v8::Isolate* isolate, void* data);
+  static void InterruptIdleCallback(uv_async_t* handle);
+
   static void CollectStatistics(uv_async_t* handle);
   EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop);
 
   v8::Isolate* isolate_;
   uv_loop_t* loop_;
   uv_async_t statistics_async_;
+
+  Mutex interrupt_mutex_;
+  std::list<InterruptCallback> interrupt_requests_;
+  uv_async_t interrupt_async_;
 
   GcStatistics gc_statistics_;
   MemoryStatistics memory_statistics_;

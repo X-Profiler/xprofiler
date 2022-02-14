@@ -28,16 +28,6 @@ void RunCommandsListener(const FunctionCallbackInfo<Value>& info) {
   }
   Info("init", "commands listener: listener thread created.");
 
-  // init dump action node isolate
-  rc = InitDumpAction();
-  if (rc != 0) {
-    ThrowTypeError("xprofiler: init dump action failed!");
-    info.GetReturnValue().Set(False());
-    return;
-  }
-  UnrefDumpActionAsyncHandle();
-  Info("init", "commands listener: dump action init succeed.");
-
   info.GetReturnValue().Set(True());
 }
 }  // namespace xprofiler

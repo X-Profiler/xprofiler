@@ -1,14 +1,13 @@
-#ifndef _SRC_COMMANDS_SEND_H
-#define _SRC_COMMANDS_SEND_H
+#ifndef XPROFILER_SRC_COMMANDS_SEND_H
+#define XPROFILER_SRC_COMMANDS_SEND_H
 
-#include "../library/json.hpp"
+#include "library/json.hpp"
 
 namespace xprofiler {
 using nlohmann::json;
-using std::string;
 
-void ErrorValue(string traceid, string message);
-void SuccessValue(string traceid, json data);
+void ErrorValue(std::string traceid, std::string message);
+void SuccessValue(std::string traceid, json data);
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_COMMANDS_SEND_H */

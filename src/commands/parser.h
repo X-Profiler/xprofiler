@@ -1,8 +1,8 @@
-#ifndef _SRC_PARSER_H
-#define _SRC_PARSER_H
+#ifndef XPROFILER_SRC_COMMANDS_PARSER_H
+#define XPROFILER_SRC_COMMANDS_PARSER_H
 
 namespace xprofiler {
 void ParseCmd(char* command);
 }
 
-#endif
+#endif /* XPROFILER_SRC_COMMANDS_PARSER_H */

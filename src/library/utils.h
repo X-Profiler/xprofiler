@@ -1,24 +1,23 @@
-#ifndef _SRC_LIBRARY_UTILS_H
-#define _SRC_LIBRARY_UTILS_H
+#ifndef XPROFILER_SRC_LIBRARY_UTILS_H
+#define XPROFILER_SRC_LIBRARY_UTILS_H
 
-#include "../logger.h"
 #include "error.h"
 #include "json.hpp"
+#include "logger.h"
 
 namespace xprofiler {
 using nlohmann::json;
-using std::string;
 
 void Sleep(int seconds);
 
-string FmtMessage(const char* format, ...);
+std::string FmtMessage(const char* format, ...);
 
-string RandNum();
+std::string RandNum();
 
-string ConvertTime(string format);
+std::string ConvertTime(std::string format);
 
 template <typename T>
-T GetJsonValue(json data, string key, XpfError& err) {
+T GetJsonValue(json data, std::string key, XpfError& err) {
   T result = T();
   try {
     result = data[key].get<T>();
@@ -37,4 +36,4 @@ T GetJsonValue(json data, string key, XpfError& err) {
 }
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_LIBRARY_UTILS_H */
