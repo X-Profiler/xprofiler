@@ -1,33 +1,26 @@
 #include "dump.h"
 
-#include "../logger.h"
-#include "../platform/platform.h"
 #include "configure-inl.h"
 #include "cpuprofiler/cpu_profiler.h"
+#include "environment_data.h"
 #include "gcprofiler/gc_profiler.h"
 #include "heapdump/heap_profiler.h"
 #include "heapprofiler/sampling_heap_profiler.h"
+#include "logger.h"
+#include "platform/platform.h"
 #include "report/node_report.h"
 #include "uv.h"
 #include "v8.h"
 
 namespace xprofiler {
 using std::make_pair;
+using std::string;
 using std::to_string;
 using v8::Isolate;
 
-static const char module_type[] = "dump_action";
+const char module_type[] = "dump_action";
 
-static Isolate* node_isolate;
-static uv_mutex_t node_isolate_mutex;
-static uv_mutex_t async_data_mutex;
-static uv_async_t async_send_callback;
-static uv_thread_t uv_profiling_callback_thread;
-
-static ActionMap action_map;
-static RequestMap request_map;
-
-static ConflictMap conflict_map = {
+const ConflictMap conflict_map = {
     {START_CPU_PROFILING,
      {START_SAMPLING_HEAP_PROFILING, STOP_SAMPLING_HEAP_PROFILING}},
     {STOP_CPU_PROFILING,
@@ -38,18 +31,25 @@ static ConflictMap conflict_map = {
     {STOP_SAMPLING_HEAP_PROFILING,
      {START_CPU_PROFILING, STOP_CPU_PROFILING, HEAPDUMP}}};
 
-static DependentMap dependent_map = {
+const DependentMap dependent_map = {
     {STOP_CPU_PROFILING, START_CPU_PROFILING},
     {STOP_SAMPLING_HEAP_PROFILING, START_SAMPLING_HEAP_PROFILING},
     {STOP_GC_PROFILING, START_GC_PROFILING}};
 
-static string cpuprofile_filepath = "";
-static string sampling_heapprofile_filepath = "";
-static string heapsnapshot_filepath = "";
-static string gcprofile_filepath = "";
-static string node_report_filepath = "";
+/**
+ * Per-process slots. Diagnostics action can not be performed concurrently.
+ */
+namespace {
+uv_thread_t uv_profiling_callback_thread;
+ActionMap action_map;
+RequestMap request_map;
+std::string cpuprofile_filepath = "";
+std::string sampling_heapprofile_filepath = "";
+std::string heapsnapshot_filepath = "";
+std::string gcprofile_filepath = "";
+std::string node_report_filepath = "";
 
-static string Action2String(DumpAction action) {
+string Action2String(DumpAction action) {
   string name = "";
   switch (action) {
     case START_CPU_PROFILING:
@@ -83,13 +83,13 @@ static string Action2String(DumpAction action) {
   return name;
 }
 
-static void ActionRunning(DumpAction action, XpfError& err) {
+void ActionRunning(DumpAction action, XpfError& err) {
   if (action_map.find(action) != action_map.end()) {
     err = XpfError::Failure("%s is running.", Action2String(action).c_str());
   }
 }
 
-static void ConflictActionRunning(DumpAction action, XpfError& err) {
+void ConflictActionRunning(DumpAction action, XpfError& err) {
   if (conflict_map.find(action) != conflict_map.end()) {
     for (DumpAction confilct : conflict_map.at(action)) {
       ActionRunning(confilct, err);
@@ -103,7 +103,7 @@ static void ConflictActionRunning(DumpAction action, XpfError& err) {
   }
 }
 
-static void DependentActionRunning(DumpAction action, XpfError& err) {
+void DependentActionRunning(DumpAction action, XpfError& err) {
   if (dependent_map.find(action) != dependent_map.end()) {
     DumpAction dependent_action = dependent_map.at(action);
     ActionRunning(dependent_action, err);
@@ -116,8 +116,7 @@ static void DependentActionRunning(DumpAction action, XpfError& err) {
   }
 }
 
-static void TransactionDone(string thread_name, string unique_key,
-                            XpfError& err) {
+void TransactionDone(string thread_name, string unique_key, XpfError& err) {
   if (request_map.find(unique_key) != request_map.end()) {
     err = XpfError::Failure("<%s> %s has been executed by other thread.",
                             thread_name.c_str(), unique_key.c_str());
@@ -125,7 +124,7 @@ static void TransactionDone(string thread_name, string unique_key,
 }
 
 template <typename T>
-static T* GetProfilingData(void* data, string notify_type, string unique_key) {
+T* GetProfilingData(void* data, string notify_type, string unique_key) {
   T* dump_data = static_cast<T*>(data);
   Debug(module_type, "<%s> %s action start.", notify_type.c_str(),
         unique_key.c_str());
@@ -133,18 +132,19 @@ static T* GetProfilingData(void* data, string notify_type, string unique_key) {
 }
 
 template <typename T>
-static T* GetDumpData(void* data) {
+T* GetDumpData(void* data) {
   T* dump_data = static_cast<T*>(data);
   if (!dump_data->run_once) dump_data->run_once = true;
   return dump_data;
 }
 
-static void AfterDumpFile(string& filepath, string notify_type,
-                          string unique_key) {
+void AfterDumpFile(string& filepath, string notify_type, string unique_key) {
   Debug(module_type, "<%s> %s dump file: %s.", notify_type.c_str(),
         unique_key.c_str(), filepath.c_str());
   filepath = "";
 }
+
+}  // namespace
 
 #define CHECK_ERR(func)                                          \
   func;                                                          \
@@ -154,8 +154,8 @@ static void AfterDumpFile(string& filepath, string notify_type,
     return;                                                      \
   }
 
-void HandleAction(void* data, string notify_type) {
-  dump_data_t* dump_data = static_cast<dump_data_t*>(data);
+void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
+  BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
 
@@ -189,50 +189,50 @@ void HandleAction(void* data, string notify_type) {
   // start run action
   switch (action) {
     case START_CPU_PROFILING: {
-      cpuprofile_dump_data_t* tmp = GetProfilingData<cpuprofile_dump_data_t>(
-          data, notify_type, unique_key);
-      CpuProfiler::StartProfiling(node_isolate, tmp->title);
+      CpuProfilerDumpData* tmp =
+          GetProfilingData<CpuProfilerDumpData>(data, notify_type, unique_key);
+      CpuProfiler::StartProfiling(isolate, tmp->title);
       break;
     }
     case STOP_CPU_PROFILING: {
-      cpuprofile_dump_data_t* tmp = GetDumpData<cpuprofile_dump_data_t>(data);
-      CpuProfiler::StopProfiling(node_isolate, tmp->title, cpuprofile_filepath);
+      CpuProfilerDumpData* tmp = GetDumpData<CpuProfilerDumpData>(data);
+      CpuProfiler::StopProfiling(isolate, tmp->title, cpuprofile_filepath);
       AfterDumpFile(cpuprofile_filepath, notify_type, unique_key);
       action_map.erase(START_CPU_PROFILING);
       action_map.erase(STOP_CPU_PROFILING);
       break;
     }
     case HEAPDUMP: {
-      HeapProfiler::TakeSnapshot(node_isolate, heapsnapshot_filepath);
+      HeapProfiler::TakeSnapshot(isolate, heapsnapshot_filepath);
       AfterDumpFile(heapsnapshot_filepath, notify_type, unique_key);
       action_map.erase(HEAPDUMP);
       break;
     }
     case START_SAMPLING_HEAP_PROFILING: {
-      SamplingHeapProfiler::StartSamplingHeapProfiling(node_isolate);
+      SamplingHeapProfiler::StartSamplingHeapProfiling(isolate);
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
       SamplingHeapProfiler::StopSamplingHeapProfiling(
-          node_isolate, sampling_heapprofile_filepath);
+          isolate, sampling_heapprofile_filepath);
       AfterDumpFile(sampling_heapprofile_filepath, notify_type, unique_key);
       action_map.erase(START_SAMPLING_HEAP_PROFILING);
       action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
       break;
     }
     case START_GC_PROFILING: {
-      GcProfiler::StartGCProfiling(node_isolate, gcprofile_filepath);
+      GcProfiler::StartGCProfiling(isolate, gcprofile_filepath);
       break;
     }
     case STOP_GC_PROFILING: {
-      GcProfiler::StopGCProfiling(node_isolate);
+      GcProfiler::StopGCProfiling(isolate);
       AfterDumpFile(gcprofile_filepath, notify_type, unique_key);
       action_map.erase(START_GC_PROFILING);
       action_map.erase(STOP_GC_PROFILING);
       break;
     }
     case NODE_REPORT: {
-      NodeReport::GetNodeReport(node_isolate, node_report_filepath);
+      NodeReport::GetNodeReport(isolate, node_report_filepath);
       AfterDumpFile(node_report_filepath, notify_type, unique_key);
       action_map.erase(NODE_REPORT);
       break;
@@ -245,20 +245,6 @@ void HandleAction(void* data, string notify_type) {
 
 #undef CHECK_ERR
 
-static void RequestInterruptCallback(Isolate* isolate, void* data) {
-  HandleAction(data, "v8_request_interrupt");
-}
-
-static void AsyncSendCallback(uv_async_t* handle) {
-  // get data from async handle
-  uv_mutex_lock(&async_data_mutex);
-  void* data = handle->data;
-  handle->data = nullptr;
-  uv_mutex_unlock(&async_data_mutex);
-
-  HandleAction(data, "uv_async_send");
-}
-
 static void ProfilingTime(uint64_t profiling_time) {
   uint64_t start = uv_hrtime();
   while (uv_hrtime() - start < profiling_time * 10e5) {
@@ -267,39 +253,40 @@ static void ProfilingTime(uint64_t profiling_time) {
   }
 }
 
-static void NoticeMainJsThread(void* data) {
-  uv_mutex_lock(&node_isolate_mutex);
-  node_isolate->RequestInterrupt(RequestInterruptCallback, data);
-  uv_mutex_unlock(&node_isolate_mutex);
-
-  uv_mutex_lock(&async_data_mutex);
-  async_send_callback.data = data;
-  uv_async_send(&async_send_callback);
-  uv_mutex_unlock(&async_data_mutex);
+static void NotifyMainJsThread(EnvironmentData* env_data, void* data) {
+  env_data->RequestInterrupt(
+      [data](EnvironmentData* env_data, InterruptKind kind) {
+        HandleAction(env_data->isolate(), data,
+                     kind == InterruptKind::kBusy ? "v8_request_interrupt"
+                                                  : "uv_async_send");
+      });
 }
 
 template <typename T>
-void StopProfiling(void* data, DumpAction stop_action) {
+void StopProfiling(EnvironmentData* env_data, void* data,
+                   DumpAction stop_action) {
   T* dump_data = static_cast<T*>(data);
   ProfilingTime(dump_data->profiling_time);
   dump_data->action = stop_action;
-  NoticeMainJsThread(data);
+  NotifyMainJsThread(env_data, data);
 }
 
 static void ProfilingWatchDog(void* data) {
-  dump_data_t* dump_data = static_cast<dump_data_t*>(data);
+  // TODO(legendecas): environment data selector
+  EnvironmentData* env_data = EnvironmentData::GetCurrent();
+  BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
   switch (action) {
     case START_CPU_PROFILING:
-      StopProfiling<cpuprofile_dump_data_t>(data, STOP_CPU_PROFILING);
+      StopProfiling<CpuProfilerDumpData>(env_data, data, STOP_CPU_PROFILING);
       break;
     case START_SAMPLING_HEAP_PROFILING:
-      StopProfiling<sampling_heapprofiler_dump_data_t>(
-          data, STOP_SAMPLING_HEAP_PROFILING);
+      StopProfiling<SamplingHeapProfilerDumpData>(env_data, data,
+                                                  STOP_SAMPLING_HEAP_PROFILING);
       break;
     case START_GC_PROFILING:
-      StopProfiling<gcprofiler_dump_data_t>(data, STOP_GC_PROFILING);
+      StopProfiling<GcProfilerDumpData>(env_data, data, STOP_GC_PROFILING);
       break;
     default:
       Error(module_type, "watch dog not support dump action: %s", action);
@@ -310,29 +297,6 @@ static void ProfilingWatchDog(void* data) {
 static string CreateFilepath(string prefix, string ext) {
   return GetLogDir() + GetSep() + "x-" + prefix + "-" + to_string(GetPid()) +
          "-" + ConvertTime("%Y%m%d") + "-" + RandNum() + "." + ext;
-}
-
-int InitDumpAction() {
-  // init global node isolate
-  node_isolate = Isolate::GetCurrent();
-
-  // init async send
-  int rc =
-      uv_async_init(uv_default_loop(), &async_send_callback, AsyncSendCallback);
-  if (rc != 0) return rc;
-
-  // init async data mutex
-  rc = uv_mutex_init(&async_data_mutex);
-  if (rc != 0) return rc;
-
-  // init isolate mutex
-  rc = uv_mutex_init(&node_isolate_mutex);
-
-  return rc;
-}
-
-void UnrefDumpActionAsyncHandle() {
-  uv_unref(reinterpret_cast<uv_handle_t*>(&async_send_callback));
 }
 
 #define CHECK_ERR(func) \
@@ -358,6 +322,9 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
 
   // set action running flag
   action_map.insert(make_pair(action, true));
+
+  // TODO(legendecas): environment data selector
+  EnvironmentData* env_data = EnvironmentData::GetCurrent();
 
   // get file name
   switch (action) {
@@ -399,7 +366,7 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   data->action = action;
 
   // send data
-  NoticeMainJsThread(data);
+  NotifyMainJsThread(env_data, data);
 
   if (!profiling) return result;
 
@@ -418,47 +385,45 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   return result;
 }
 
-#define ACTION_HANDLE(action, data_type, profiling, prefix, ext) \
-  XpfError err;                                                  \
-  json result = DoDumpAction<data_type##dump_data_t>(            \
-      command, action, #prefix, #ext, data, profiling, err);     \
-  if (err.Fail()) {                                              \
-    error(format("%s", err.GetErrMessage()));                    \
-    return;                                                      \
-  }                                                              \
-  success(result);
-
-#define V(func, data_type, action, profiling, prefix, ext)     \
-  COMMAND_CALLBACK(func) {                                     \
-    data_type##dump_data_t* data = new data_type##dump_data_t; \
-    ACTION_HANDLE(action, data_type, profiling, prefix, ext)   \
+#define V(func, data_type, action, profiling, prefix, ext)                \
+  COMMAND_CALLBACK(func) {                                                \
+    /* TODO(legendecas): smart pointers */                                \
+    data_type* data = new data_type;                                      \
+    XpfError err;                                                         \
+    json result = DoDumpAction<data_type>(command, action, #prefix, #ext, \
+                                          data, profiling, err);          \
+    if (err.Fail()) {                                                     \
+      error(format("%s", err.GetErrMessage()));                           \
+      return;                                                             \
+    }                                                                     \
+    success(result);                                                      \
   }
 
 // cpu profiling
-V(StartCpuProfiling, cpuprofile_, START_CPU_PROFILING, true, cpuprofile,
+V(StartCpuProfiling, CpuProfilerDumpData, START_CPU_PROFILING, true, cpuprofile,
   cpuprofile)
-V(StopCpuProfiling, cpuprofile_, STOP_CPU_PROFILING, false, cpuprofile,
+V(StopCpuProfiling, CpuProfilerDumpData, STOP_CPU_PROFILING, false, cpuprofile,
   cpuprofile)
 
 // sampling heap profiling
-V(StartSamplingHeapProfiling, sampling_heapprofiler_,
+V(StartSamplingHeapProfiling, SamplingHeapProfilerDumpData,
   START_SAMPLING_HEAP_PROFILING, true, heapprofile, heapprofile)
-V(StopSamplingHeapProfiling, sampling_heapprofiler_,
+V(StopSamplingHeapProfiling, SamplingHeapProfilerDumpData,
   STOP_SAMPLING_HEAP_PROFILING, false, heapprofile, heapprofile)
 
 // gc profiling
-V(StartGcProfiling, gcprofiler_, START_GC_PROFILING, true, gcprofile, gcprofile)
-V(StopGcProfiling, gcprofiler_, STOP_GC_PROFILING, false, gcprofile, gcprofile)
+V(StartGcProfiling, GcProfilerDumpData, START_GC_PROFILING, true, gcprofile,
+  gcprofile)
+V(StopGcProfiling, GcProfilerDumpData, STOP_GC_PROFILING, false, gcprofile,
+  gcprofile)
 
 // heapdump
-V(Heapdump, heap, HEAPDUMP, false, heapdump, heapsnapshot)
+V(Heapdump, HeapdumpDumpData, HEAPDUMP, false, heapdump, heapsnapshot)
 
 // dynamic report
-V(GetNodeReport, node_report_, NODE_REPORT, false, diagreport, diag)
+V(GetNodeReport, NodeReportDumpData, NODE_REPORT, false, diagreport, diag)
 
 #undef V
-
-#undef ACTION_HANDLE
 
 #undef CHECK_ERR
 }  // namespace xprofiler

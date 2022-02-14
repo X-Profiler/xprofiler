@@ -49,6 +49,8 @@ EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate) {
 
 EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
     : isolate_(isolate), loop_(loop) {
+  CHECK_EQ(0, uv_async_init(loop, &interrupt_async_, InterruptIdleCallback));
+  uv_unref(reinterpret_cast<uv_handle_t*>(&interrupt_async_));
   CHECK_EQ(0, uv_async_init(loop, &statistics_async_, CollectStatistics));
   uv_unref(reinterpret_cast<uv_handle_t*>(&statistics_async_));
 }
@@ -61,6 +63,42 @@ void EnvironmentData::AtExit(void* arg) {
 
 void EnvironmentData::SendCollectStatistics() {
   uv_async_send(&statistics_async_);
+}
+
+void EnvironmentData::RequestInterrupt(InterruptCallback interrupt) {
+  {
+    Mutex::ScopedLock lock(interrupt_mutex_);
+    interrupt_requests_.push_back(interrupt);
+  }
+  isolate_->RequestInterrupt(InterruptBusyCallback, this);
+  uv_async_send(&interrupt_async_);
+}
+
+void EnvironmentData::InterruptBusyCallback(v8::Isolate* isolate, void* data) {
+  EnvironmentData* env_data = static_cast<EnvironmentData*>(data);
+  std::list<InterruptCallback> requests;
+  {
+    Mutex::ScopedLock lock(env_data->interrupt_mutex_);
+    requests.swap(env_data->interrupt_requests_);
+  }
+
+  for (auto it : requests) {
+    it(env_data, InterruptKind::kBusy);
+  }
+}
+
+void EnvironmentData::InterruptIdleCallback(uv_async_t* handle) {
+  EnvironmentData* env_data =
+      ContainerOf(&EnvironmentData::interrupt_async_, handle);
+  std::list<InterruptCallback> requests;
+  {
+    Mutex::ScopedLock lock(env_data->interrupt_mutex_);
+    requests.swap(env_data->interrupt_requests_);
+  }
+
+  for (auto it : requests) {
+    it(env_data, InterruptKind::kIdle);
+  }
 }
 
 void EnvironmentData::CollectStatistics(uv_async_t* handle) {

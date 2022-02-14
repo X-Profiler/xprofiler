@@ -1,14 +1,12 @@
-#ifndef _SRC_COMMANDS_DUMP_H
-#define _SRC_COMMANDS_DUMP_H
+#ifndef XPROFILER_SRC_COMMANDS_DUMP_H
+#define XPROFILER_SRC_COMMANDS_DUMP_H
 
-#include "../library/common.h"
-#include "../library/utils.h"
+#include "library/common.h"
+#include "library/utils.h"
 #include "unordered_map"
 #include "vector"
 
 namespace xprofiler {
-using std::unordered_map;
-using std::vector;
 
 enum DumpAction {
   START_CPU_PROFILING,
@@ -21,37 +19,29 @@ enum DumpAction {
   NODE_REPORT
 };
 
-typedef unordered_map<int, bool> ActionMap;
-typedef unordered_map<string, bool> RequestMap;
-typedef unordered_map<int, vector<DumpAction>> ConflictMap;
-typedef unordered_map<int, DumpAction> DependentMap;
+using ActionMap = std::unordered_map<int, bool>;
+using RequestMap = std::unordered_map<std::string, bool>;
+using ConflictMap = std::unordered_map<int, std::vector<DumpAction>>;
+using DependentMap = std::unordered_map<int, DumpAction>;
 
-typedef struct BaseDumpData {
-  string traceid;
+struct BaseDumpData {
+  std::string traceid;
   DumpAction action;
   int profiling_time;
   bool run_once = true;
-} dump_data_t;
+};
 
-typedef struct CpuProfilerDumpData : BaseDumpData {
-  string title = "xprofiler";
-} cpuprofile_dump_data_t;
+struct CpuProfilerDumpData : BaseDumpData {
+  std::string title = "xprofiler";
+};
 
-typedef struct HeapdumpData : BaseDumpData {
-} heapdump_data_t;
+struct HeapdumpDumpData : BaseDumpData {};
 
-typedef struct SamplingHeapProfilerDumpData : BaseDumpData {
-} sampling_heapprofiler_dump_data_t;
+struct SamplingHeapProfilerDumpData : BaseDumpData {};
 
-typedef struct GcProfilerDumpData : BaseDumpData {
-} gcprofiler_dump_data_t;
+struct GcProfilerDumpData : BaseDumpData {};
 
-typedef struct NodeReportDumpData : BaseDumpData {
-} node_report_dump_data_t;
-
-int InitDumpAction();
-
-void UnrefDumpActionAsyncHandle();
+struct NodeReportDumpData : BaseDumpData {};
 
 COMMAND_CALLBACK(StartCpuProfiling);
 COMMAND_CALLBACK(StopCpuProfiling);
@@ -63,4 +53,4 @@ COMMAND_CALLBACK(StopGcProfiling);
 COMMAND_CALLBACK(GetNodeReport);
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_COMMANDS_DUMP_H */
