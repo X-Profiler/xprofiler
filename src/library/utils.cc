@@ -1,6 +1,6 @@
 #include <stdarg.h>
 
-#include "../platform/platform.h"
+#include "platform/platform.h"
 #include "uv.h"
 
 #ifdef _WIN32
@@ -19,11 +19,6 @@ string FmtMessage(const char* format, ...) {
   va_end(args);
 
   return string(message);
-}
-
-string RandNum() {
-  srand(static_cast<int>(uv_hrtime() + rand()));
-  return std::to_string(rand() % 900000 + 100000);
 }
 
 string ConvertTime(string format) {
