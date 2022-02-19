@@ -2,7 +2,7 @@ name: Continuous integration
 on:
   push:
     branches: [ '**' ]
-    tags: v*.*.*
+    tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ '**' ]
   schedule:
