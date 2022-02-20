@@ -12,8 +12,6 @@ void Sleep(int seconds);
 
 std::string FmtMessage(const char* format, ...);
 
-std::string RandNum();
-
 std::string ConvertTime(std::string format);
 
 template <typename T>

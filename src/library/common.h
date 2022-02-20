@@ -9,6 +9,7 @@ void InitOnceLoadTime();
 // uptime
 unsigned long GetUptime();
 std::string GetStartTime(std::string format);
+size_t GetNextDiagFileId();
 
 // commands
 #define COMMAND_CALLBACK(cb)                                               \

@@ -24,7 +24,7 @@ constexpr char module_type[] = "fatal_error";
 
   string filepath = GetLogDir() + GetSep() + "x-fatal-error-" +
                     to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
-                    RandNum() + ".diag";
+                    to_string(GetNextDiagFileId()) + ".diag";
 
   Info(module_type, "dump report to %s.", filepath.c_str());
   Isolate* isolate = TryGetCurrentIsolate();
