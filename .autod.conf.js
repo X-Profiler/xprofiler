@@ -9,7 +9,7 @@ module.exports = {
   dep: [
     'moment',
     'nan',
-    '@mapbox/node-pre-gyp',
+    '@xprofiler/node-pre-gyp',
     'uuid',
     'yargs',
   ],
