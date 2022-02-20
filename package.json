@@ -56,7 +56,7 @@
   },
   "homepage": "https://github.com/X-Profiler/xprofiler#readme",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.8",
+    "@xprofiler/node-pre-gyp": "^1.0.9",
     "moment": "^2.29.1",
     "nan": "^2.15.0",
     "uuid": "^8.3.2",

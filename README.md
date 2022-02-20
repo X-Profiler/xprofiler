@@ -50,7 +50,7 @@ npm i xprofiler --save --xprofiler_binary_host_mirror=https://npm.taobao.org/mir
 npm i xprofiler --save --xprofiler_binary_host_mirror=http://devtoolx.com/xprofiler
 ```
 
-> 这里使用了 `node-pre-gyp` 帮助开发者无需进行本地编译即可使用此插件，默认插件位于 [Github Release](https://github.com/X-Profiler/xprofiler/releases) 页面，国内访问可能较慢，你也可以自行镜像到其它位置加速安装。
+> 这里使用了 `@xprofiler/node-pre-gyp` 帮助开发者无需进行本地编译即可使用此插件，默认插件位于 [Github Release](https://github.com/X-Profiler/xprofiler/releases) 页面，国内访问可能较慢，你也可以自行镜像到其它位置加速安装。
 
 ### 嵌入项目
 

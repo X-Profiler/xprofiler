@@ -2,7 +2,7 @@ name: Continuous integration
 on:
   push:
     branches: [ '**' ]
-    tags: v*.*.*
+    tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ '**' ]
   schedule:
@@ -18,7 +18,7 @@ jobs:
           {os: "macos-latest", arch: "x64"},
           {os: "ubuntu-latest", arch: "x64"},
         ]
-        node-version: [ 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 ]
+        node-version: [ 8, 10, 12, 14, 16, 17 ]
     steps:
     - name: Checkout Git Source
       uses: actions/checkout@master
@@ -37,6 +37,7 @@ jobs:
 
     - name: Continuous Integration
       run: npm run ci || (sleep 60 && npm run ci) || (sleep 60 && npm run ci)
+      if: ${{ matrix.ci-type.os != 'windows-latest' || matrix.node-version != 8  }}
 
     # - name: Package Binary
     #   run: npm run pack
