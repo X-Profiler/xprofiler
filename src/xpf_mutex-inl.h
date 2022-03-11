@@ -1,5 +1,5 @@
-#ifndef XPROFILER_SRC_MUTEX_INL_H
-#define XPROFILER_SRC_MUTEX_INL_H
+#ifndef XPROFILER_SRC_XPF_MUTEX_INL_H
+#define XPROFILER_SRC_XPF_MUTEX_INL_H
 
 #include "util.h"
 #include "xpf_mutex.h"
@@ -20,6 +20,20 @@ Mutex::ScopedLock::ScopedLock(const Mutex& mutex) : mutex_(mutex) {
 
 Mutex::ScopedLock::~ScopedLock() { uv_mutex_unlock(&mutex_.mutex_); }
 
+ConditionVariable::ConditionVariable() { CHECK_EQ(0, uv_cond_init(&cond_)); }
+
+ConditionVariable::~ConditionVariable() { uv_cond_destroy(&cond_); }
+
+void ConditionVariable::Broadcast(const ScopedLock&) {
+  uv_cond_broadcast(&cond_);
+}
+
+void ConditionVariable::Signal(const ScopedLock&) { uv_cond_signal(&cond_); }
+
+void ConditionVariable::Wait(const ScopedLock& scoped_lock) {
+  uv_cond_wait(&cond_, &scoped_lock.mutex_.mutex_);
+}
+
 }  // namespace xprofiler
 
-#endif /* XPROFILER_SRC_MUTEX_INL_H */
+#endif /* XPROFILER_SRC_XPF_MUTEX_INL_H */

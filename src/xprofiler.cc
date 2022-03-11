@@ -8,6 +8,7 @@
 #include "logger.h"
 #include "nan.h"
 #include "platform/platform.h"
+#include "process_data.h"
 
 namespace xprofiler {
 using Nan::GetFunction;
@@ -16,6 +17,10 @@ using Nan::Set;
 using v8::FunctionTemplate;
 using v8::Isolate;
 using v8::String;
+
+namespace per_process {
+ProcessData process_data;
+}
 
 NODE_C_CTOR(Main) {
   // init global variables

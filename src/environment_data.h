@@ -11,7 +11,7 @@
 #include "logbypass/http.h"
 #include "logbypass/libuv.h"
 #include "nan.h"
-#include "xpf_mutex.h"
+#include "xpf_mutex-inl.h"
 
 namespace xprofiler {
 
