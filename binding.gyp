@@ -5,6 +5,7 @@
             "win_delay_load_hook": "false",
             "sources": [
                 "src/environment_data.cc",
+                "src/xpf_thread.cc",
                 "src/xprofiler.cc",
                 "src/configure.cc",
                 "src/logger.cc",
