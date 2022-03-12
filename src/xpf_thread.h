@@ -23,7 +23,6 @@ class XpfThread {
 
  private:
   static void ThreadMain(void* arg);
-  static void StopRequest(uv_async_t* handle);
 
   bool started_;
 
@@ -35,7 +34,6 @@ class XpfThread {
   // the main thread.
   uv_loop_t loop_;
   uv_thread_t thread_;
-  uv_async_t stop_async_;
 };
 
 }  // namespace xprofiler

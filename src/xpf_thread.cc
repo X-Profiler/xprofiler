@@ -59,7 +59,7 @@ void XpfThread::StartIfNeeded() {
 void XpfThread::Join() {
   CHECK_EQ(started_, true);
   if (started_) {
-    uv_async_send(&stop_async_);
+    ThreadAtExit();
     uv_thread_join(&thread_);
   }
   started_ = false;
@@ -73,8 +73,6 @@ void XpfThread::ThreadMain(void* arg) {
   {
     Mutex::ScopedLock scoped_lock(that->thread_start_lock_);
 
-    uv_async_init(&that->loop_, &that->stop_async_, StopRequest);
-
     that->ThreadEntry(&that->loop_);
 
     that->thread_start_condition_.Broadcast(scoped_lock);
@@ -82,13 +80,6 @@ void XpfThread::ThreadMain(void* arg) {
   uv_run(&that->loop_, UV_RUN_DEFAULT);
 
   CheckedUvLoopClose(&that->loop_);
-}
-
-// static
-void XpfThread::StopRequest(uv_async_t* handle) {
-  XpfThread* that = ContainerOf(&XpfThread::stop_async_, handle);
-  that->ThreadAtExit();
-  uv_close(reinterpret_cast<uv_handle_t*>(&that->stop_async_), nullptr);
 }
 
 }  // namespace xprofiler

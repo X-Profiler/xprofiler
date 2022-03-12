@@ -19,7 +19,6 @@ class LogByPass final : public XpfThread {
   static void OnLogInterval(uv_timer_t* handle);
   uv_timer_t cpu_interval_;
   uv_timer_t log_interval_;
-  bool next_log_ = false;
 };
 
 // javascript-accessible

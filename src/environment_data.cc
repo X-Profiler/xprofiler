@@ -36,7 +36,6 @@ EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate) {
 
   per_process::process_data.environment_data =
       std::unique_ptr<EnvironmentData>(new EnvironmentData(isolate, loop));
-  xprofiler::AtExit(isolate, AtExit, nullptr);
 
   return per_process::process_data.environment_data.get();
 }
@@ -47,11 +46,6 @@ EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
   uv_unref(reinterpret_cast<uv_handle_t*>(&interrupt_async_));
   CHECK_EQ(0, uv_async_init(loop, &statistics_async_, CollectStatistics));
   uv_unref(reinterpret_cast<uv_handle_t*>(&statistics_async_));
-}
-
-void EnvironmentData::AtExit(void* arg) {
-  // TODO(legendecas): environment registry.
-  per_process::process_data.environment_data.reset();
 }
 
 void EnvironmentData::SendCollectStatistics() {
