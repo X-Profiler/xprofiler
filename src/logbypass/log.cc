@@ -25,7 +25,7 @@ void LogByPass::ThreadEntry(uv_loop_t* loop) {
 
   CHECK_EQ(0, uv_timer_start(&cpu_interval_, OnCpuInterval, 1000, 1000));
   CHECK_EQ(0, uv_timer_start(&log_interval_, OnLogInterval,
-                             GetLogInterval() * 1000, GetLogInterval() * 1000));
+                             GetLogInterval() * 1000, false));
 }
 
 void LogByPass::ThreadAtExit() {
@@ -40,13 +40,17 @@ void LogByPass::OnCpuInterval(uv_timer_t* handle) {
 }
 
 void LogByPass::OnLogInterval(uv_timer_t* handle) {
+  LogByPass* that = ContainerOf(&LogByPass::log_interval_, handle);
   EnvironmentData* env_data = EnvironmentData::GetCurrent();
+  if (!that->next_log_) {
+    env_data->SendCollectStatistics();
+    that->next_log_ = true;
+    CHECK_EQ(0,
+             uv_timer_start(&that->log_interval_, OnLogInterval, 1000, false));
+    return;
+  }
+  that->next_log_ = false;
   bool log_format_alinode = GetFormatAsAlinode();
-
-  env_data->SendCollectStatistics();
-
-  // sleep 1s for executing async callback
-  Sleep(1);
 
   // write cpu info
   WriteCpuUsageInPeriod(log_format_alinode);
@@ -62,6 +66,9 @@ void LogByPass::OnLogInterval(uv_timer_t* handle) {
 
   // write http status
   WriteHttpStatus(env_data, log_format_alinode, GetPatchHttpTimeout());
+
+  CHECK_EQ(0, uv_timer_start(&that->log_interval_, OnLogInterval,
+                             GetLogInterval() * 1000, false));
 }
 
 void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
