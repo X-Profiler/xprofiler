@@ -17,7 +17,6 @@ class ProcessData {
     if (log_by_pass != nullptr) {
       log_by_pass->Join();
     }
-    environment_data.reset();
   };
 
   // Disallow copy;
