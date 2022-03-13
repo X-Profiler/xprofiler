@@ -23,7 +23,7 @@ void LogByPass::ThreadEntry(uv_loop_t* loop) {
   CHECK_EQ(0, uv_timer_init(loop, &cpu_interval_));
   CHECK_EQ(0, uv_timer_init(loop, &log_interval_));
 
-  CHECK_EQ(0, uv_timer_start(&cpu_interval_, OnCpuInterval, 1000, true));
+  CHECK_EQ(0, uv_timer_start(&cpu_interval_, OnCpuInterval, 1000, 1000));
   CHECK_EQ(0, uv_timer_start(&log_interval_, OnLogInterval,
                              GetLogInterval() * 1000, false));
 }
