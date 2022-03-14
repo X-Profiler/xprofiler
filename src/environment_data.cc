@@ -11,34 +11,43 @@
 namespace xprofiler {
 using v8::Isolate;
 
+// static
 EnvironmentData* EnvironmentData::GetCurrent() {
-  // TODO(legendecas): environment registry.
-  CHECK_NE(per_process::process_data.environment_data, nullptr);
-  return per_process::process_data.environment_data.get();
+  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope scope(registry);
+
+  CHECK_NE(registry->begin(), registry->end());
+  return *registry->begin();
 }
 
+// static
 EnvironmentData* EnvironmentData::GetCurrent(v8::Isolate* isolate) {
-  return EnvironmentData::GetCurrent();
+  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope scope(registry);
+  return registry->Get(isolate);
 }
 
+// static
 EnvironmentData* EnvironmentData::GetCurrent(
     const Nan::FunctionCallbackInfo<v8::Value>& info) {
   return EnvironmentData::GetCurrent(info.GetIsolate());
 }
 
-EnvironmentData* EnvironmentData::Create(v8::Isolate* isolate) {
-  // TODO(legendecas): environment registry.
-  CHECK_EQ(per_process::process_data.environment_data, nullptr);
+// static
+void EnvironmentData::Create(v8::Isolate* isolate) {
+  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope no_exit(registry);
+
+  // TODO(legendecas): context awareness support.
+  CHECK_EQ(registry->begin(), registry->end());
 
   HandleScope scope(isolate);
   uv_loop_t* loop = node::GetCurrentEventLoop(isolate);
   CHECK_NOT_NULL(loop);
 
-  per_process::process_data.environment_data =
-      std::unique_ptr<EnvironmentData>(new EnvironmentData(isolate, loop));
-  xprofiler::AtExit(isolate, AtExit, nullptr);
-
-  return per_process::process_data.environment_data.get();
+  registry->Register(isolate, std::unique_ptr<EnvironmentData>(
+                                  new EnvironmentData(isolate, loop)));
+  xprofiler::AtExit(isolate, AtExit, isolate);
 }
 
 EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
@@ -49,16 +58,12 @@ EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
   uv_unref(reinterpret_cast<uv_handle_t*>(&statistics_async_));
 }
 
+// static
 void EnvironmentData::AtExit(void* arg) {
-  // TODO(legendecas): environment registry.
-  // The log_by_pass thread should not be bound to a single environment data.
-  // For now we just destroy the log_by_pass thread since this is the last env.
-  if (per_process::process_data.log_by_pass != nullptr) {
-    per_process::process_data.log_by_pass->Join();
-    per_process::process_data.log_by_pass.reset();
-  }
-  // TODO: issue https://github.com/X-Profiler/xprofiler/runs/5611225669?check_suite_focus=true
-  // per_process::process_data.environment_data.reset();
+  Isolate* isolate = reinterpret_cast<Isolate*>(arg);
+  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope scope(registry);
+  registry->Unregister(isolate);
 }
 
 void EnvironmentData::SendCollectStatistics() {
@@ -74,6 +79,7 @@ void EnvironmentData::RequestInterrupt(InterruptCallback interrupt) {
   uv_async_send(&interrupt_async_);
 }
 
+// static
 void EnvironmentData::InterruptBusyCallback(v8::Isolate* isolate, void* data) {
   EnvironmentData* env_data = static_cast<EnvironmentData*>(data);
   std::list<InterruptCallback> requests;
@@ -87,6 +93,7 @@ void EnvironmentData::InterruptBusyCallback(v8::Isolate* isolate, void* data) {
   }
 }
 
+// static
 void EnvironmentData::InterruptIdleCallback(uv_async_t* handle) {
   EnvironmentData* env_data =
       ContainerOf(&EnvironmentData::interrupt_async_, handle);
@@ -101,6 +108,7 @@ void EnvironmentData::InterruptIdleCallback(uv_async_t* handle) {
   }
 }
 
+// static
 void EnvironmentData::CollectStatistics(uv_async_t* handle) {
   EnvironmentData* env_data =
       ContainerOf(&EnvironmentData::statistics_async_, handle);

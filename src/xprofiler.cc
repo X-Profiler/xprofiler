@@ -18,10 +18,6 @@ using v8::FunctionTemplate;
 using v8::Isolate;
 using v8::String;
 
-namespace per_process {
-ProcessData process_data;
-}
-
 NODE_C_CTOR(Main) {
   // init global variables
   InitOnceLoadTime();
