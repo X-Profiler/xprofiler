@@ -17,6 +17,10 @@ class LogByPass final : public XpfThread {
  private:
   static void OnCpuInterval(uv_timer_t* handle);
   static void OnLogInterval(uv_timer_t* handle);
+
+  void SendCollectStatistics();
+  void CollectStatistics();
+
   uv_timer_t cpu_interval_;
   uv_timer_t log_interval_;
   bool next_log_ = false;

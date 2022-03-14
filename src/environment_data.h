@@ -29,7 +29,7 @@ class EnvironmentData {
   static EnvironmentData* GetCurrent(v8::Isolate* isolate);
   static EnvironmentData* GetCurrent(
       const Nan::FunctionCallbackInfo<v8::Value>& info);
-  static EnvironmentData* Create(v8::Isolate* isolate);
+  static void Create(v8::Isolate* isolate);
 
   void SendCollectStatistics();
 
