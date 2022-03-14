@@ -1,5 +1,6 @@
 'use strict';
 
+const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const pack = require('../../package.json');
@@ -70,4 +71,66 @@ exports.checkChildProcessExitInfo = function (expect, exitInfo) {
   // One of the code | signal will always be non-null.
   expect(code === 0).to.be.ok();
   expect(signal === null).to.be.ok();
+};
+
+function createDeferred() {
+  let resolve, reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return {
+    promise,
+    resolve,
+    reject,
+  };
+}
+exports.createDeferred = createDeferred;
+
+/** Node.js v8.x compat for events.once */
+exports.once = function once(eventemitter, event) {
+  const deferred = createDeferred();
+  let uninstallListeners;
+  const listener = (...args) => {
+    deferred.resolve(args);
+    uninstallListeners();
+  };
+  const errorListener = (err) => {
+    deferred.reject(err);
+    uninstallListeners();
+  };
+  uninstallListeners = () => {
+    eventemitter.removeListener(event, listener);
+    eventemitter.removeListener('error', errorListener);
+  };
+  eventemitter.on(event, listener);
+  eventemitter.on('error', errorListener);
+  return deferred.promise;
+};
+
+exports.fork = function fork(filepath, options = {}) {
+  const proc = cp.fork(filepath, Object.assign({
+    stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+  }, options));
+  proc.stdout.setEncoding('utf8');
+  proc.stderr.setEncoding('utf8');
+
+  let stdout = '';
+  let stderr = '';
+  proc.stdout.on('data', chunk => {
+    stdout += chunk;
+  });
+  proc.stderr.on('data', chunk => {
+    stderr += chunk;
+  });
+
+  proc.on('exit', (code, signal) => {
+    if (code !== 0) {
+      console.log('process exited with non-zero code: pid(%d), code(%d), signal(%d)', proc.pid, code, signal);
+      console.log('stdout:\n', stdout);
+      console.log('');
+      console.log('stderr:\n', stderr);
+    }
+  });
+  return proc;
 };

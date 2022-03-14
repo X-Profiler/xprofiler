@@ -4,12 +4,16 @@
 
 #include "logbypass/log.h"
 #include "process_data.h"
-#include "util.h"
+#include "util-inl.h"
 #include "xpf_node.h"
 #include "xpf_v8.h"
 
 namespace xprofiler {
+using v8::Context;
 using v8::Isolate;
+using v8::Local;
+using v8::Number;
+using v8::Object;
 
 // static
 EnvironmentData* EnvironmentData::GetCurrent() {
@@ -38,9 +42,6 @@ void EnvironmentData::Create(v8::Isolate* isolate) {
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope no_exit(registry);
 
-  // TODO(legendecas): context awareness support.
-  CHECK_EQ(registry->begin(), registry->end());
-
   HandleScope scope(isolate);
   uv_loop_t* loop = node::GetCurrentEventLoop(isolate);
   CHECK_NOT_NULL(loop);
@@ -63,7 +64,20 @@ void EnvironmentData::AtExit(void* arg) {
   Isolate* isolate = reinterpret_cast<Isolate*>(arg);
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope scope(registry);
-  registry->Unregister(isolate);
+  std::unique_ptr<EnvironmentData> env_data = registry->Unregister(isolate);
+  uv_close(reinterpret_cast<uv_handle_t*>(&env_data->interrupt_async_),
+           nullptr);
+  uv_close(reinterpret_cast<uv_handle_t*>(&env_data->statistics_async_),
+           CloseCallback);
+  env_data.release();
+}
+
+// static
+void EnvironmentData::CloseCallback(uv_handle_t* handle) {
+  EnvironmentData* env_data =
+      ContainerOf(&EnvironmentData::statistics_async_,
+                  reinterpret_cast<uv_async_t*>(handle));
+  delete env_data;
 }
 
 void EnvironmentData::SendCollectStatistics() {
@@ -114,6 +128,21 @@ void EnvironmentData::CollectStatistics(uv_async_t* handle) {
       ContainerOf(&EnvironmentData::statistics_async_, handle);
   CollectMemoryStatistics(env_data);
   CollectLibuvHandleStatistics(env_data);
+}
+
+// javascript accessible
+void JsSetupEnvironmentData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+  Isolate* isolate = info.GetIsolate();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  HandleScope scope(isolate);
+  Local<Context> context = isolate->GetCurrentContext();
+
+  Local<Object> data = info[0].As<Object>();
+  Local<Number> thread_id =
+      data->Get(context, OneByteString(isolate, "threadId"))
+          .ToLocalChecked()
+          .As<Number>();
+  env_data->set_thread_id(thread_id->Value());
 }
 
 }  // namespace xprofiler

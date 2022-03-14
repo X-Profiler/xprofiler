@@ -17,8 +17,10 @@
 
 namespace xprofiler {
 using Nan::False;
+using Nan::FunctionCallbackInfo;
 using Nan::ThrowTypeError;
 using Nan::True;
+using v8::Value;
 
 void LogByPass::ThreadEntry(uv_loop_t* loop) {
   CHECK_EQ(0, uv_timer_init(loop, &cpu_interval_));

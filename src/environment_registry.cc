@@ -17,10 +17,14 @@ void EnvironmentRegistry::Register(v8::Isolate* isolate,
   map_.emplace(isolate, std::move(env));
 }
 
-void EnvironmentRegistry::Unregister(v8::Isolate* isolate) {
+std::unique_ptr<EnvironmentData> EnvironmentRegistry::Unregister(
+    v8::Isolate* isolate) {
   CHECK(disallow_exit_);
-  CHECK_NE(map_.find(isolate), map_.end());
-  map_.erase(isolate);
+  auto it = map_.find(isolate);
+  CHECK_NE(it, map_.end());
+  std::unique_ptr<EnvironmentData> env_data = std::move(it->second);
+  map_.erase(it);
+  return env_data;
 }
 
 EnvironmentData* EnvironmentRegistry::Get(v8::Isolate* isolate) {

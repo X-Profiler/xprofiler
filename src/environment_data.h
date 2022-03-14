@@ -37,6 +37,8 @@ class EnvironmentData {
 
   inline v8::Isolate* isolate() { return isolate_; }
   inline uv_loop_t* loop() { return loop_; }
+  inline double thread_id() { return thread_id_; }
+  inline void set_thread_id(double thread_id) { thread_id_ = thread_id; }
 
   inline GcStatistics* gc_statistics() { return &gc_statistics_; }
   inline HttpStatistics* http_statistics() { return &http_statistics_; }
@@ -50,6 +52,7 @@ class EnvironmentData {
 
  private:
   static void AtExit(void* arg);
+  static void CloseCallback(uv_handle_t* handle);
   static void InterruptBusyCallback(v8::Isolate* isolate, void* data);
   static void InterruptIdleCallback(uv_async_t* handle);
 
@@ -59,6 +62,10 @@ class EnvironmentData {
   v8::Isolate* isolate_;
   uv_loop_t* loop_;
   uv_async_t statistics_async_;
+  /* We don't have a native method to get the uint64_t thread id.
+   * Use the JavaScript number representation.
+   */
+  double thread_id_ = -1;
 
   Mutex interrupt_mutex_;
   std::list<InterruptCallback> interrupt_requests_;
@@ -69,6 +76,9 @@ class EnvironmentData {
   HttpStatistics http_statistics_;
   UvHandleStatistics uv_handle_statistics_;
 };
+
+// javascript accessible
+void JsSetupEnvironmentData(const Nan::FunctionCallbackInfo<v8::Value>& info);
 
 }  // namespace xprofiler
 
