@@ -7,8 +7,10 @@
 
 namespace xprofiler {
 using Nan::False;
+using Nan::FunctionCallbackInfo;
 using Nan::ThrowTypeError;
 using Nan::True;
+using v8::Value;
 
 static uv_thread_t uv_commands_listener_thread;
 
