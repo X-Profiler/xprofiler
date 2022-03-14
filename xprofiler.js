@@ -8,11 +8,16 @@ const configure = require('./lib/configure');
 const configList = require('./xprofiler.json');
 const moment = require('moment');
 const pkg = require('./package.json');
+const workerThreads = require('./lib/worker_threads');
 
 // xprofiler.node
 const binary = require('@xprofiler/node-pre-gyp');
 const bindingPath = binary.find(path.resolve(path.join(__dirname, './package.json')));
 const xprofiler = require(bindingPath);
+xprofiler.setup({
+  isMainThread: workerThreads.isMainThread,
+  threadId: workerThreads.threadId,
+});
 
 const runOnceStatus = {
   bypassLogThreadStarted: false,

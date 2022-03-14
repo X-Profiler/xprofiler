@@ -5,6 +5,9 @@
 #include "uv.h"
 
 namespace xprofiler {
+using Nan::FunctionCallbackInfo;
+using v8::Value;
+
 constexpr char module_type[] = "http";
 
 void AddLiveRequest(const FunctionCallbackInfo<Value>& info) {

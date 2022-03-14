@@ -47,7 +47,7 @@ class EnvironmentRegistry {
   EnvironmentRegistry(const EnvironmentRegistry& other) = delete;
 
   void Register(v8::Isolate* isolate, std::unique_ptr<EnvironmentData> env);
-  void Unregister(v8::Isolate* isolate);
+  std::unique_ptr<EnvironmentData> Unregister(v8::Isolate* isolate);
   EnvironmentData* Get(v8::Isolate* isolate);
 
   Iterator begin();

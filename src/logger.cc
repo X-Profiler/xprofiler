@@ -13,6 +13,7 @@
 #include "util.h"
 
 namespace xprofiler {
+using Nan::FunctionCallbackInfo;
 using Nan::New;
 using Nan::ThrowTypeError;
 using Nan::To;
@@ -21,6 +22,7 @@ using std::string;
 using std::to_string;
 using v8::Local;
 using v8::String;
+using v8::Value;
 
 #define LOG_WITH_LEVEL(level)                     \
   va_list args;                                   \
