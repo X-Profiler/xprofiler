@@ -5,6 +5,7 @@
 #include "configure-inl.h"
 #include "cpu.h"
 #include "environment_data.h"
+#include "environment_registry.h"
 #include "gc.h"
 #include "heap.h"
 #include "http.h"
@@ -39,36 +40,52 @@ void LogByPass::OnCpuInterval(uv_timer_t* handle) {
   SetNowCpuUsage();
 }
 
+// static
 void LogByPass::OnLogInterval(uv_timer_t* handle) {
   LogByPass* that = ContainerOf(&LogByPass::log_interval_, handle);
-  EnvironmentData* env_data = EnvironmentData::GetCurrent();
   if (!that->next_log_) {
-    env_data->SendCollectStatistics();
     that->next_log_ = true;
+    that->SendCollectStatistics();
     CHECK_EQ(0,
              uv_timer_start(&that->log_interval_, OnLogInterval, 1000, false));
     return;
   }
   that->next_log_ = false;
-  bool log_format_alinode = GetFormatAsAlinode();
-
-  // write cpu info
-  WriteCpuUsageInPeriod(log_format_alinode);
-
-  // write heap memory info
-  WriteMemoryInfoToLog(env_data, log_format_alinode);
-
-  // write gc status
-  WriteGcStatusToLog(env_data, log_format_alinode);
-
-  // write libuv handle info
-  WriteLibuvHandleInfoToLog(env_data, log_format_alinode);
-
-  // write http status
-  WriteHttpStatus(env_data, log_format_alinode, GetPatchHttpTimeout());
-
+  that->CollectStatistics();
   CHECK_EQ(0, uv_timer_start(&that->log_interval_, OnLogInterval,
                              GetLogInterval() * 1000, false));
+}
+
+void LogByPass::SendCollectStatistics() {
+  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope scope(registry);
+
+  for (EnvironmentData* env_data : *registry) {
+    env_data->SendCollectStatistics();
+  }
+}
+
+void LogByPass::CollectStatistics() {
+  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope scope(registry);
+  bool log_format_alinode = GetFormatAsAlinode();
+
+  for (EnvironmentData* env_data : *registry) {
+    // write cpu info
+    WriteCpuUsageInPeriod(log_format_alinode);
+
+    // write heap memory info
+    WriteMemoryInfoToLog(env_data, log_format_alinode);
+
+    // write gc status
+    WriteGcStatusToLog(env_data, log_format_alinode);
+
+    // write libuv handle info
+    WriteLibuvHandleInfoToLog(env_data, log_format_alinode);
+
+    // write http status
+    WriteHttpStatus(env_data, log_format_alinode, GetPatchHttpTimeout());
+  }
 }
 
 void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
@@ -77,9 +94,8 @@ void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
   Info("init", "logbypass: gc hooks setted.");
 
   // init log thread
-  per_process::process_data.log_by_pass =
-      std::unique_ptr<LogByPass>(new LogByPass());
-  per_process::process_data.log_by_pass->StartIfNeeded();
+  ProcessData::Get()->log_by_pass = std::unique_ptr<LogByPass>(new LogByPass());
+  ProcessData::Get()->log_by_pass->StartIfNeeded();
   Info("init", "logbypass: log thread created.");
 
   info.GetReturnValue().Set(True());

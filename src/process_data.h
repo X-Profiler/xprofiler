@@ -2,6 +2,7 @@
 #define XPROFILER_SRC_PROCESS_DATA_H
 
 #include "environment_data.h"
+#include "environment_registry.h"
 #include "logbypass/log.h"
 
 namespace xprofiler {
@@ -12,24 +13,25 @@ namespace xprofiler {
 // Do our best course to destruct per_process slots in an expected order.
 class ProcessData {
  public:
+  static ProcessData* Get();
+
   ProcessData(){};
   ~ProcessData() {
     if (log_by_pass != nullptr) {
       log_by_pass->Join();
     }
   };
-
   // Disallow copy;
   ProcessData(const ProcessData& other) = delete;
 
-  // TODO(legendecas): environment registry.
-  std::unique_ptr<EnvironmentData> environment_data;
+  EnvironmentRegistry* environment_registry() {
+    return &environment_registry_;
+  };
   std::unique_ptr<LogByPass> log_by_pass;
-};
 
-namespace per_process {
-extern ProcessData process_data;
-}
+ private:
+  EnvironmentRegistry environment_registry_;
+};
 
 }  // namespace xprofiler
 
