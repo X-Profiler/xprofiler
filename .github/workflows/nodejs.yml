@@ -33,7 +33,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Install Dependencies
-      run: npm i -g npminstall && npminstall
+      run: npm install
 
     - name: Continuous Integration
       run: npm run ci || (sleep 60 && npm run ci) || (sleep 60 && npm run ci)
