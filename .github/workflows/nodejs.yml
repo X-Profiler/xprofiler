@@ -34,6 +34,7 @@ jobs:
 
     - name: Install Dependencies
       run: npm install
+      if: ${{ matrix.ci-type.os != 'windows-latest' || matrix.node-version != 8  }}
 
     - name: Continuous Integration
       run: npm run ci || (sleep 60 && npm run ci) || (sleep 60 && npm run ci)
