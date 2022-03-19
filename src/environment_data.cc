@@ -57,7 +57,8 @@ void EnvironmentData::AtExit(void* arg) {
     per_process::process_data.log_by_pass->Join();
     per_process::process_data.log_by_pass.reset();
   }
-  per_process::process_data.environment_data.reset();
+  // TODO: issue https://github.com/X-Profiler/xprofiler/runs/5611225669?check_suite_focus=true
+  // per_process::process_data.environment_data.reset();
 }
 
 void EnvironmentData::SendCollectStatistics() {
