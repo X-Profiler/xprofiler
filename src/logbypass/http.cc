@@ -11,20 +11,32 @@ using v8::Value;
 constexpr char module_type[] = "http";
 
 void AddLiveRequest(const FunctionCallbackInfo<Value>& info) {
-  HttpStatistics* http_statistics =
-      EnvironmentData::GetCurrent(info)->http_statistics();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) {
+    return;
+  }
+  HttpStatistics* http_statistics = env_data->http_statistics();
   Mutex::ScopedLock lock(http_statistics->mutex);
   http_statistics->live_http_request++;
 }
 
 void AddCloseRequest(const FunctionCallbackInfo<Value>& info) {
-  HttpStatistics* http_statistics =
-      EnvironmentData::GetCurrent(info)->http_statistics();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) {
+    return;
+  }
+  HttpStatistics* http_statistics = env_data->http_statistics();
   Mutex::ScopedLock lock(http_statistics->mutex);
   http_statistics->http_response_close++;
 }
 
 void AddSentRequest(const FunctionCallbackInfo<Value>& info) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) {
+    return;
+  }
+  HttpStatistics* http_statistics = env_data->http_statistics();
+
   if (!info[0]->IsNumber()) {
     Error(module_type, "request cost must be number!");
     return;
@@ -32,21 +44,28 @@ void AddSentRequest(const FunctionCallbackInfo<Value>& info) {
 
   uint32_t cost = Nan::To<uint32_t>(info[0]).ToChecked();
 
-  HttpStatistics* http_statistics =
-      EnvironmentData::GetCurrent(info)->http_statistics();
   Mutex::ScopedLock lock(http_statistics->mutex);
   http_statistics->http_response_sent++;
   http_statistics->http_rt += cost;
 }
 
 void AddRequestTimeout(const FunctionCallbackInfo<Value>& info) {
-  HttpStatistics* http_statistics =
-      EnvironmentData::GetCurrent(info)->http_statistics();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) {
+    return;
+  }
+  HttpStatistics* http_statistics = env_data->http_statistics();
   Mutex::ScopedLock lock(http_statistics->mutex);
   http_statistics->http_request_timeout++;
 }
 
 void AddHttpStatusCode(const FunctionCallbackInfo<Value>& info) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  if (env_data == nullptr) {
+    return;
+  }
+  HttpStatistics* http_statistics = env_data->http_statistics();
+
   if (!info[0]->IsNumber()) {
     Error(module_type, "request cost must be number!");
     return;
@@ -57,8 +76,6 @@ void AddHttpStatusCode(const FunctionCallbackInfo<Value>& info) {
     return;
   }
 
-  HttpStatistics* http_statistics =
-      EnvironmentData::GetCurrent(info)->http_statistics();
   Mutex::ScopedLock lock(http_statistics->mutex);
   http_statistics->status_codes[status_code]++;
 }
