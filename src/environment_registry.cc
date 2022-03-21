@@ -30,7 +30,9 @@ std::unique_ptr<EnvironmentData> EnvironmentRegistry::Unregister(
 EnvironmentData* EnvironmentRegistry::Get(v8::Isolate* isolate) {
   CHECK(disallow_exit_);
   auto it = map_.find(isolate);
-  CHECK_NE(it, map_.end());
+  if (it == map_.end()) {
+    return nullptr;
+  }
   return it->second.get();
 }
 
