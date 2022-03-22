@@ -37,7 +37,7 @@ EnvironmentData* EnvironmentRegistry::Get(v8::Isolate* isolate) {
 }
 
 EnvironmentData* EnvironmentRegistry::GetMainThread() {
-  NoExitScope scope(this);
+  CHECK(disallow_exit_);
 
   for (auto it : *this) {
     if (it->is_main_thread()) {

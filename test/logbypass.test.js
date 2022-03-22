@@ -60,7 +60,8 @@ function parseLog(logType, content, patt, alinode) {
       detail = matched[4];
     } else {
       res.prefix.version = matched[4];
-      detail = matched[5];
+      res.prefix.tid = Number(matched[5]);
+      detail = matched[6];
     }
 
     // set detail

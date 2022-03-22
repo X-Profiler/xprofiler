@@ -29,7 +29,8 @@ class EnvironmentData {
       const Nan::FunctionCallbackInfo<v8::Value>& info);
   static void Create(v8::Isolate* isolate);
 
-  static void JsSetupEnvironmentData(const Nan::FunctionCallbackInfo<v8::Value>& info);
+  static void JsSetupEnvironmentData(
+      const Nan::FunctionCallbackInfo<v8::Value>& info);
 
   void SendCollectStatistics();
 

@@ -106,6 +106,7 @@ void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {
          gc_statistics->marksweep_duration_last_record);
   else
     Info("gc",
+         "[%ld] "
          "uptime: %lu, "
          "total_gc_times: %u, "
          "total_gc_duration: %lu, "
@@ -116,6 +117,7 @@ void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {
          "scavange_duration_last_record: %lu, "
          "marksweep_duration_last_record: %lu, "
          "incremental_marking_duration_last_record: %lu",
+         static_cast<long>(env_data->thread_id()),
          GetUptime(),  // uptime, s
          // total
          gc_statistics->total_gc_times, gc_statistics->total_gc_duration,

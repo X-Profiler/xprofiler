@@ -42,7 +42,8 @@ function parseXprofilerLog(type, content) {
       obj.detail = matched[4];
     } else {
       obj.version = matched[4];
-      obj.detail = matched[5];
+      obj.tid = matched[5];
+      obj.detail = matched[6];
     }
     parsed.push(obj);
   }

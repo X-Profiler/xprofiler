@@ -124,7 +124,8 @@ void EnvironmentData::CollectStatistics(uv_async_t* handle) {
 
 // javascript accessible
 // static
-void EnvironmentData::JsSetupEnvironmentData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+void EnvironmentData::JsSetupEnvironmentData(
+    const Nan::FunctionCallbackInfo<v8::Value>& info) {
   Isolate* isolate = info.GetIsolate();
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   HandleScope scope(isolate);

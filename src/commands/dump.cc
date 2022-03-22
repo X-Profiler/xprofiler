@@ -8,10 +8,10 @@
 #include "heapprofiler/sampling_heap_profiler.h"
 #include "logger.h"
 #include "platform/platform.h"
+#include "process_data.h"
 #include "report/node_report.h"
 #include "uv.h"
 #include "v8.h"
-#include "process_data.h"
 
 namespace xprofiler {
 using std::make_pair;
@@ -275,6 +275,7 @@ void StopProfiling(EnvironmentData* env_data, void* data,
 static void ProfilingWatchDog(void* data) {
   // TODO(legendecas): environment data selector
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope scope(registry);
   EnvironmentData* env_data = registry->GetMainThread();
   BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
   string traceid = dump_data->traceid;
@@ -328,6 +329,7 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
 
   // TODO(legendecas): environment data selector
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope scope(registry);
   EnvironmentData* env_data = registry->GetMainThread();
 
   // get file name

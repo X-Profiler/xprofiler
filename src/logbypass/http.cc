@@ -110,6 +110,7 @@ void WriteHttpStatus(EnvironmentData* env_data, bool log_format_alinode,
     }
 
     Info("http",
+         "[%ld] "
          "%s"
          "live_http_request: %d, "
          "http_response_close: %d, "
@@ -117,7 +118,8 @@ void WriteHttpStatus(EnvironmentData* env_data, bool log_format_alinode,
          "http_request_timeout: %d, "
          "http_patch_timeout: %d, "
          "http_rt: %.2lf",
-         format.c_str(), http_statistics->live_http_request,
+         static_cast<long>(env_data->thread_id()), format.c_str(),
+         http_statistics->live_http_request,
          http_statistics->http_response_close,
          http_statistics->http_response_sent,
          http_statistics->http_request_timeout, http_patch_timeout, rt);
