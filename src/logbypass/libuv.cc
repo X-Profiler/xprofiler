@@ -105,7 +105,9 @@ void WriteLibuvHandleInfoToLog(EnvironmentData* env_data,
          uv_handle_statistics->active_timer_handles,
          uv_handle_statistics->active_and_ref_timer_handles);
   } else {
-    Info("uv", "active_handles: %d", uv_handle_statistics->active_handles);
+    Info("uv", "[%ld] active_handles: %d",
+         static_cast<long>(env_data->thread_id()),
+         uv_handle_statistics->active_handles);
   }
 }
 }  // namespace xprofiler
