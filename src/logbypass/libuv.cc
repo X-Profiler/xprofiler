@@ -83,27 +83,25 @@ void WriteLibuvHandleInfoToLog(EnvironmentData* env_data,
          uv_handle_statistics->active_timer_handles,
          uv_handle_statistics->active_handles);
   } else if (enable_log_uv_handles) {
-    Info("uv",
-         "[%ld] "
-         "active_handles: %d, "
-         "active_file_handles: %d, "
-         "active_and_ref_file_handles: %d, "
-         "active_tcp_handles: %d, "
-         "active_and_ref_tcp_handles: %d, "
-         "active_udp_handles: %d, "
-         "active_and_ref_udp_handles: %d, "
-         "active_timer_handles: %d, "
-         "active_and_ref_timer_handles: %d",
-         static_cast<long>(env_data->thread_id()),
-         uv_handle_statistics->active_handles,
-         uv_handle_statistics->active_file_handles,
-         uv_handle_statistics->active_and_ref_file_handles,
-         uv_handle_statistics->active_tcp_handles,
-         uv_handle_statistics->active_and_ref_tcp_handles,
-         uv_handle_statistics->active_udp_handles,
-         uv_handle_statistics->active_and_ref_udp_handles,
-         uv_handle_statistics->active_timer_handles,
-         uv_handle_statistics->active_and_ref_timer_handles);
+    InfoT("uv", env_data->thread_id(),
+          "active_handles: %d, "
+          "active_file_handles: %d, "
+          "active_and_ref_file_handles: %d, "
+          "active_tcp_handles: %d, "
+          "active_and_ref_tcp_handles: %d, "
+          "active_udp_handles: %d, "
+          "active_and_ref_udp_handles: %d, "
+          "active_timer_handles: %d, "
+          "active_and_ref_timer_handles: %d",
+          uv_handle_statistics->active_handles,
+          uv_handle_statistics->active_file_handles,
+          uv_handle_statistics->active_and_ref_file_handles,
+          uv_handle_statistics->active_tcp_handles,
+          uv_handle_statistics->active_and_ref_tcp_handles,
+          uv_handle_statistics->active_udp_handles,
+          uv_handle_statistics->active_and_ref_udp_handles,
+          uv_handle_statistics->active_timer_handles,
+          uv_handle_statistics->active_and_ref_timer_handles);
   } else {
     InfoT("uv", env_data->thread_id(), "[%ld] active_handles: %d",
           uv_handle_statistics->active_handles);
