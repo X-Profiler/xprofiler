@@ -41,8 +41,6 @@ const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HT
 // compose cases
 cases = cases.concat(casesForLibuv).concat(casesForHttp);
 
-const kPerThreadLogTypes = ['memory', 'gc', 'uv', 'http'];
-
 function parseLog(logType, content, patt, alinode) {
   console.log(`parse log ${logType}: ${JSON.stringify(content)}`);
   const reg = /([^\s]*): (\d+(\.\d{0,2})?)/g;
@@ -125,9 +123,8 @@ for (const testCase of cases) {
               return;
             }
             expect(prefix.version).to.be(pack.version);
-            if (kPerThreadLogTypes.includes(type)) {
-              expect(Number.isFinite(prefix.tid)).to.be.ok();
-            }
+            expect(Number.isFinite(prefix.tid)).to.be.ok();
+            expect(Number.isInteger(prefix.tid)).to.be.ok();
           });
 
           const struct = testCase.struct[type];
