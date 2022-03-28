@@ -6,6 +6,7 @@
 
 #include "commands/cpuprofiler/cpu_profiler.h"
 #include "commands/gcprofiler/gc_profiler.h"
+#include "library/common.h"
 #include "logbypass/gc.h"
 #include "logbypass/heap.h"
 #include "logbypass/http.h"
@@ -40,7 +41,7 @@ class EnvironmentData {
   inline uv_loop_t* loop() { return loop_; }
 
   inline bool is_main_thread() { return is_main_thread_; }
-  inline double thread_id() { return thread_id_; }
+  inline ThreadId thread_id() { return thread_id_; }
 
   inline GcStatistics* gc_statistics() { return &gc_statistics_; }
   inline HttpStatistics* http_statistics() { return &http_statistics_; }
@@ -69,7 +70,7 @@ class EnvironmentData {
   /* We don't have a native method to get the uint64_t thread id.
    * Use the JavaScript number representation.
    */
-  double thread_id_ = -1;
+  ThreadId thread_id_ = ThreadId(-1);
 
   Mutex interrupt_mutex_;
   std::list<InterruptCallback> interrupt_requests_;

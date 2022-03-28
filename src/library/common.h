@@ -11,6 +11,11 @@ unsigned long GetUptime();
 std::string GetStartTime(std::string format);
 size_t GetNextDiagFileId();
 
+/**
+ * Update the type when we can get integer thread_id from Node.js
+ */
+using ThreadId = double;
+
 // commands
 #define COMMAND_CALLBACK(cb)                                               \
   void cb(nlohmann::json command, std::string (*format)(const char*, ...), \

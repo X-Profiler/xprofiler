@@ -105,30 +105,28 @@ void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {
          gc_statistics->scavange_duration_last_record,
          gc_statistics->marksweep_duration_last_record);
   else
-    Info("gc",
-         "[%ld] "
-         "uptime: %lu, "
-         "total_gc_times: %u, "
-         "total_gc_duration: %lu, "
-         "total_scavange_duration: %lu, "
-         "total_marksweep_duration: %lu, "
-         "total_incremental_marking_duration: %lu, "
-         "gc_time_during_last_record: %lu, "
-         "scavange_duration_last_record: %lu, "
-         "marksweep_duration_last_record: %lu, "
-         "incremental_marking_duration_last_record: %lu",
-         static_cast<long>(env_data->thread_id()),
-         GetUptime(),  // uptime, s
-         // total
-         gc_statistics->total_gc_times, gc_statistics->total_gc_duration,
-         gc_statistics->total_scavange_duration,
-         gc_statistics->total_marksweep_duration,
-         gc_statistics->total_incremental_marking_duration,
-         // last record
-         gc_statistics->gc_time_during_last_record,
-         gc_statistics->scavange_duration_last_record,
-         gc_statistics->marksweep_duration_last_record,
-         gc_statistics->incremental_marking_duration_last_record);
+    InfoT("gc", env_data->thread_id(),
+          "uptime: %lu, "
+          "total_gc_times: %u, "
+          "total_gc_duration: %lu, "
+          "total_scavange_duration: %lu, "
+          "total_marksweep_duration: %lu, "
+          "total_incremental_marking_duration: %lu, "
+          "gc_time_during_last_record: %lu, "
+          "scavange_duration_last_record: %lu, "
+          "marksweep_duration_last_record: %lu, "
+          "incremental_marking_duration_last_record: %lu",
+          GetUptime(),  // uptime, s
+          // total
+          gc_statistics->total_gc_times, gc_statistics->total_gc_duration,
+          gc_statistics->total_scavange_duration,
+          gc_statistics->total_marksweep_duration,
+          gc_statistics->total_incremental_marking_duration,
+          // last record
+          gc_statistics->gc_time_during_last_record,
+          gc_statistics->scavange_duration_last_record,
+          gc_statistics->marksweep_duration_last_record,
+          gc_statistics->incremental_marking_duration_last_record);
   // reset last record
   gc_statistics->reset();
 }
