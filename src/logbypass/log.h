@@ -6,6 +6,7 @@
 
 namespace xprofiler {
 
+class EnvironmentData;
 class LogByPass final : public XpfThread {
  public:
   ~LogByPass() override{};
@@ -20,6 +21,7 @@ class LogByPass final : public XpfThread {
 
   void SendCollectStatistics();
   void CollectStatistics();
+  void Write(EnvironmentData* env_data, bool log_format_alinode);
 
   uv_timer_t cpu_interval_;
   uv_timer_t log_interval_;

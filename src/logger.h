@@ -16,6 +16,10 @@ void Info(const char* log_type, const char* format, ...);
 void Error(const char* log_type, const char* format, ...);
 void Debug(const char* log_type, const char* format, ...);
 
+void InfoT(const char* log_type, ThreadId thread_id, const char* format, ...);
+void ErrorT(const char* log_type, ThreadId thread_id, const char* format, ...);
+void DebugT(const char* log_type, ThreadId thread_id, const char* format, ...);
+
 // javascript accessible
 void JsInfo(const Nan::FunctionCallbackInfo<v8::Value>& info);
 void JsError(const Nan::FunctionCallbackInfo<v8::Value>& info);

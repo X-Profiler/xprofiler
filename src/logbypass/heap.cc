@@ -112,25 +112,27 @@ void WriteMemoryInfoToLog(EnvironmentData* env_data, bool log_format_alinode) {
          LOG_SPACE_INFO(read_only), LOG_SPACE_INFO(new_large_object),
          LOG_SPACE_INFO(code_large_object));
   } else {
-    Info("memory",
-         COMMON_INFO_FORMATTERX SPACE_INFO_FORMATTER(new) SPACE_INFO_FORMATTER(
-             old) SPACE_INFO_FORMATTER(code) SPACE_INFO_FORMATTER(map)
-             SPACE_INFO_FORMATTER(lo) SPACE_INFO_FORMATTER(read_only)
-                 SPACE_INFO_FORMATTER(new_lo) SPACE_INFO_FORMATTER(code_lo),
-         // rss
-         rss,
-         // heap statistics
-         heap_statistics->used_heap_size(),
-         heap_statistics->total_available_size(),
-         heap_statistics->total_heap_size(), heap_statistics->heap_size_limit(),
-         heap_statistics->total_heap_size_executable(),
-         heap_statistics->total_physical_size(),
-         heap_statistics->malloced_memory(), heap_statistics->external_memory(),
-         // space statistics
-         LOG_SPACE_INFO(new), LOG_SPACE_INFO(old), LOG_SPACE_INFO(code),
-         LOG_SPACE_INFO(map), LOG_SPACE_INFO(large_object),
-         LOG_SPACE_INFO(read_only), LOG_SPACE_INFO(new_large_object),
-         LOG_SPACE_INFO(code_large_object));
+    InfoT(
+        "memory", env_data->thread_id(),
+        COMMON_INFO_FORMATTERX SPACE_INFO_FORMATTER(new)
+            SPACE_INFO_FORMATTER(old) SPACE_INFO_FORMATTER(code)
+                SPACE_INFO_FORMATTER(map) SPACE_INFO_FORMATTER(lo)
+                    SPACE_INFO_FORMATTER(read_only) SPACE_INFO_FORMATTER(new_lo)
+                        SPACE_INFO_FORMATTER(code_lo),
+        // rss
+        rss,
+        // heap statistics
+        heap_statistics->used_heap_size(),
+        heap_statistics->total_available_size(),
+        heap_statistics->total_heap_size(), heap_statistics->heap_size_limit(),
+        heap_statistics->total_heap_size_executable(),
+        heap_statistics->total_physical_size(),
+        heap_statistics->malloced_memory(), heap_statistics->external_memory(),
+        // space statistics
+        LOG_SPACE_INFO(new), LOG_SPACE_INFO(old), LOG_SPACE_INFO(code),
+        LOG_SPACE_INFO(map), LOG_SPACE_INFO(large_object),
+        LOG_SPACE_INFO(read_only), LOG_SPACE_INFO(new_large_object),
+        LOG_SPACE_INFO(code_large_object));
   }
 }
 }  // namespace xprofiler

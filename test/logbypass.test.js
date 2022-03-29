@@ -59,8 +59,9 @@ function parseLog(logType, content, patt, alinode) {
     if (alinode) {
       detail = matched[4];
     } else {
-      res.prefix.version = matched[4];
-      detail = matched[5];
+      res.prefix.tid = Number(matched[4]);
+      res.prefix.version = matched[5];
+      detail = matched[6];
     }
 
     // set detail
@@ -118,9 +119,12 @@ for (const testCase of cases) {
             expect(/^info$|^error$|^debug$/.test(prefix.level)).to.be.ok();
             expect(new RegExp(`^${type}$`).test(prefix.type)).to.be.ok();
             expect(prefix.pid).to.be(pid);
-            if (!testCase.alinode) {
-              expect(prefix.version).to.be(pack.version);
+            if (testCase.alinode) {
+              return;
             }
+            expect(prefix.version).to.be(pack.version);
+            expect(Number.isFinite(prefix.tid)).to.be.ok();
+            expect(Number.isInteger(prefix.tid)).to.be.ok();
           });
 
           const struct = testCase.struct[type];

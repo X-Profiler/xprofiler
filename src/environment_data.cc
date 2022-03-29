@@ -9,20 +9,12 @@
 #include "xpf_v8.h"
 
 namespace xprofiler {
+using v8::Boolean;
 using v8::Context;
 using v8::Isolate;
 using v8::Local;
 using v8::Number;
 using v8::Object;
-
-// static
-EnvironmentData* EnvironmentData::GetCurrent() {
-  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
-  EnvironmentRegistry::NoExitScope scope(registry);
-
-  CHECK_NE(registry->begin(), registry->end());
-  return *registry->begin();
-}
 
 // static
 EnvironmentData* EnvironmentData::GetCurrent(v8::Isolate* isolate) {
@@ -131,7 +123,9 @@ void EnvironmentData::CollectStatistics(uv_async_t* handle) {
 }
 
 // javascript accessible
-void JsSetupEnvironmentData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+// static
+void EnvironmentData::JsSetupEnvironmentData(
+    const Nan::FunctionCallbackInfo<v8::Value>& info) {
   Isolate* isolate = info.GetIsolate();
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   HandleScope scope(isolate);
@@ -142,7 +136,13 @@ void JsSetupEnvironmentData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
       data->Get(context, OneByteString(isolate, "threadId"))
           .ToLocalChecked()
           .As<Number>();
-  env_data->set_thread_id(thread_id->Value());
+  Local<Boolean> is_main_thread =
+      data->Get(context, OneByteString(isolate, "isMainThread"))
+          .ToLocalChecked()
+          .As<Boolean>();
+
+  env_data->thread_id_ = thread_id->Value();
+  env_data->is_main_thread_ = is_main_thread->Value();
 }
 
 }  // namespace xprofiler

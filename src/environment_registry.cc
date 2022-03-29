@@ -36,6 +36,18 @@ EnvironmentData* EnvironmentRegistry::Get(v8::Isolate* isolate) {
   return it->second.get();
 }
 
+EnvironmentData* EnvironmentRegistry::GetMainThread() {
+  CHECK(disallow_exit_);
+
+  for (auto it : *this) {
+    if (it->is_main_thread()) {
+      return it;
+    }
+  }
+
+  return nullptr;
+}
+
 EnvironmentRegistry::Iterator EnvironmentRegistry::begin() {
   CHECK(disallow_exit_);
   return Iterator(map_.begin());
