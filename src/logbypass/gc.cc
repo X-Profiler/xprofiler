@@ -96,7 +96,7 @@ void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {
   Mutex::ScopedLock lock(gc_statistics->mutex);
 
   // record gc status
-  if (log_format_alinode)
+  if (log_format_alinode) {
     Info("gc",
          "gc_time_during_last_min: %lu, total: %lu, scavange_duration: %lu, "
          "marksweep_duration: %lu",
@@ -104,7 +104,7 @@ void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {
          gc_statistics->total_gc_duration,
          gc_statistics->scavange_duration_last_record,
          gc_statistics->marksweep_duration_last_record);
-  else
+  } else {
     InfoT("gc", env_data->thread_id(),
           "uptime: %lu, "
           "total_gc_times: %u, "
@@ -116,7 +116,7 @@ void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {
           "scavange_duration_last_record: %lu, "
           "marksweep_duration_last_record: %lu, "
           "incremental_marking_duration_last_record: %lu",
-          GetUptime(),  // uptime, s
+          env_data->uptime(),  // uptime, s
           // total
           gc_statistics->total_gc_times, gc_statistics->total_gc_duration,
           gc_statistics->total_scavange_duration,
@@ -127,6 +127,7 @@ void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {
           gc_statistics->scavange_duration_last_record,
           gc_statistics->marksweep_duration_last_record,
           gc_statistics->incremental_marking_duration_last_record);
+  }
   // reset last record
   gc_statistics->reset();
 }

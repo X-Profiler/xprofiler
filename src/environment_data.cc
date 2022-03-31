@@ -44,7 +44,7 @@ void EnvironmentData::Create(v8::Isolate* isolate) {
 }
 
 EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
-    : isolate_(isolate), loop_(loop) {
+    : uptime_(uv_hrtime()), isolate_(isolate), loop_(loop) {
   CHECK_EQ(0, uv_async_init(loop, &interrupt_async_, InterruptIdleCallback));
   uv_unref(reinterpret_cast<uv_handle_t*>(&interrupt_async_));
   CHECK_EQ(0, uv_async_init(loop, &statistics_async_, CollectStatistics));
