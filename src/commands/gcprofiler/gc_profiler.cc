@@ -54,7 +54,7 @@ NAN_GC_CALLBACK(GCTracerPrologueCallback) {
   writer->json_start();
   writer->json_keyvalue("totalSpentfromStart", TotalGcDuration());
   writer->json_keyvalue("totalTimesfromStart", TotalGcTimes());
-  writer->json_keyvalue("timeFromStart", GetUptime());
+  writer->json_keyvalue("timeFromStart", env_data->uptime());
   writer->json_keyvalue("start",
                         (uv_hrtime() - env_data->gc_profiler->init()) / 10e5);
   write_space_data(isolate, type, writer, "before");

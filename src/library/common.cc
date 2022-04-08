@@ -11,13 +11,6 @@ std::atomic_size_t next_file_id(0);
 
 void InitOnceLoadTime() { time(&per_process::load_time); }
 
-unsigned long GetUptime() {
-  time_t current_time;
-  time(&current_time);
-  return static_cast<unsigned long>(
-      difftime(current_time, per_process::load_time));
-}
-
 std::string GetStartTime(std::string format) {
   char time_string_day[32];
   struct tm* ptm = localtime(&per_process::load_time);
