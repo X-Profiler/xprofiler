@@ -1,10 +1,10 @@
 #ifndef XPROFILER_SRC_COMMANDS_DUMP_H
 #define XPROFILER_SRC_COMMANDS_DUMP_H
 
-#include "library/common.h"
-#include "library/utils.h"
-#include "unordered_map"
-#include "vector"
+#include <unordered_map>
+#include <vector>
+
+#include "commands/parser.h"
 
 namespace xprofiler {
 

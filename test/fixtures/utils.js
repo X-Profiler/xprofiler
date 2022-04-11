@@ -120,9 +120,11 @@ exports.fork = function fork(filepath, options = {}) {
   let stderr = '';
   proc.stdout.on('data', chunk => {
     stdout += chunk;
+    console.log('child:', chunk);
   });
   proc.stderr.on('data', chunk => {
     stderr += chunk;
+    console.error('child:', chunk);
   });
 
   proc.on('exit', (code, signal) => {

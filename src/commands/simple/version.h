@@ -1,13 +1,11 @@
-#ifndef _SRC_COMMANDS_SIMPLE_VERSION_H
-#define _SRC_COMMANDS_SIMPLE_VERSION_H
+#ifndef XPROFILER_SRC_COMMANDS_SIMPLE_VERSION_H
+#define XPROFILER_SRC_COMMANDS_SIMPLE_VERSION_H
 
-#include "../../library/common.h"
-#include "../../library/json.hpp"
+#include "commands/parser.h"
+#include "library/json.hpp"
 
 namespace xprofiler {
-using nlohmann::json;
-
 COMMAND_CALLBACK(GetXprofilerVersion);
 }  // namespace xprofiler
 
-#endif
+#endif /* XPROFILER_SRC_COMMANDS_SIMPLE_VERSION_H */

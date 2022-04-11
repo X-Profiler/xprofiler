@@ -1,6 +1,8 @@
-#include "../../library/json.hpp"
-#include "../../library/utils.h"
+#include "commands/simple/config.h"
+
 #include "configure-inl.h"
+#include "library/json.hpp"
+#include "library/utils.h"
 
 namespace xprofiler {
 using nlohmann::json;
