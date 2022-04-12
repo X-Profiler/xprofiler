@@ -13,16 +13,18 @@ const logdir = utils.createLogDir('logdir_worker');
 const tmphome = utils.createLogDir('tmphome_worker');
 
 (canIUseWorker ? describe : describe.skip)('worker_threads', () => {
+  let proc;
   afterEach(() => {
     mm.restore();
   });
-  before(() => {
+  beforeEach(() => {
     mm(process.env, 'XPROFILER_UNIT_TEST_TMP_HOMEDIR', tmphome);
+    proc && proc.kill();
   });
 
   describe('load', () => {
     it('should load xprofiler and exit cleanly', async () => {
-      const proc = fork(path.join(__dirname, 'fixtures/worker.js'), {
+      proc = fork(path.join(__dirname, 'fixtures/worker.js'), {
         env: Object.assign({}, process.env, {
           XPROFILER_LOG_DIR: logdir,
         }),
@@ -35,7 +37,7 @@ const tmphome = utils.createLogDir('tmphome_worker');
 
   describe('xctl', () => {
     it('list_environments', async () => {
-      const proc = fork(path.join(__dirname, 'fixtures/worker_indefinite.js'), {
+      proc = fork(path.join(__dirname, 'fixtures/worker_indefinite.js'), {
         env: Object.assign({}, process.env, {
           XPROFILER_LOG_DIR: logdir,
         }),
@@ -44,6 +46,8 @@ const tmphome = utils.createLogDir('tmphome_worker');
       const result = await xctl(proc.pid, 'list_environments', {
         logdir,
       });
+      console.log('xctl result:', JSON.stringify(result, null, 2));
+      assert.strictEqual(typeof result.data, 'object');
       assert(Array.isArray(result.data.environments));
       assert.strictEqual(result.data.environments.length, 2);
 
