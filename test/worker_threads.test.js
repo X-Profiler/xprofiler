@@ -50,8 +50,12 @@ const tmphome = utils.createLogDir('tmphome_worker');
       process.kill(proc.pid);
 
       const [code, signal] = await once(proc, 'exit');
-      assert.strictEqual(code, null);
-      assert.strictEqual(signal, 'SIGTERM');
+      if (process.platform === 'win32') {
+        assert.strictEqual(code, 1);
+      } else {
+        assert.strictEqual(code, null);
+        assert.strictEqual(signal, 'SIGTERM');
+      }
     });
   });
 });
