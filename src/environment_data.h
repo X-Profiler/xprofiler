@@ -37,13 +37,13 @@ class EnvironmentData {
 
   void RequestInterrupt(InterruptCallback interrupt);
 
+  uint64_t GetUptime() const;
+
   inline v8::Isolate* isolate() const { return isolate_; }
   inline uv_loop_t* loop() const { return loop_; }
 
   inline bool is_main_thread() const { return is_main_thread_; }
   inline ThreadId thread_id() const { return thread_id_; }
-
-  inline uint64_t uptime() const { return uptime_; }
 
   inline GcStatistics* gc_statistics() { return &gc_statistics_; }
   inline HttpStatistics* http_statistics() { return &http_statistics_; }
@@ -64,7 +64,7 @@ class EnvironmentData {
   static void CollectStatistics(uv_async_t* handle);
   EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop);
 
-  const uint64_t uptime_;
+  const uint64_t time_origin_;
 
   v8::Isolate* isolate_;
   uv_loop_t* loop_;

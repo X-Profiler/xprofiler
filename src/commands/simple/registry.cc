@@ -16,7 +16,7 @@ COMMAND_CALLBACK(ListEnvironments) {
       json env = json::object();
       env["is_main_thread"] = it->is_main_thread();
       env["thread_id"] = it->thread_id();
-      env["uptime"] = it->uptime();
+      env["uptime"] = it->GetUptime();
       environment_list.push_back(env);
     }
   }

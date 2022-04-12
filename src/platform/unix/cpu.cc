@@ -1,4 +1,5 @@
 #if defined(__APPLE__) || defined(__linux__)
+#include "library/common.h"
 #include "uv.h"
 
 namespace xprofiler {
@@ -15,7 +16,7 @@ double GetNowCpuUsage() {
 
   // calculate cpu usage
   double cpu_now_ = 100 * (clock() - last_cpu_usage) / CLOCKS_PER_SEC /
-                    ((uv_hrtime() - last_time) / 10e8);
+                    ((uv_hrtime() - last_time) / kNanosecondsPerSecond);
 
   // update time & cpu usage
   last_time = uv_hrtime();
