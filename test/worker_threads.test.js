@@ -8,8 +8,8 @@ const xctl = require('../lib/xctl');
 const { sleep } = require('../lib/utils');
 const mm = require('mm');
 
-const logdir = createLogDir('logdir_worker');
-const tmphome = createLogDir('tmphome_worker');
+let logdir;
+let tmphome;
 
 (canIUseWorker ? describe : describe.skip)('worker_threads', () => {
   let proc;
@@ -19,6 +19,13 @@ const tmphome = createLogDir('tmphome_worker');
   afterEach(() => {
     mm.restore();
     proc && proc.kill();
+  });
+
+  before(() => {
+    logdir = createLogDir('logdir_worker');
+    tmphome = createLogDir('tmphome_worker');
+  });
+  after(() => {
     cleanDir(logdir);
     cleanDir(tmphome);
   });
