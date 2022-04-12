@@ -33,7 +33,7 @@ const tmphome = utils.createLogDir('tmphome_worker');
     });
   });
 
-  describe('xcntl', () => {
+  describe('xctl', () => {
     it('list_environments', async () => {
       const proc = fork(path.join(__dirname, 'fixtures/worker_indefinite.js'), {
         env: Object.assign({}, process.env, {
