@@ -43,13 +43,7 @@
   "env": {
     "es6": true,
     "node": true,
-    "browser": true
-  },
-  "globals": {
-    "describe": true,
-    "it": true,
-    "before": true,
-    "after": true
+    "mocha": true
   },
   "parserOptions": {
     "ecmaVersion": 2018,

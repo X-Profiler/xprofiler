@@ -182,6 +182,18 @@ exports = module.exports = function (logdir) {
       }
     },
     {
+      cmd: 'list_environments',
+      xctlRules: [
+        { key: 'data.environments.0.is_main_thread', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.environments.0.thread_id', rule: { label: 'number', test: value => typeof value === 'number' } },
+        { key: 'data.environments.0.uptime', rule: { label: 'number', test: value => typeof value === 'number' } },
+      ],
+      xprofctlRules(data) {
+        return [new RegExp(`^X-Profiler 环境列表\\(pid ${data.pid}\\):\n`
+            + '  - 线程\\(tid 0\\): 主线程')];
+      }
+    },
+    {
       cmd: 'get_config',
       xctlRules: [
         { key: 'data.log_dir', rule: new RegExp(`^${escape(logdir)}$`) },

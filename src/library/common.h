@@ -1,7 +1,7 @@
 #ifndef XPROFILER_SRC_LIBRARY_COMMON_H
 #define XPROFILER_SRC_LIBRARY_COMMON_H
 
-#include "json.hpp"
+#include <string>
 
 namespace xprofiler {
 void InitOnceLoadTime();
@@ -16,11 +16,6 @@ size_t GetNextDiagFileId();
  */
 using ThreadId = double;
 
-// commands
-#define COMMAND_CALLBACK(cb)                                               \
-  void cb(nlohmann::json command, std::string (*format)(const char*, ...), \
-          std::function<void(nlohmann::json)> success,                     \
-          std::function<void(std::string)> error)
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_LIBRARY_COMMON_H */

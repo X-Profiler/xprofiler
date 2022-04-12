@@ -6,6 +6,7 @@
 #include "gcprofiler/gc_profiler.h"
 #include "heapdump/heap_profiler.h"
 #include "heapprofiler/sampling_heap_profiler.h"
+#include "library/utils.h"
 #include "logger.h"
 #include "platform/platform.h"
 #include "process_data.h"

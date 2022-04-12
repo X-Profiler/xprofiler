@@ -1,12 +1,15 @@
-#include "../library/error.h"
-#include "../library/json.hpp"
-#include "../library/utils.h"
-#include "../logger.h"
-#include "../platform/platform.h"
-#include "./dump.h"
-#include "./send.h"
-#include "./simple/config.h"
-#include "./simple/version.h"
+#include "commands/parser.h"
+
+#include "commands/dump.h"
+#include "commands/send.h"
+#include "commands/simple/config.h"
+#include "commands/simple/registry.h"
+#include "commands/simple/version.h"
+#include "library/error.h"
+#include "library/json.hpp"
+#include "library/utils.h"
+#include "logger.h"
+#include "platform/platform.h"
 
 namespace xprofiler {
 using nlohmann::json;
@@ -47,6 +50,9 @@ void ParseCmd(char* command) {
 
   // get version
   HANDLE_COMMANDS(check_version, GetXprofilerVersion)
+
+  // list environments
+  HANDLE_COMMANDS(list_environments, ListEnvironments)
 
   // get/set config
   HANDLE_COMMANDS(get_config, GetXprofilerConfig)

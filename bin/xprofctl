@@ -82,6 +82,12 @@ xctl(pid, action, options.data)
       case 'check_version':
         console.log(`X-Profiler 插件版本号(pid ${pid}): v${data.version}`);
         break;
+      case 'list_environments':
+        console.log(`X-Profiler 环境列表(pid ${pid}):`);
+        for (const env of data.environments) {
+          console.log(`  - 线程(tid ${env.thread_id}): ${env.is_main_thread ? '主线程' : 'Worker 线程'}`);
+        }
+        break;
       case 'get_config':
         console.log(`X-Profiler 当前配置(pid ${pid}):\n${utils.printConfig(data)}`);
         break;
