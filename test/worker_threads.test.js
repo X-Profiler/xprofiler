@@ -2,24 +2,25 @@
 
 const assert = require('assert');
 const path = require('path');
-const { once, fork } = require('./fixtures/utils');
+const { once, fork, createLogDir, cleanDir } = require('./fixtures/utils');
 const { canIUseWorker } = require('../lib/worker_threads');
 const xctl = require('../lib/xctl');
 const { sleep } = require('../lib/utils');
-const utils = require('./fixtures/utils');
 const mm = require('mm');
 
-const logdir = utils.createLogDir('logdir_worker');
-const tmphome = utils.createLogDir('tmphome_worker');
+const logdir = createLogDir('logdir_worker');
+const tmphome = createLogDir('tmphome_worker');
 
 (canIUseWorker ? describe : describe.skip)('worker_threads', () => {
   let proc;
-  afterEach(() => {
-    mm.restore();
-  });
   beforeEach(() => {
     mm(process.env, 'XPROFILER_UNIT_TEST_TMP_HOMEDIR', tmphome);
+  });
+  afterEach(() => {
+    mm.restore();
     proc && proc.kill();
+    cleanDir(logdir);
+    cleanDir(tmphome);
   });
 
   describe('load', () => {
