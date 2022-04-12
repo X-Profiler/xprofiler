@@ -36,6 +36,18 @@ EnvironmentData* EnvironmentRegistry::Get(v8::Isolate* isolate) {
   return it->second.get();
 }
 
+EnvironmentData* EnvironmentRegistry::Get(ThreadId thread_id) {
+  CHECK(disallow_exit_);
+
+  for (auto it : *this) {
+    if (it->thread_id() == thread_id) {
+      return it;
+    }
+  }
+
+  return nullptr;
+}
+
 EnvironmentData* EnvironmentRegistry::GetMainThread() {
   CHECK(disallow_exit_);
 

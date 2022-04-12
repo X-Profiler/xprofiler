@@ -2,11 +2,14 @@
 
 #include <fstream>
 
+#include "environment_data.h"
+#include "environment_registry.h"
 #include "library/common.h"
 #include "library/utils.h"
 #include "library/writer.h"
 #include "logger.h"
 #include "platform/platform.h"
+#include "process_data.h"
 
 namespace xprofiler {
 using std::ios;
@@ -19,6 +22,14 @@ void NodeReport::WriteNodeReport(JSONWriter* writer, std::string location,
   writer->json_start();
 
   writer->json_keyvalue("pid", GetPid());
+  {
+    EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+    EnvironmentRegistry::NoExitScope no_exit(registry);
+    EnvironmentData* data = registry->Get(isolate_);
+    if (data != nullptr) {
+      writer->json_keyvalue("thread_id", data->thread_id());
+    }
+  }
   writer->json_keyvalue("location", location);
   writer->json_keyvalue("message", message);
   writer->json_keyvalue("nodeVersion", NODE_VERSION);

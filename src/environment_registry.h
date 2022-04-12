@@ -49,6 +49,7 @@ class EnvironmentRegistry {
   void Register(v8::Isolate* isolate, std::unique_ptr<EnvironmentData> env);
   std::unique_ptr<EnvironmentData> Unregister(v8::Isolate* isolate);
   EnvironmentData* Get(v8::Isolate* isolate);
+  EnvironmentData* Get(ThreadId thread_id);
   EnvironmentData* GetMainThread();
 
   Iterator begin();

@@ -35,6 +35,8 @@ let tmphome;
       proc = fork(path.join(__dirname, 'fixtures/worker.js'), {
         env: Object.assign({}, process.env, {
           XPROFILER_LOG_DIR: logdir,
+          XPROFILER_LOG_LEVEL: 2,
+          XPROFILER_LOG_TYPE: 1,
         }),
       });
       const [code, signal] = await once(proc, 'exit');
@@ -48,10 +50,13 @@ let tmphome;
       proc = fork(path.join(__dirname, 'fixtures/worker_indefinite.js'), {
         env: Object.assign({}, process.env, {
           XPROFILER_LOG_DIR: logdir,
+          XPROFILER_LOG_LEVEL: 2,
+          XPROFILER_LOG_TYPE: 1,
         }),
       });
       await sleep(2000);
-      const result = await xctl(proc.pid, 'list_environments', {
+      console.log('perform list_environments');
+      const result = await xctl(proc.pid, 0, 'list_environments', {
         logdir,
       });
       console.log('xctl result:', JSON.stringify(result, null, 2));

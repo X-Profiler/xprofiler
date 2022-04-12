@@ -247,7 +247,7 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
 #undef CHECK_ERR
 
-static void ProfilingTime(uint64_t profiling_time) {
+static void WaitForProfile(uint64_t profiling_time) {
   uint64_t start = uv_hrtime();
   while (uv_hrtime() - start < profiling_time * 10e5) {
     // release cpu
@@ -255,7 +255,7 @@ static void ProfilingTime(uint64_t profiling_time) {
   }
 }
 
-static void NotifyMainJsThread(EnvironmentData* env_data, void* data) {
+static void NotifyJsThread(EnvironmentData* env_data, void* data) {
   env_data->RequestInterrupt(
       [data](EnvironmentData* env_data, InterruptKind kind) {
         HandleAction(env_data->isolate(), data,
@@ -264,33 +264,38 @@ static void NotifyMainJsThread(EnvironmentData* env_data, void* data) {
       });
 }
 
-template <typename T>
-void StopProfiling(EnvironmentData* env_data, void* data,
-                   DumpAction stop_action) {
-  T* dump_data = static_cast<T*>(data);
-  ProfilingTime(dump_data->profiling_time);
+template <typename T, DumpAction stop_action>
+void StopProfiling(T* dump_data) {
+  WaitForProfile(dump_data->profiling_time);
   dump_data->action = stop_action;
-  NotifyMainJsThread(env_data, data);
+
+  ThreadId thread_id = dump_data->thread_id;
+  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+  EnvironmentRegistry::NoExitScope scope(registry);
+  EnvironmentData* env_data = registry->Get(thread_id);
+  if (env_data == nullptr) {
+    return;
+  }
+  NotifyJsThread(env_data, dump_data);
 }
 
 static void ProfilingWatchDog(void* data) {
-  // TODO(legendecas): environment data selector
-  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
-  EnvironmentRegistry::NoExitScope scope(registry);
-  EnvironmentData* env_data = registry->GetMainThread();
   BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
+
   switch (action) {
     case START_CPU_PROFILING:
-      StopProfiling<CpuProfilerDumpData>(env_data, data, STOP_CPU_PROFILING);
+      StopProfiling<CpuProfilerDumpData, STOP_CPU_PROFILING>(
+          static_cast<CpuProfilerDumpData*>(dump_data));
       break;
     case START_SAMPLING_HEAP_PROFILING:
-      StopProfiling<SamplingHeapProfilerDumpData>(env_data, data,
-                                                  STOP_SAMPLING_HEAP_PROFILING);
+      StopProfiling<SamplingHeapProfilerDumpData, STOP_SAMPLING_HEAP_PROFILING>(
+          static_cast<SamplingHeapProfilerDumpData*>(dump_data));
       break;
     case START_GC_PROFILING:
-      StopProfiling<GcProfilerDumpData>(env_data, data, STOP_GC_PROFILING);
+      StopProfiling<GcProfilerDumpData, STOP_GC_PROFILING>(
+          static_cast<GcProfilerDumpData*>(dump_data));
       break;
     default:
       Error(module_type, "watch dog not support dump action: %s", action);
@@ -315,6 +320,8 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
 
   // get traceid
   CHECK_ERR(string traceid = GetJsonValue<string>(command, "traceid", err))
+  CHECK_ERR(ThreadId thread_id =
+                GetJsonValue<ThreadId>(command, "thread_id", err))
 
   // check action running
   CHECK_ERR(ActionRunning(action, err))
@@ -328,10 +335,13 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   // set action running flag
   action_map.insert(make_pair(action, true));
 
-  // TODO(legendecas): environment data selector
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope scope(registry);
-  EnvironmentData* env_data = registry->GetMainThread();
+  EnvironmentData* env_data = registry->Get(thread_id);
+  if (env_data == nullptr) {
+    err = XpfError::Failure("Thread not found: %f", thread_id);
+    return result;
+  }
 
   // get file name
   switch (action) {
@@ -370,10 +380,11 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
 
   // set action callback data
   data->traceid = traceid;
+  data->thread_id = thread_id;
   data->action = action;
 
   // send data
-  NotifyMainJsThread(env_data, data);
+  NotifyJsThread(env_data, data);
 
   if (!profiling) return result;
 
