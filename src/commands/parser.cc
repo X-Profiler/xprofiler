@@ -50,6 +50,8 @@ void ParseCmd(char* command) {
 
   // get version
   HANDLE_COMMANDS(check_version, GetXprofilerVersion)
+
+  // list environments
   HANDLE_COMMANDS(list_environments, ListEnvironments)
 
   // get/set config
