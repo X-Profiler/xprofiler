@@ -3,13 +3,11 @@
 #include <fstream>
 
 #include "environment_data.h"
-#include "environment_registry.h"
 #include "library/common.h"
 #include "library/utils.h"
 #include "library/writer.h"
 #include "logger.h"
 #include "platform/platform.h"
-#include "process_data.h"
 
 namespace xprofiler {
 using std::ios;
@@ -19,13 +17,13 @@ NodeReport::NodeReport(v8::Isolate* isolate) : isolate_(isolate) {}
 
 void NodeReport::WriteNodeReport(JSONWriter* writer, std::string location,
                                  std::string message, bool fatal_error) {
+  // This method should be lock-free to prevent unexpected dead-lock in
+  // abort/CHECK/v8::ApiCheck in arbitrary procedures.
   writer->json_start();
 
   writer->json_keyvalue("pid", GetPid());
   {
-    EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
-    EnvironmentRegistry::NoExitScope no_exit(registry);
-    EnvironmentData* data = registry->Get(isolate_);
+    EnvironmentData* data = EnvironmentData::TryGetCurrent();
     if (data != nullptr) {
       writer->json_keyvalue("thread_id", data->thread_id());
     }

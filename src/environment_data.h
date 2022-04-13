@@ -28,6 +28,9 @@ class EnvironmentData {
   static EnvironmentData* GetCurrent(v8::Isolate* isolate);
   static EnvironmentData* GetCurrent(
       const Nan::FunctionCallbackInfo<v8::Value>& info);
+  // Lock-free operation to get EnvironmentData for current thread, GetCurrent
+  // should be preferred in most cases.
+  static EnvironmentData* TryGetCurrent();
   static void Create(v8::Isolate* isolate);
 
   static void JsSetupEnvironmentData(

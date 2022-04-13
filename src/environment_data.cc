@@ -16,17 +16,26 @@ using v8::Local;
 using v8::Number;
 using v8::Object;
 
+namespace per_thread {
+thread_local EnvironmentData* environment_data = nullptr;
+}
+
 // static
 EnvironmentData* EnvironmentData::GetCurrent(v8::Isolate* isolate) {
-  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
-  EnvironmentRegistry::NoExitScope scope(registry);
-  return registry->Get(isolate);
+  CHECK_NE(per_thread::environment_data, nullptr);
+  CHECK_EQ(per_thread::environment_data->isolate(), isolate);
+  return per_thread::environment_data;
 }
 
 // static
 EnvironmentData* EnvironmentData::GetCurrent(
     const Nan::FunctionCallbackInfo<v8::Value>& info) {
   return EnvironmentData::GetCurrent(info.GetIsolate());
+}
+
+// static
+EnvironmentData* EnvironmentData::TryGetCurrent() {
+  return per_thread::environment_data;
 }
 
 // static
@@ -49,6 +58,7 @@ EnvironmentData::EnvironmentData(v8::Isolate* isolate, uv_loop_t* loop)
   uv_unref(reinterpret_cast<uv_handle_t*>(&interrupt_async_));
   CHECK_EQ(0, uv_async_init(loop, &statistics_async_, CollectStatistics));
   uv_unref(reinterpret_cast<uv_handle_t*>(&statistics_async_));
+  per_thread::environment_data = this;
 }
 
 // static
@@ -61,6 +71,7 @@ void EnvironmentData::AtExit(void* arg) {
            nullptr);
   uv_close(reinterpret_cast<uv_handle_t*>(&env_data->statistics_async_),
            CloseCallback);
+  per_thread::environment_data = nullptr;
   env_data.release();
 }
 
