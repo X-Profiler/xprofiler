@@ -4,6 +4,8 @@
 #include <string>
 
 namespace xprofiler {
+constexpr uint64_t kNanosecondsPerSecond = 1e9;
+
 void InitOnceLoadTime();
 
 // uptime

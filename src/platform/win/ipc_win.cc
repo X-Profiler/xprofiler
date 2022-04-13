@@ -83,7 +83,7 @@ void CreateIpcServer(void (*parsecmd)(char*)) {
     bool need_read = false;
     uint64_t now = uv_hrtime();
     DWORD read_bytes = 0;
-    while (uv_hrtime() - now < 10e8) {
+    while (uv_hrtime() - now < kNanosecondsPerSecond) {
       DWORD read_bytes_tmp = 0;
       DWORD total_bytes = 0;
       char tmp[IN_AND_OUT_BUFFER_SIZE] = {0};

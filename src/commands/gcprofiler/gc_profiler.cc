@@ -54,7 +54,7 @@ NAN_GC_CALLBACK(GCTracerPrologueCallback) {
   writer->json_start();
   writer->json_keyvalue("totalSpentfromStart", TotalGcDuration());
   writer->json_keyvalue("totalTimesfromStart", TotalGcTimes());
-  writer->json_keyvalue("timeFromStart", env_data->uptime());
+  writer->json_keyvalue("timeFromStart", env_data->GetUptime());
   writer->json_keyvalue("start",
                         (uv_hrtime() - env_data->gc_profiler->init()) / 10e5);
   write_space_data(isolate, type, writer, "before");
@@ -87,7 +87,7 @@ void GcProfiler::StartGCProfiling(v8::Isolate* isolate, std::string filename) {
 
   JSONWriter* writer = env_data->gc_profiler->writer();
   writer->json_start();
-  writer->json_keyvalue("startTime", uv_hrtime() / 10e8);
+  writer->json_keyvalue("startTime", uv_hrtime() / kNanosecondsPerSecond);
   writer->json_arraystart("gc");
 }
 
@@ -100,7 +100,7 @@ void GcProfiler::StopGCProfiling(v8::Isolate* isolate) {
   }
   JSONWriter* writer = env_data->gc_profiler->writer();
   writer->json_arrayend();
-  writer->json_keyvalue("stopTime", uv_hrtime() / 10e8);
+  writer->json_keyvalue("stopTime", uv_hrtime() / kNanosecondsPerSecond);
   writer->json_end();
 
   env_data->gc_profiler.reset();

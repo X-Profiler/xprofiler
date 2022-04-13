@@ -50,7 +50,7 @@ let tmphome;
           XPROFILER_LOG_DIR: logdir,
         }),
       });
-      await sleep(1000);
+      await sleep(2000);
       const result = await xctl(proc.pid, 'list_environments', {
         logdir,
       });
@@ -58,6 +58,16 @@ let tmphome;
       assert.strictEqual(typeof result.data, 'object');
       assert(Array.isArray(result.data.environments));
       assert.strictEqual(result.data.environments.length, 2);
+
+      let includesWorker = false;
+      for (const env of result.data.environments) {
+        if (!env.is_main_thread) {
+          includesWorker = true;
+        }
+        /** uptime(s) */
+        assert(env.uptime < 5);
+      }
+      assert(includesWorker);
 
       process.kill(proc.pid);
 
