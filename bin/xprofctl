@@ -22,7 +22,7 @@ const normalYargs = yargs => yargs
   .hide('h');
 
 const args = yargs
-  .usage('$0 <action> -p <pid> [-t profiling_time]')
+  .usage('$0 <action> -p <pid> [-t profiling_time] [-w worker_thread_id]')
   // commands
   .command('start_cpu_profiling', '启动 cpu 采样', profilingYargs)
   .command('stop_cpu_profiling', '生成 cpuprofile', normalYargs)
@@ -52,6 +52,9 @@ const args = yargs
   .describe('p', '进程 pid')
   .alias('p', 'pid')
   .demandOption(['p'])
+  // thread id
+  .describe('w', '线程 id')
+  .alias('w', 'worker_thread_id')
   // examples
   .example('$0 start_cpu_profiling -p 29156', '触发进程 29156 开始进行 cpu 采样')
   .example('$0 check_version -p 29156', '获取进程 29156 使用的插件版本')
@@ -66,6 +69,7 @@ const args = yargs
 // get args
 const action = args['_'][0];
 const pid = args['pid'];
+const thread_id = args['worker_thread_id'] || 0;
 
 // send message
 const options = utils.getXctOptions(action, args, xctljosn);
@@ -74,7 +78,7 @@ if (!options.ok) {
   return;
 }
 
-xctl(pid, action, options.data)
+xctl(pid, thread_id, action, options.data)
   .then(data => {
     if (data.ok) {
       data = data.data;
@@ -85,7 +89,7 @@ xctl(pid, action, options.data)
       case 'list_environments':
         console.log(`X-Profiler 环境列表(pid ${pid}):`);
         for (const env of data.environments) {
-          console.log(`  - 线程(tid ${env.thread_id}): ${env.is_main_thread ? '主线程' : 'Worker 线程'} 已启动${env.uptime}秒`);
+          console.log(`  - 线程(tid ${env.thread_id}): ${env.is_main_thread ? '主线程' : 'Worker线程'} 已启动${env.uptime}秒`);
         }
         break;
       case 'get_config':

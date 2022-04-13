@@ -147,6 +147,7 @@ const gcprofile = {
 
 const diag = {
   pid: REGEXP_NUMBER,
+  thread_id: REGEXP_NUMBER,
   location: /^([\w\s()-:]+|)$/,
   message: /^([\w\s()-:]+|)$/,
   nodeVersion: new RegExp(`^${process.version}$`),
@@ -184,13 +185,22 @@ exports = module.exports = function (logdir) {
     {
       cmd: 'list_environments',
       xctlRules: [
-        { key: 'data.environments.0.is_main_thread', rule: { label: 'true', test: value => value === true } },
-        { key: 'data.environments.0.thread_id', rule: { label: 'number', test: value => typeof value === 'number' } },
-        { key: 'data.environments.0.uptime', rule: { label: 'number', test: value => typeof value === 'number' } },
+        {
+          key: 'data.environments.0.is_main_thread',
+          rule: { label: 'boolean', test: value => typeof value === 'boolean' },
+        },
+        {
+          key: 'data.environments.0.thread_id',
+          rule: { label: 'number', test: value => typeof value === 'number' },
+        },
+        {
+          key: 'data.environments.0.uptime',
+          rule: { label: 'number', test: value => typeof value === 'number' },
+        },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 环境列表\\(pid ${data.pid}\\):\n`
-            + '  - 线程\\(tid 0\\): 主线程 已启动\\d+秒')];
+            + '(?:  - 线程\\(tid \\d+\\): (?:主|Worker)线程 已启动\\d+秒\n?)+')];
       }
     },
     {

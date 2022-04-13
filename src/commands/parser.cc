@@ -22,8 +22,7 @@ using std::string;
         parsed, FmtMessage,                                           \
         [traceid](json data) { SuccessValue(traceid, data); },        \
         [traceid](string message) { ErrorValue(traceid, message); }); \
-    handled = true;                                                   \
-  }
+  } else
 
 void ParseCmd(char* command) {
   Debug("parser", "received command: %s", command);
@@ -35,12 +34,13 @@ void ParseCmd(char* command) {
     return;
   }
 
-  // handle cmd
-  bool handled = false;
-  string cmd = parsed["cmd"];
-
-  // get traceid
   XpfError err;
+  string cmd = GetJsonValue<string>(parsed, "cmd", err);
+  if (err.Fail()) {
+    ErrorValue("unknown",
+               FmtMessage("cmd shoule be passed in: %s", err.GetErrMessage()));
+    return;
+  }
   string traceid = GetJsonValue<string>(parsed, "traceid", err);
   if (err.Fail()) {
     ErrorValue("unknown", FmtMessage("traceid shoule be passed in: %s",
@@ -77,7 +77,7 @@ void ParseCmd(char* command) {
   HANDLE_COMMANDS(diag_report, GetNodeReport)
 
   // not match any commands
-  if (!handled) {
+  /* else */ {
     ErrorValue(traceid, FmtMessage("not support command: %s", cmd.c_str()));
   }
 }
