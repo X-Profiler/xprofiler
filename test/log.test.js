@@ -25,20 +25,20 @@ const alinodeDebugLogPath = path.join(log_dir, `node-debug-${date}.log`);
 const xprofilerPrefixRegexp = utils.xprofilerPrefixRegexp;
 const alinodePrefixRegexp = utils.alinodePrefixRegexp;
 
-function parseXprofilerLog(type, content) {
+function parseXprofilerLog(variant, content) {
   let matched;
   const parsed = [];
   let regexp = xprofilerPrefixRegexp;
-  if (type === 'alinode') {
+  if (variant === 'alinode') {
     regexp = alinodePrefixRegexp;
   }
   while ((matched = regexp.exec(content)) !== null) {
     const obj = {
       log_level: matched[1],
-      log_type: matched[2],
+      component: matched[2],
       pid: matched[3]
     };
-    if (type === 'alinode') {
+    if (variant === 'alinode') {
       obj.detail = matched[4];
     } else {
       obj.tid = matched[4];
@@ -52,32 +52,32 @@ function parseXprofilerLog(type, content) {
 
 const testConfigList = [
   {
-    type: 'xprofiler',
+    variant: 'xprofiler',
     config: { log_dir, log_level: 2 },
     logs: [
-      { level: 'info', type: 'log.test', content: 'test info log', path: xprofilerLogPath },
-      { level: 'error', type: 'log.test', content: 'test error log', path: xprofilerErrorLogPath },
-      { level: 'debug', type: 'log.test', content: 'test debug log', path: xprofilerDebugLogPath }
+      { level: 'info', component: 'log.test', content: 'test info log', path: xprofilerLogPath },
+      { level: 'error', component: 'log.test', content: 'test error log', path: xprofilerErrorLogPath },
+      { level: 'debug', component: 'log.test', content: 'test debug log', path: xprofilerDebugLogPath }
     ]
   },
   {
-    type: 'alinode',
+    variant: 'alinode',
     config: { log_dir, log_level: 2, log_format_alinode: true },
     logs: [
-      { level: 'info', type: 'log.test', content: 'test info log', path: alinodeLogPath },
-      { level: 'error', type: 'log.test', content: 'test error log', path: alinodeErrorLogPath },
-      { level: 'debug', type: 'log.test', content: 'test debug log', path: alinodeDebugLogPath }
+      { level: 'info', component: 'log.test', content: 'test info log', path: alinodeLogPath },
+      { level: 'error', component: 'log.test', content: 'test error log', path: alinodeErrorLogPath },
+      { level: 'debug', component: 'log.test', content: 'test debug log', path: alinodeDebugLogPath }
     ]
   }
 ];
 
 for (const testConfig of testConfigList) {
-  describe(`${testConfig.type} log`, function () {
+  describe(`${testConfig.variant} log`, function () {
     before(function () {
       mm(process.env, 'XPROFILER_UNIT_TEST_SINGLE_MODULE', 'YES');
       xprofiler(testConfig.config);
       for (const log of testConfig.logs) {
-        xprofiler[log.level](log.type, log.content);
+        xprofiler[log.level](log.component, log.content);
       }
     });
 
@@ -90,13 +90,13 @@ for (const testConfig of testConfigList) {
     for (const log of testConfig.logs) {
       it(`<${log.path}> should exists`, function () {
         expect(fs.existsSync(log.path)).to.be.ok();
-        const parsed = parseXprofilerLog(testConfig.type, fs.readFileSync(log.path, 'utf8'));
-        describe(`${testConfig.type} ${log.level} log parsed`, function () {
+        const parsed = parseXprofilerLog(testConfig.variant, fs.readFileSync(log.path, 'utf8'));
+        describe(`${testConfig.variant} ${log.level} log parsed`, function () {
           it(`${log.level} log should be parsed ok`, function () {
             expect(parsed.length).to.be.ok();
           });
           for (const d of parsed) {
-            if (testConfig.type !== 'alinode') {
+            if (testConfig.variant !== 'alinode') {
               it(`version should be v${pack.version}`, function () {
                 expect(d.version).to.be(pack.version);
               });
@@ -106,8 +106,8 @@ for (const testConfig of testConfigList) {
               expect(d.log_level).to.be(log.level);
             });
 
-            it(`log_type should be "${log.type}"`, function () {
-              expect(d.log_type).to.be(log.type);
+            it(`component should be "${log.component}"`, function () {
+              expect(d.component).to.be(log.component);
             });
 
             it(`pid should be ${process.pid}`, function () {
