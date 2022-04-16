@@ -21,7 +21,7 @@
     "pack-7u": "node scripts/7u.js",
     "copy": "node scripts/copy.js",
     "build": "npm run lint && node-pre-gyp rebuild",
-    "format": "clang-format -i --glob=\"src/**/!(report_win)[.h|.cc]\"",
+    "format": "clang-format --version && clang-format -i --glob=\"src/**/!(report_win)[.h|.cc]\"",
     "lint": "npm run format && eslint --fix xprofiler.js \"test/**/*.js\" lib/*.js patch/*.js bin/xprofctl scripts/**/*.js",
     "test": "mocha -t 0 -R spec test/*.test.js test/patch/*.test.js",
     "test-single": "mocha -t 0 -R spec",
@@ -65,7 +65,7 @@
   "devDependencies": {
     "@istanbuljs/schema": "^0.1.3",
     "autod": "^3.1.2",
-    "clang-format": "^1.6.0",
+    "clang-format": "1.6.0",
     "codecov": "^3.8.3",
     "eslint": "^6.8.0",
     "expect.js": "^0.3.1",
