@@ -41,19 +41,19 @@ const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HT
 // compose cases
 cases = cases.concat(casesForLibuv).concat(casesForHttp);
 
-function parseLog(logType, content, patt, alinode) {
-  console.log(`parse log ${logType}: ${JSON.stringify(content)}`);
+function parseLog(component, content, patt, alinode) {
+  console.log(`parse log ${component}: ${JSON.stringify(content)}`);
   const reg = /([^\s]*): (\d+(\.\d{0,2})?)/g;
   let matched;
   const res = { prefix: {}, detail: {} };
   while ((matched = patt.exec(content)) !== null) {
-    if (!matched || matched[2] !== logType) {
+    if (!matched || matched[2] !== component) {
       continue;
     }
 
     // set prefix;
     res.prefix.level = matched[1];
-    res.prefix.type = matched[2];
+    res.prefix.component = matched[2];
     res.prefix.pid = Number(matched[3]);
     let detail;
     if (alinode) {
@@ -106,18 +106,18 @@ for (const testCase of cases) {
         utils.checkChildProcessExitInfo(expect, exitInfo);
       });
 
-      const types = Object.keys(testCase.struct);
-      for (const type of types) {
-        describe(`parse log type [${type}] with content`, function () {
+      const components = Object.keys(testCase.struct);
+      for (const component of components) {
+        describe(`parse log component [${component}] with content`, function () {
           let parsed;
           before(function () {
-            parsed = parseLog(type, logContent, testCase.logparse, testCase.alinode);
+            parsed = parseLog(component, logContent, testCase.logparse, testCase.alinode);
           });
 
           it(`log prefix shoule be ok`, function () {
             const prefix = parsed.prefix;
             expect(/^info$|^error$|^debug$/.test(prefix.level)).to.be.ok();
-            expect(new RegExp(`^${type}$`).test(prefix.type)).to.be.ok();
+            expect(new RegExp(`^${component}$`).test(prefix.component)).to.be.ok();
             expect(prefix.pid).to.be(pid);
             if (testCase.alinode) {
               return;
@@ -127,15 +127,15 @@ for (const testCase of cases) {
             expect(Number.isInteger(prefix.tid)).to.be.ok();
           });
 
-          const struct = testCase.struct[type];
-          it(`type [${type}] should have keys ${Object.keys(struct)}`, function () {
+          const struct = testCase.struct[component];
+          it(`component [${component}] should have keys ${Object.keys(struct)}`, function () {
             const detail = parsed.detail;
             expect(utils.objKeyEqual(detail, struct)).to.be.ok();
           });
 
-          it(`type [${type}] should as expected`, function () {
+          it(`component [${component}] should as expected`, function () {
             const detail = parsed.detail;
-            describe(`${testCase.title} ${target.title}: ${type}`, function () {
+            describe(`${testCase.title} ${target.title}: ${component}`, function () {
               for (const key of Object.keys(detail)) {
                 const key2 = utils.formatKey(key);
                 const regexp = key2 !== key ? struct[key2].regexp : struct[key2];

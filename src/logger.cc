@@ -137,7 +137,7 @@ static void Log(const LOG_LEVEL output_level, const char* type,
   // get log type
   switch (GetLogType()) {
     // tty
-    case LOG_TYPE::LOG_TO_TTL:
+    case LOG_TYPE::LOG_TO_TTY:
       printf("%s", tmp_log);
       WriteToFile(output_level, tmp_log);
       break;
@@ -161,23 +161,23 @@ void InitOnceLogger() {
   V(Error, LOG_ERROR)     \
   V(Debug, LOG_DEBUG)
 
-#define DEFINE_LOGGER(name, level)                           \
-  void name(const char* log_type, const char* format, ...) { \
-    va_list args;                                            \
-    va_start(args, format);                                  \
-    Log(LOG_LEVEL::level, log_type, 0, format, &args);       \
-    va_end(args);                                            \
+#define DEFINE_LOGGER(name, level)                            \
+  void name(const char* component, const char* format, ...) { \
+    va_list args;                                             \
+    va_start(args, format);                                   \
+    Log(LOG_LEVEL::level, component, 0, format, &args);       \
+    va_end(args);                                             \
   }
 NATIVE_LOGGERS(DEFINE_LOGGER);
 #undef DEFINE_LOGGER
 
-#define DEFINE_LOGGER(name, level)                                           \
-  void name##T(const char* log_type, ThreadId thread_id, const char* format, \
-               ...) {                                                        \
-    va_list args;                                                            \
-    va_start(args, format);                                                  \
-    Log(LOG_LEVEL::level, log_type, thread_id, format, &args);               \
-    va_end(args);                                                            \
+#define DEFINE_LOGGER(name, level)                                            \
+  void name##T(const char* component, ThreadId thread_id, const char* format, \
+               ...) {                                                         \
+    va_list args;                                                             \
+    va_start(args, format);                                                   \
+    Log(LOG_LEVEL::level, component, thread_id, format, &args);               \
+    va_end(args);                                                             \
   }
 NATIVE_LOGGERS(DEFINE_LOGGER);
 #undef DEFINE_LOGGER
@@ -190,11 +190,11 @@ NATIVE_LOGGERS(DEFINE_LOGGER);
   }                                                                            \
   EnvironmentData* env_data = EnvironmentData::GetCurrent(info);               \
                                                                                \
-  Local<String> log_type_string = To<String>(info[0]).ToLocalChecked();        \
-  Utf8String log_type(log_type_string);                                        \
+  Local<String> component_string = To<String>(info[0]).ToLocalChecked();       \
+  Utf8String component(component_string);                                      \
   Local<String> log_content_string = To<String>(info[1]).ToLocalChecked();     \
   Utf8String log_content(log_content_string);                                  \
-  Log(level, *log_type, env_data->thread_id(), *log_content);
+  Log(level, *component, env_data->thread_id(), *log_content);
 
 /* js binding logger */
 void JsInfo(const FunctionCallbackInfo<Value>& info) {
