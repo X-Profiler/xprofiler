@@ -35,7 +35,7 @@ class HandleScope {
 };
 
 inline v8::Isolate* TryGetCurrentIsolate() {
-#if NODE_MODULE_VERSION > NODE_16_0_MODULE_VERSION
+#if NODE_MODULE_VERSION >= NODE_16_0_MODULE_VERSION
   return v8::Isolate::TryGetCurrent();
 #else
   return v8::Isolate::GetCurrent();

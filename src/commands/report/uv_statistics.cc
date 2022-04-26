@@ -384,7 +384,7 @@ static void walkHandle(uv_handle_t* h, void* arg) {
 
 void NodeReport::SetUvStatistics(JSONWriter* writer) {
   writer->json_arraystart("libuvHandles");
-  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate_);
+  EnvironmentData* env_data = EnvironmentData::TryGetCurrent();
   if (env_data != nullptr) {
     uv_loop_t* loop = env_data->loop();
     uv_walk(loop, walkHandle, (void*)writer);
