@@ -10,7 +10,7 @@ namespace xprofiler {
  */
 
 inline void AtExit(v8::Isolate* isolate, void (*cb)(void* arg), void* arg) {
-#if NODE_MAJOR_VERSION >= 10
+#if NODE_MODULE_VERSION >= NODE_10_0_MODULE_VERSION
   // node::GetCurrentEnvironment is available since v10.x.
   // We don't need to support multiple environments before v10.x.
   node::Environment* env =
