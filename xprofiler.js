@@ -62,24 +62,24 @@ function start(config = {}) {
   // set config by user and env
   const finalConfig = exports.setConfig(config);
 
-  if (workerThreads.isMainThread) {
-    // check socket path
-    checkSocketPath(finalConfig);
+  if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
+    // start performance log thread if needed
+    exports.runLogBypass();
+    // set hooks
+    exports.setHooks();
 
-    // clean & set logdir info to file
-    const logdir = finalConfig.log_dir;
-    clean(logdir);
-    utils.setLogDirToFile(logdir);
+    if (workerThreads.isMainThread) {
+      // check socket path
+      checkSocketPath(finalConfig);
 
-    if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
-      // start commands listener thread
+      // clean & set logdir info to file
+      const logdir = finalConfig.log_dir;
+      clean(logdir);
+      utils.setLogDirToFile(logdir);
+      // start commands listener thread if needed
       exports.runCommandsListener();
-      // set hooks
-      exports.setHooks();
     }
   }
-  // start performance log thread if needed
-  exports.runLogBypass();
 
   // patch modules
   patch(finalConfig, {
