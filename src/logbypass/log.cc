@@ -109,7 +109,7 @@ void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
 
   // init log thread
   ProcessData* data = ProcessData::Get();
-  Mutex::ScopedLock lock(data->mutex);
+  Mutex::ScopedLock lock(data->log_by_pass_mutex);
   if (data->log_by_pass == nullptr) {
     data->log_by_pass = std::unique_ptr<LogByPass>(new LogByPass());
     data->log_by_pass->StartIfNeeded();

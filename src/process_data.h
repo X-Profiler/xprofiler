@@ -29,7 +29,8 @@ class ProcessData {
     return &environment_registry_;
   };
   std::unique_ptr<LogByPass> log_by_pass;
-  Mutex mutex;
+  Mutex log_by_pass_mutex;
+  Mutex logger_mutex;
 
  private:
   EnvironmentRegistry environment_registry_;
