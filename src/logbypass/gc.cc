@@ -5,8 +5,6 @@
 #include "logger.h"
 
 namespace xprofiler {
-using Nan::AddGCEpilogueCallback;
-using Nan::AddGCPrologueCallback;
 using v8::GCType;
 using v8::Isolate;
 
@@ -33,9 +31,6 @@ uint32_t TotalGcDuration() {
 // gc prologue hook
 NAN_GC_CALLBACK(GCPrologueCallback) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
-  if (env_data == nullptr) {
-    return;
-  }
   GcStatistics* gc_statistics = env_data->gc_statistics();
   Mutex::ScopedLock lock(gc_statistics->mutex);
   gc_statistics->start = uv_hrtime();
@@ -44,9 +39,6 @@ NAN_GC_CALLBACK(GCPrologueCallback) {
 // gc epilogue hook
 NAN_GC_CALLBACK(GCEpilogueCallback) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
-  if (env_data == nullptr) {
-    return;
-  }
   GcStatistics* gc_statistics = env_data->gc_statistics();
   Mutex::ScopedLock lock(gc_statistics->mutex);
 
@@ -86,9 +78,9 @@ NAN_GC_CALLBACK(GCEpilogueCallback) {
   }
 }
 
-void InitGcStatusHooks() {
-  AddGCPrologueCallback(GCPrologueCallback);
-  AddGCEpilogueCallback(GCEpilogueCallback);
+void InitGcStatusHooks(EnvironmentData* env_data) {
+  env_data->AddGCPrologueCallback(GCPrologueCallback);
+  env_data->AddGCEpilogueCallback(GCEpilogueCallback);
 }
 
 void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode) {

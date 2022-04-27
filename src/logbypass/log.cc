@@ -102,8 +102,9 @@ void LogByPass::Write(EnvironmentData* env_data, bool log_format_alinode) {
 }
 
 void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
   // init gc hooks
-  InitGcStatusHooks();
+  InitGcStatusHooks(env_data);
   Info("init", "logbypass: gc hooks setted.");
 
   // init log thread
