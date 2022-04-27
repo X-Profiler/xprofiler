@@ -72,14 +72,14 @@ function start(config = {}) {
     utils.setLogDirToFile(logdir);
 
     if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
-      // start performance log thread
-      exports.runLogBypass();
       // start commands listener thread
       exports.runCommandsListener();
       // set hooks
       exports.setHooks();
     }
   }
+  // start performance log thread if needed
+  exports.runLogBypass();
 
   // patch modules
   patch(finalConfig, {

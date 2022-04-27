@@ -9,8 +9,6 @@ namespace xprofiler {
 enum LOG_LEVEL { LOG_INFO, LOG_ERROR, LOG_DEBUG };
 enum LOG_TYPE { LOG_TO_FILE, LOG_TO_TTY };
 
-void InitOnceLogger();
-
 // normal external
 void Info(const char* component, const char* format, ...);
 void Error(const char* component, const char* format, ...);

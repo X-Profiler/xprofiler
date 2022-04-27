@@ -4,6 +4,7 @@
 #include "environment_data.h"
 #include "environment_registry.h"
 #include "logbypass/log.h"
+#include "xpf_mutex-inl.h"
 
 namespace xprofiler {
 
@@ -28,6 +29,7 @@ class ProcessData {
     return &environment_registry_;
   };
   std::unique_ptr<LogByPass> log_by_pass;
+  Mutex mutex;
 
  private:
   EnvironmentRegistry environment_registry_;

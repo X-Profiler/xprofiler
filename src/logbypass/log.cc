@@ -108,9 +108,13 @@ void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
   Info("init", "logbypass: gc hooks setted.");
 
   // init log thread
-  ProcessData::Get()->log_by_pass = std::unique_ptr<LogByPass>(new LogByPass());
-  ProcessData::Get()->log_by_pass->StartIfNeeded();
-  Info("init", "logbypass: log thread created.");
+  ProcessData* data = ProcessData::Get();
+  Mutex::ScopedLock lock(data->mutex);
+  if (data->log_by_pass == nullptr) {
+    data->log_by_pass = std::unique_ptr<LogByPass>(new LogByPass());
+    data->log_by_pass->StartIfNeeded();
+    Info("init", "logbypass: log thread created.");
+  }
 
   info.GetReturnValue().Set(True());
 }
