@@ -102,14 +102,19 @@ void LogByPass::Write(EnvironmentData* env_data, bool log_format_alinode) {
 }
 
 void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
   // init gc hooks
-  InitGcStatusHooks();
+  InitGcStatusHooks(env_data);
   Info("init", "logbypass: gc hooks setted.");
 
   // init log thread
-  ProcessData::Get()->log_by_pass = std::unique_ptr<LogByPass>(new LogByPass());
-  ProcessData::Get()->log_by_pass->StartIfNeeded();
-  Info("init", "logbypass: log thread created.");
+  ProcessData* data = ProcessData::Get();
+  Mutex::ScopedLock lock(data->mutex);
+  if (data->log_by_pass == nullptr) {
+    data->log_by_pass = std::unique_ptr<LogByPass>(new LogByPass());
+    data->log_by_pass->StartIfNeeded();
+    Info("init", "logbypass: log thread created.");
+  }
 
   info.GetReturnValue().Set(True());
 }

@@ -67,11 +67,23 @@ void EnvironmentData::AtExit(void* arg) {
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope scope(registry);
   std::unique_ptr<EnvironmentData> env_data = registry->Unregister(isolate);
+
+  for (auto callback : env_data->gc_epilogue_callbacks_) {
+    Nan::RemoveGCEpilogueCallback(callback);
+  }
+  env_data->gc_epilogue_callbacks_.clear();
+
+  for (auto callback : env_data->gc_prologue_callbacks_) {
+    Nan::RemoveGCPrologueCallback(callback);
+  }
+  env_data->gc_prologue_callbacks_.clear();
+
   uv_close(reinterpret_cast<uv_handle_t*>(&env_data->interrupt_async_),
            nullptr);
   uv_close(reinterpret_cast<uv_handle_t*>(&env_data->statistics_async_),
            CloseCallback);
   per_thread::environment_data = nullptr;
+  // Release the unique_ptr, but delete it in CloseCallback.
   env_data.release();
 }
 
@@ -94,6 +106,34 @@ void EnvironmentData::RequestInterrupt(InterruptCallback interrupt) {
   }
   isolate_->RequestInterrupt(InterruptBusyCallback, this);
   uv_async_send(&interrupt_async_);
+}
+
+void EnvironmentData::AddGCEpilogueCallback(Nan::GCEpilogueCallback callback,
+                                            v8::GCType gc_type_filter) {
+  gc_epilogue_callbacks_.push_back(callback);
+  CHECK_EQ(isolate_, Isolate::GetCurrent());
+  Nan::AddGCEpilogueCallback(callback, gc_type_filter);
+}
+
+void EnvironmentData::RemoveGCEpilogueCallback(
+    Nan::GCEpilogueCallback callback) {
+  gc_epilogue_callbacks_.remove(callback);
+  CHECK_EQ(isolate_, Isolate::GetCurrent());
+  Nan::RemoveGCEpilogueCallback(callback);
+}
+
+void EnvironmentData::AddGCPrologueCallback(Nan::GCPrologueCallback callback,
+                                            v8::GCType gc_type_filter) {
+  gc_prologue_callbacks_.push_back(callback);
+  CHECK_EQ(isolate_, Isolate::GetCurrent());
+  Nan::AddGCPrologueCallback(callback, gc_type_filter);
+}
+
+void EnvironmentData::RemoveGCPrologueCallback(
+    Nan::GCPrologueCallback callback) {
+  gc_prologue_callbacks_.remove(callback);
+  CHECK_EQ(isolate_, Isolate::GetCurrent());
+  Nan::RemoveGCPrologueCallback(callback);
 }
 
 uint64_t EnvironmentData::GetUptime() const {

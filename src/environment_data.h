@@ -39,6 +39,12 @@ class EnvironmentData {
   void SendCollectStatistics();
 
   void RequestInterrupt(InterruptCallback interrupt);
+  void AddGCEpilogueCallback(Nan::GCEpilogueCallback callback,
+                             v8::GCType gc_type_filter = v8::kGCTypeAll);
+  void RemoveGCEpilogueCallback(Nan::GCEpilogueCallback callback);
+  void AddGCPrologueCallback(Nan::GCPrologueCallback callback,
+                             v8::GCType gc_type_filter = v8::kGCTypeAll);
+  void RemoveGCPrologueCallback(Nan::GCPrologueCallback callback);
 
   uint64_t GetUptime() const;
 
@@ -82,6 +88,8 @@ class EnvironmentData {
   Mutex interrupt_mutex_;
   std::list<InterruptCallback> interrupt_requests_;
   uv_async_t interrupt_async_;
+  std::list<Nan::GCEpilogueCallback> gc_epilogue_callbacks_;
+  std::list<Nan::GCPrologueCallback> gc_prologue_callbacks_;
 
   GcStatistics gc_statistics_;
   MemoryStatistics memory_statistics_;

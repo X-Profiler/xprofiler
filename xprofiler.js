@@ -70,15 +70,17 @@ function start(config = {}) {
     const logdir = finalConfig.log_dir;
     clean(logdir);
     utils.setLogDirToFile(logdir);
-
     if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
-      // start performance log thread
-      exports.runLogBypass();
-      // start commands listener thread
+      // start commands listener thread if needed
       exports.runCommandsListener();
-      // set hooks
-      exports.setHooks();
     }
+  }
+
+  if (process.env.XPROFILER_UNIT_TEST_SINGLE_MODULE !== 'YES') {
+    // start performance log thread if needed
+    exports.runLogBypass();
+    // set hooks
+    exports.setHooks();
   }
 
   // patch modules

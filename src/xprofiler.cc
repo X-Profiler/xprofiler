@@ -21,7 +21,6 @@ using v8::String;
 NODE_C_CTOR(Main) {
   // init global variables
   InitOnceLoadTime();
-  InitOnceLogger();
 }
 
 #define CREATE_JS_BINDING(js_func, native_func)       \

@@ -35,7 +35,7 @@ class GcStatistics {
   }
 };
 
-void InitGcStatusHooks();
+void InitGcStatusHooks(EnvironmentData* env_data);
 void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode);
 
 uint32_t TotalGcTimes();
