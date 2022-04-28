@@ -24,6 +24,14 @@ bool GetEnableFatalErrorHook() {
   return per_process::config_store.enable_fatal_error_hook;
 }
 
+bool GetEnableFatalErrorReport() {
+  return per_process::config_store.enable_fatal_error_report;
+}
+
+bool GetEnableFatalErrorCoredump() {
+  return per_process::config_store.enable_fatal_error_coredump;
+}
+
 bool GetPatchHttp() { return per_process::config_store.patch_http; }
 
 uint32_t GetPatchHttpTimeout() {

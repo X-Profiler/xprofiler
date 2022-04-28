@@ -14,10 +14,12 @@ inline LOG_LEVEL GetLogLevel();
 inline LOG_TYPE GetLogType();
 inline bool GetFormatAsAlinode();
 inline bool GetEnableLogUvHandles();
-inline bool GetEnableFatalErrorHook();
 inline bool GetPatchHttp();
 inline uint32_t GetPatchHttpTimeout();
 inline bool GetCheckThrow();
+inline bool GetEnableFatalErrorHook();
+inline bool GetEnableFatalErrorReport();
+inline bool GetEnableFatalErrorCoredump();
 
 inline void SetLogLevel(LOG_LEVEL value);
 inline void SetLogType(LOG_TYPE value);
@@ -36,10 +38,12 @@ class ConfigStore {
   LOG_TYPE log_type = LOG_TO_FILE;
   bool enable_log_uv_handles = true;
   bool log_format_alinode = false;
-  bool enable_fatal_error_hook = true;
   bool patch_http = true;
   uint32_t patch_http_timeout = 30;
   bool check_throw = true;
+  bool enable_fatal_error_hook = true;
+  bool enable_fatal_error_report = true;
+  bool enable_fatal_error_coredump = false;
 };
 
 namespace per_process {

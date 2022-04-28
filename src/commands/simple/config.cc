@@ -30,10 +30,12 @@ COMMAND_CALLBACK(GetXprofilerConfig) {
   data["log_format_alinode"] = GetFormatAsAlinode();
   data["log_level"] = GetLogLevel();
   data["log_type"] = GetLogType();
-  data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
   data["patch_http"] = GetPatchHttp();
   data["patch_http_timeout"] = GetPatchHttpTimeout();
   data["check_throw"] = GetCheckThrow();
+  data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
+  data["enable_fatal_error_report"] = GetEnableFatalErrorReport();
+  data["enable_fatal_error_coredump"] = GetEnableFatalErrorCoredump();
   success(data);
 }
 

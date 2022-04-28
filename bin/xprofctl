@@ -37,13 +37,17 @@ const args = yargs
   .command('set_config', '设置 xprofiler 配置',
     yargs => yargs
       .group(['enable_log_uv_handles', 'disable_log_uv_handles', 'log_level',
-        'log_type'], '配置项:')
+        'log_type', 'enable_fatal_error_report', 'enable_fatal_error_coredump'], '配置项:')
       .describe('enable_log_uv_handles', '开启 libuv 句柄详情采集')
       .describe('disable_log_uv_handles', '关闭 libuv 句柄详情采集')
       .describe('log_level', '日志级别: info, error, debug')
       .describe('log_type', '日志输出未知: 文件, 控制台')
+      .describe('enable_fatal_error_report', 'Fatal Error 发生时自动生成 Report 报告')
+      .describe('enable_fatal_error_coredump', 'Fatal Error 发生时自动生成 Coredump 文件')
       .boolean('enable_log_uv_handles')
       .boolean('disable_log_uv_handles')
+      .boolean('enable_fatal_error_report')
+      .boolean('enable_fatal_error_coredump')
       .choices('log_level', [0, 1, 2])
       .choices('log_type', [0, 1])
       .hide('v')

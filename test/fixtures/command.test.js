@@ -212,15 +212,19 @@ exports = module.exports = function (logdir) {
         { key: 'data.log_format_alinode', rule: { label: 'false', test: value => value === false } },
         { key: 'data.log_level', rule: /^2$/ },
         { key: 'data.log_type', rule: /^1$/ },
-        { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http_timeout', rule: /^30$/ },
         { key: 'data.check_throw', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.enable_fatal_error_report', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.enable_fatal_error_coredump', rule: { label: 'false', test: value => value === false } },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 当前配置\\(pid ${data.pid}\\):\n`
           + '  - check_throw: false\n'
+          + '  - enable_fatal_error_coredump: false\n'
           + '  - enable_fatal_error_hook: true\n'
+          + '  - enable_fatal_error_report: true\n'
           + '  - enable_log_uv_handles: true\n'
           + `  - log_dir: ${escape(logdir)}\n`
           + '  - log_format_alinode: false\n'
