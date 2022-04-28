@@ -22,14 +22,17 @@ constexpr char module_type[] = "fatal_error";
   }
   fflush(stderr);
 
-  string filepath = GetLogDir() + GetSep() + "x-fatal-error-" +
-                    to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
-                    to_string(GetNextDiagFileId()) + ".diag";
+  // generate report before abort
+  if (GetEnableFatalErrorReport()) {
+    string filepath = GetLogDir() + GetSep() + "x-fatal-error-" +
+                      to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
+                      to_string(GetNextDiagFileId()) + ".diag";
 
-  Info(module_type, "dump report to %s.", filepath.c_str());
-  Isolate* isolate = TryGetCurrentIsolate();
-  NodeReport::GetNodeReport(isolate, filepath, location, message, true);
-  Info(module_type, "report dumped.");
+    Info(module_type, "dump report to %s.", filepath.c_str());
+    Isolate* isolate = TryGetCurrentIsolate();
+    NodeReport::GetNodeReport(isolate, filepath, location, message, true);
+    Info(module_type, "report dumped.");
+  }
 
   Abort();
 }
