@@ -1,3 +1,4 @@
+#include "commands/coredumper/coredumper.h"
 #include "commands/report/node_report.h"
 #include "configure-inl.h"
 #include "library/utils.h"
@@ -22,6 +23,8 @@ constexpr char module_type[] = "fatal_error";
   }
   fflush(stderr);
 
+  Isolate* isolate = TryGetCurrentIsolate();
+
   // generate report before abort
   if (GetEnableFatalErrorReport()) {
     string filepath = GetLogDir() + GetSep() + "x-fatal-error-" +
@@ -29,9 +32,18 @@ constexpr char module_type[] = "fatal_error";
                       to_string(GetNextDiagFileId()) + ".diag";
 
     Info(module_type, "dump report to %s.", filepath.c_str());
-    Isolate* isolate = TryGetCurrentIsolate();
     NodeReport::GetNodeReport(isolate, filepath, location, message, true);
     Info(module_type, "report dumped.");
+  }
+
+  // generator core file before abort
+  if (GetEnableFatalErrorCoredump()) {
+    string filepath = GetLogDir() + GetSep() + "x-fatal-error-" +
+                      to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
+                      to_string(GetNextDiagFileId()) + ".core";
+    Info(module_type, "dump core to %s.", filepath.c_str());
+    Coredumper::WriteCoredump(filepath);
+    Info(module_type, "core dumped.");
   }
 
   Abort();

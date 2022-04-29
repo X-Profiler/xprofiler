@@ -42,6 +42,7 @@
                 "src/commands/report/heap_statistics.cc",
                 "src/commands/report/uv_statistics.cc",
                 "src/commands/report/system_statistics.cc",
+                "src/commands/coredumper/coredumper.cc",
                 "src/hooks/set_hooks.cc",
                 "src/hooks/fatal_error.cc",
                 "src/util.cc",
@@ -62,6 +63,7 @@
                         "src/platform/unix/utils.cc",
                         "src/platform/unix/ipc.cc",
                         "src/platform/unix/report.cc",
+                        "src/platform/unix/core/linux/dump.cc"
                     ]
                 }],
                 ["OS == 'mac'", {
@@ -81,6 +83,7 @@
                         "src/platform/unix/utils.cc",
                         "src/platform/unix/ipc.cc",
                         "src/platform/unix/report.cc",
+                        "src/platform/unix/core/darwin.cc",
                     ]
                 }],
                 ["OS == 'win'", {
@@ -101,6 +104,7 @@
                         "src/platform/win/utils_win.cc",
                         "src/platform/win/ipc_win.cc",
                         "src/platform/win/report_win.cc",
+                        "src/platform/win/core_win.cc"
                     ]
                 }],
             ],

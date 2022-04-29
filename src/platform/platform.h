@@ -35,6 +35,9 @@ void PrintSystemEnv(JSONWriter* writer);
 void PrintResourceLimits(JSONWriter* writer);
 void PrintLoadedLibraries(JSONWriter* writer);
 
+// coredumper
+int WriteCore(std::string filename);
+
 // js binding
 void CheckSocketPath(const Nan::FunctionCallbackInfo<v8::Value>& info);
 }  // namespace xprofiler
