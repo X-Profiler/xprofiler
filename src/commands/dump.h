@@ -17,7 +17,8 @@ enum DumpAction {
   STOP_SAMPLING_HEAP_PROFILING,
   START_GC_PROFILING,
   STOP_GC_PROFILING,
-  NODE_REPORT
+  NODE_REPORT,
+  COREDUMP,
 };
 
 using ActionMap = std::unordered_map<int, bool>;
@@ -45,6 +46,8 @@ struct GcProfilerDumpData : BaseDumpData {};
 
 struct NodeReportDumpData : BaseDumpData {};
 
+struct CoreDumpData : BaseDumpData {};
+
 COMMAND_CALLBACK(StartCpuProfiling);
 COMMAND_CALLBACK(StopCpuProfiling);
 COMMAND_CALLBACK(Heapdump);
@@ -53,6 +56,7 @@ COMMAND_CALLBACK(StopSamplingHeapProfiling);
 COMMAND_CALLBACK(StartGcProfiling);
 COMMAND_CALLBACK(StopGcProfiling);
 COMMAND_CALLBACK(GetNodeReport);
+COMMAND_CALLBACK(GenerateCoredump);
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_COMMANDS_DUMP_H */

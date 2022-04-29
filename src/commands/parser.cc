@@ -76,6 +76,9 @@ void ParseCmd(char* command) {
   // node report
   HANDLE_COMMANDS(diag_report, GetNodeReport)
 
+  // generator
+  HANDLE_COMMANDS(generate_coredump, GenerateCoredump)
+
   // not match any commands
   /* else */ {
     ErrorValue(traceid, FmtMessage("not support command: %s", cmd.c_str()));

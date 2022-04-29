@@ -32,6 +32,7 @@ const args = yargs
   .command('stop_gc_profiling', '生成 gcprofile', normalYargs)
   .command('heapdump', '生成 heapsnapshot', normalYargs)
   .command('diag_report', '生成诊断报告', normalYargs)
+  .command('generate_cored', '生成 coredump', normalYargs)
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
   .command('set_config', '设置 xprofiler 配置',
@@ -148,6 +149,10 @@ xctl(pid, thread_id, action, options.data)
       case 'diag_report':
         console.log(`诊断报告文件路径: ${data.filepath}`);
         console.log(`生成诊断报告可能需要数秒至数十秒.`);
+        break;
+      case 'generate_coredump':
+        console.log(`Coredump 文件路径: ${data.filepath}`);
+        console.log(`生成 Coredump 可能需要数秒至数十秒.`);
         break;
       default:
         console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);

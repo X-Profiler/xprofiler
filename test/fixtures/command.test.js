@@ -173,8 +173,8 @@ const diag = {
   }
 };
 
-exports = module.exports = function (logdir) {
-  return [
+exports = module.exports = function (logdir, currentPlatform) {
+  const list = [
     {
       cmd: 'check_version',
       xctlRules: [{ key: 'data.version', rule: new RegExp(`^${pkg.version}$`) }],
@@ -200,7 +200,7 @@ exports = module.exports = function (logdir) {
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 环境列表\\(pid ${data.pid}\\):\n`
-            + '(?:  - 线程\\(tid \\d+\\): (?:主|Worker)线程 已启动\\d+秒\n?)+')];
+          + '(?:  - 线程\\(tid \\d+\\): (?:主|Worker)线程 已启动\\d+秒\n?)+')];
       }
     },
     {
@@ -349,7 +349,37 @@ exports = module.exports = function (logdir) {
       },
       xprofctlRules() { return []; }
     },
+    {
+      platform: 'linux',
+      cmd: 'generate_coredump',
+      profileRules: 'Generator core file is not supported on linux now.',
+      xctlRules(data) {
+        return [{
+          key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
+            `x-coredump-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).core`)
+        }];
+      },
+      xprofctlRules() { return []; }
+    },
+    {
+      platform: 'win32',
+      cmd: 'generate_coredump',
+      errored: true,
+      profileRules: 'Generator core file is not supported on linux now.',
+      xctlRules: [],
+      xprofctlRules() { return [/执行命令失败: generate_coredump only support linux now./]; }
+    },
+    {
+      platform: 'darwin',
+      cmd: 'generate_coredump',
+      errored: true,
+      profileRules: 'Generator core file is not supported on linux now.',
+      xctlRules: [],
+      xprofctlRules() { return [/执行命令失败: generate_coredump only support linux now./]; }
+    },
   ];
+
+  return list.filter(item => !item.platform || item.platform === currentPlatform);
 };
 
 exports.profileRule = { diag };
