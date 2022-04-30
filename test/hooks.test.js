@@ -1,5 +1,6 @@
 'use strict';
 
+const os = require('os');
 const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
@@ -11,14 +12,17 @@ const exists = promisify(fs.exists);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 const utils = require('./fixtures/utils');
-const cases = require('./fixtures/hooks.test');
+const cases = require('./fixtures/hooks.test')();
+
+const currentPlatform = os.platform();
 
 const logdir = utils.createLogDir('logdir_hooks');
 
 const casesLength = cases.length;
 
 for (const cse of cases) {
-  describe(cse.title, function () {
+  const ospt = cse.platform || currentPlatform;
+  describe(`[${ospt}] ${cse.title}`, function () {
     let hookFile = '';
     before(async function () {
       const p = cp.fork(cse.jspath, {
@@ -69,12 +73,12 @@ for (const cse of cases) {
       expect(hookFile).to.be.ok();
     });
 
-    it('value should be ok', function () {
-      describe(`it has expected structure`, async function () {
+    it('value should be ok', async function () {
+      describe(`it has expected structure`, function () {
         if (typeof cse.check !== 'function') {
           return;
         }
-        await cse.check(hookFile);
+        cse.check(hookFile);
       });
     });
   });

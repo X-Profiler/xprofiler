@@ -1,18 +1,11 @@
 #ifdef __linux__
-#include <fstream>
+#include <string>
+
+#include "coredumper.h"
 
 namespace xprofiler {
-using std::endl;
-using std::ios;
-using std::ofstream;
 
-int WriteCore(std::string filename) {
-  ofstream out;
-  out.open(filename, ios::out | ios::binary);
-  out << "Generator core file is not supported on linux now." << endl;
-  out.close();
-  return 0;
-}
+void WriteCore(std::string filename) { WriteCoreDump(filename.c_str()); }
 }  // namespace xprofiler
 
 #endif

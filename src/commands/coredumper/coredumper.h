@@ -6,7 +6,7 @@
 namespace xprofiler {
 class Coredumper {
  public:
-  static int WriteCoredump(std::string filename);
+  static void WriteCoredump(std::string filename);
 };
 }  // namespace xprofiler
 

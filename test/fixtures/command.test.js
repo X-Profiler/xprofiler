@@ -1,9 +1,13 @@
 'use strict';
 
 const os = require('os');
+const cp = require('child_process');
 const moment = require('moment');
 const expect = require('expect.js');
+const { filterTestCaseByPlatform } = require('./utils');
 const pkg = require('../../package.json');
+
+const currentPlatform = os.platform();
 
 const REGEXP_NUMBER = /^\d+(\.\d+)?$/;
 
@@ -13,8 +17,18 @@ function escape(str) {
 }
 
 let sep = '/';
-if (os.platform() === 'win32') {
+if (currentPlatform === 'win32') {
   sep = '\\';
+}
+
+function checkCoreDump(filepath, log) {
+  if (currentPlatform === 'linux') {
+    const stdout = cp.execSync(`readelf -a ${filepath}`);
+    log && console.log(`${log}: ${stdout}`);
+    it(`should generate elf coredump file on linux`, function () {
+      expect(stdout.includes('ELF Header')).to.be.ok();
+    });
+  }
 }
 
 function checkProfile(rules, obj, rawKey) {
@@ -173,7 +187,7 @@ const diag = {
   }
 };
 
-exports = module.exports = function (logdir, currentPlatform) {
+exports = module.exports = function (logdir) {
   const list = [
     {
       cmd: 'check_version',
@@ -352,7 +366,7 @@ exports = module.exports = function (logdir, currentPlatform) {
     {
       platform: 'linux',
       cmd: 'generate_coredump',
-      profileRules: 'Generator core file is not supported on linux now.',
+      profileRules: checkCoreDump,
       xctlRules(data) {
         return [{
           key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
@@ -365,7 +379,6 @@ exports = module.exports = function (logdir, currentPlatform) {
       platform: 'win32',
       cmd: 'generate_coredump',
       errored: true,
-      profileRules: 'Generator core file is not supported on linux now.',
       xctlRules: [],
       xprofctlRules() { return [/执行命令失败: generate_coredump only support linux now./]; }
     },
@@ -373,15 +386,16 @@ exports = module.exports = function (logdir, currentPlatform) {
       platform: 'darwin',
       cmd: 'generate_coredump',
       errored: true,
-      profileRules: 'Generator core file is not supported on linux now.',
       xctlRules: [],
       xprofctlRules() { return [/执行命令失败: generate_coredump only support linux now./]; }
     },
   ];
 
-  return list.filter(item => !item.platform || item.platform === currentPlatform);
+  return filterTestCaseByPlatform(list);
 };
 
 exports.profileRule = { diag };
 
 exports.checkProfile = checkProfile;
+
+exports.checkCoreDump = checkCoreDump;

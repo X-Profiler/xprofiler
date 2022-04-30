@@ -18,7 +18,7 @@ const commandTestFixture = require('./fixtures/command.test');
 const { checkProfile } = commandTestFixture;
 const logdir = utils.createLogDir('logdir_command');
 const tmphome = utils.createLogDir('tmphome_command');
-const testConfig = commandTestFixture(logdir, currentPlatform);
+const testConfig = commandTestFixture(logdir);
 const testFiles = [
   {
     jspath: path.join(__dirname, './fixtures/blocking.js'),
@@ -140,7 +140,13 @@ describe('commands', () => {
 
               if (typeof profileRules === 'string') {
                 const profile = fs.readFileSync(resByXctl.data.filepath, 'utf8').trim();
-                expect(profileRules).to.be(profile);
+                it(`profile content should be ${profileRules}`, function () {
+                  expect(profileRules).to.be(profile);
+                });
+              }
+
+              if (typeof profileRules === 'function') {
+                profileRules(resByXctl.data.filepath);
               }
             }
 

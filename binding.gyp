@@ -63,7 +63,11 @@
                         "src/platform/unix/utils.cc",
                         "src/platform/unix/ipc.cc",
                         "src/platform/unix/report.cc",
-                        "src/platform/unix/core/linux/dump.cc"
+                        "src/platform/unix/core/linux/dump.cc",
+                        "src/platform/unix/core/linux/coredumper.cc",
+                        "src/platform/unix/core/linux/elfcore.cc",
+                        "src/platform/unix/core/linux/linuxthreads.cc",
+                        "src/platform/unix/core/linux/thread_lister.cc"
                     ]
                 }],
                 ["OS == 'mac'", {

@@ -1,5 +1,6 @@
 'use strict';
 
+const os = require('os');
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -8,7 +9,7 @@ const pack = require('../../package.json');
 const MAGIC_BLURRY_TAG = pack.blurryTag;
 
 exports.xprofilerPrefixRegexp =
-// eslint-disable-next-line max-len
+  // eslint-disable-next-line max-len
   /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[(.+)\] \[(.+)\] \[(\d+)\] \[(\d+)\] \[(\d{1,3}\.\d{1,3}\.\d{1,3}[a-zA-Z0-9\-_]*)\] (.*)/g;
 
 exports.alinodePrefixRegexp =
@@ -136,4 +137,12 @@ exports.fork = function fork(filepath, options = {}) {
     }
   });
   return proc;
+};
+
+exports.filterTestCaseByPlatform = function filterTestCaseByPlatform(list) {
+  if (!Array.isArray(list)) {
+    return list;
+  }
+
+  return list.filter(item => !item.platform || item.platform === os.platform());
 };
