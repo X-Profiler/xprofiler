@@ -1,9 +1,13 @@
 'use strict';
 
 const os = require('os');
+const cp = require('child_process');
 const moment = require('moment');
 const expect = require('expect.js');
+const { filterTestCaseByPlatform } = require('./utils');
 const pkg = require('../../package.json');
+
+const currentPlatform = os.platform();
 
 const REGEXP_NUMBER = /^\d+(\.\d+)?$/;
 
@@ -13,8 +17,18 @@ function escape(str) {
 }
 
 let sep = '/';
-if (os.platform() === 'win32') {
+if (currentPlatform === 'win32') {
   sep = '\\';
+}
+
+function checkCoreDump(filepath, log) {
+  if (currentPlatform === 'linux') {
+    const stdout = cp.execSync(`readelf -a ${filepath}`);
+    log && console.log(`${log}: ${stdout}`);
+    it(`should generate elf coredump file on linux`, function () {
+      expect(stdout.includes('ELF Header')).to.be.ok();
+    });
+  }
 }
 
 function checkProfile(rules, obj, rawKey) {
@@ -174,7 +188,7 @@ const diag = {
 };
 
 exports = module.exports = function (logdir) {
-  return [
+  const list = [
     {
       cmd: 'check_version',
       xctlRules: [{ key: 'data.version', rule: new RegExp(`^${pkg.version}$`) }],
@@ -200,7 +214,7 @@ exports = module.exports = function (logdir) {
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 环境列表\\(pid ${data.pid}\\):\n`
-            + '(?:  - 线程\\(tid \\d+\\): (?:主|Worker)线程 已启动\\d+秒\n?)+')];
+          + '(?:  - 线程\\(tid \\d+\\): (?:主|Worker)线程 已启动\\d+秒\n?)+')];
       }
     },
     {
@@ -212,15 +226,19 @@ exports = module.exports = function (logdir) {
         { key: 'data.log_format_alinode', rule: { label: 'false', test: value => value === false } },
         { key: 'data.log_level', rule: /^2$/ },
         { key: 'data.log_type', rule: /^1$/ },
-        { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http_timeout', rule: /^30$/ },
         { key: 'data.check_throw', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.enable_fatal_error_report', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.enable_fatal_error_coredump', rule: { label: 'false', test: value => value === false } },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 当前配置\\(pid ${data.pid}\\):\n`
           + '  - check_throw: false\n'
+          + '  - enable_fatal_error_coredump: false\n'
           + '  - enable_fatal_error_hook: true\n'
+          + '  - enable_fatal_error_report: true\n'
           + '  - enable_log_uv_handles: true\n'
           + `  - log_dir: ${escape(logdir)}\n`
           + '  - log_format_alinode: false\n'
@@ -345,9 +363,39 @@ exports = module.exports = function (logdir) {
       },
       xprofctlRules() { return []; }
     },
+    {
+      platform: 'linux',
+      cmd: 'generate_coredump',
+      profileRules: checkCoreDump,
+      xctlRules(data) {
+        return [{
+          key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
+            `x-coredump-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).core`)
+        }];
+      },
+      xprofctlRules() { return []; }
+    },
+    {
+      platform: 'win32',
+      cmd: 'generate_coredump',
+      errored: true,
+      xctlRules: [],
+      xprofctlRules() { return [/执行命令失败: generate_coredump only support linux now./]; }
+    },
+    {
+      platform: 'darwin',
+      cmd: 'generate_coredump',
+      errored: true,
+      xctlRules: [],
+      xprofctlRules() { return [/执行命令失败: generate_coredump only support linux now./]; }
+    },
   ];
+
+  return filterTestCaseByPlatform(list);
 };
 
 exports.profileRule = { diag };
 
 exports.checkProfile = checkProfile;
+
+exports.checkCoreDump = checkCoreDump;

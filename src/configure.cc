@@ -76,10 +76,12 @@ void Configure(const FunctionCallbackInfo<Value>& info) {
   CONVERT_UINT32_WITH_TYPE(log_type, LOG_TYPE)
   CONVERT_BOOL(enable_log_uv_handles)
   CONVERT_BOOL(log_format_alinode)
-  CONVERT_BOOL(enable_fatal_error_hook)
   CONVERT_BOOL(patch_http)
   CONVERT_UINT32(patch_http_timeout)
   CONVERT_BOOL(check_throw)
+  CONVERT_BOOL(enable_fatal_error_hook)
+  CONVERT_BOOL(enable_fatal_error_report)
+  CONVERT_BOOL(enable_fatal_error_coredump)
 
   info.GetReturnValue().Set(New<Boolean>(true));
 }
@@ -94,10 +96,12 @@ void GetConfig(const FunctionCallbackInfo<Value>& info) {
   CONFIG_NATIVE_NUMBER(log_type, Number)
   CONFIG_NATIVE_NUMBER(enable_log_uv_handles, Boolean)
   CONFIG_NATIVE_NUMBER(log_format_alinode, Boolean)
-  CONFIG_NATIVE_NUMBER(enable_fatal_error_hook, Boolean)
   CONFIG_NATIVE_NUMBER(patch_http, Boolean)
   CONFIG_NATIVE_NUMBER(patch_http_timeout, Number)
   CONFIG_NATIVE_NUMBER(check_throw, Boolean)
+  CONFIG_NATIVE_NUMBER(enable_fatal_error_hook, Boolean)
+  CONFIG_NATIVE_NUMBER(enable_fatal_error_report, Boolean)
+  CONFIG_NATIVE_NUMBER(enable_fatal_error_coredump, Boolean)
 
   info.GetReturnValue().Set(config);
 }

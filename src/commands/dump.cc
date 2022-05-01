@@ -1,6 +1,7 @@
 #include "dump.h"
 
 #include "configure-inl.h"
+#include "coredumper/coredumper.h"
 #include "cpuprofiler/cpu_profiler.h"
 #include "environment_data.h"
 #include "gcprofiler/gc_profiler.h"
@@ -50,6 +51,7 @@ std::string sampling_heapprofile_filepath = "";
 std::string heapsnapshot_filepath = "";
 std::string gcprofile_filepath = "";
 std::string node_report_filepath = "";
+std::string coredump_filepath = "";
 
 string Action2String(DumpAction action) {
   string name = "";
@@ -77,6 +79,9 @@ string Action2String(DumpAction action) {
       break;
     case NODE_REPORT:
       name = "node_report";
+      break;
+    case COREDUMP:
+      name = "coredump";
       break;
     default:
       name = "unknown";
@@ -239,6 +244,12 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       action_map.erase(NODE_REPORT);
       break;
     }
+    case COREDUMP: {
+      Coredumper::WriteCoredump(coredump_filepath);
+      AfterDumpFile(coredump_filepath, notify_type, unique_key);
+      action_map.erase(COREDUMP);
+      break;
+    }
     default:
       Error(module_type, "not support dump action: %d", action);
       break;
@@ -374,9 +385,20 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
       node_report_filepath = CreateFilepath(prefix, ext);
       result["filepath"] = node_report_filepath;
       break;
+    case COREDUMP:
+#ifdef __linux__
+      coredump_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = coredump_filepath;
+#else
+      err = XpfError::Failure("generate_coredump only support linux now.");
+      action_map.erase(COREDUMP);
+#endif
+      break;
     default:
       break;
   }
+
+  if (err.Fail()) return result;
 
   // set action callback data
   data->traceid = traceid;
@@ -440,6 +462,9 @@ V(Heapdump, HeapdumpDumpData, HEAPDUMP, false, heapdump, heapsnapshot)
 
 // dynamic report
 V(GetNodeReport, NodeReportDumpData, NODE_REPORT, false, diagreport, diag)
+
+// generate coredump
+V(GenerateCoredump, CoreDumpData, COREDUMP, false, coredump, core)
 
 #undef V
 

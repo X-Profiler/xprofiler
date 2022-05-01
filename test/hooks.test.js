@@ -1,5 +1,6 @@
 'use strict';
 
+const os = require('os');
 const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
@@ -9,20 +10,19 @@ const readdir = promisify(fs.readdir);
 const unlink = promisify(fs.unlink);
 const exists = promisify(fs.exists);
 const readFile = promisify(fs.readFile);
+const stat = promisify(fs.stat);
 const utils = require('./fixtures/utils');
-const { profileRule: { diag }, checkProfile } = require('./fixtures/command.test');
+const cases = require('./fixtures/hooks.test')();
+
+const currentPlatform = os.platform();
 
 const logdir = utils.createLogDir('logdir_hooks');
 
-const cases = [{
-  title: 'fatal error hook is valid',
-  subTitle: 'x-fatal-error.diag is created when fatal error occured.',
-  jspath: path.join(__dirname, 'fixtures/fatal-error.js')
-}];
 const casesLength = cases.length;
 
 for (const cse of cases) {
-  describe(cse.title, function () {
+  const ospt = cse.platform || currentPlatform;
+  describe(`[${ospt}] ${cse.title}`, function () {
     let hookFile = '';
     before(async function () {
       const p = cp.fork(cse.jspath, {
@@ -31,21 +31,26 @@ for (const cse of cases) {
           XPROFILER_LOG_DIR: logdir,
           XPROFILER_LOG_LEVEL: 2,
           XPROFILER_LOG_TYPE: 1
-        })
+        }, cse.env)
       });
       await new Promise(resolve => p.on('close', resolve));
       await utils.sleep(2000);
       const files = await readdir(logdir);
       for (const file of files) {
-        if (/x-fatal-error-(\d+)-(\d+)-(\d+).diag/.test(file)) {
+        if (cse.regexp.test(file)) {
           hookFile = path.join(logdir, file);
           const fileExists = await exists(hookFile);
-          console.log('check hook file exists:', hookFile, fileExists);
+          console.log('check hook file exists:', fileExists);
           if (!fileExists) {
             continue;
           }
+          const { size } = await stat(hookFile);
+          console.log('check hook file size:', size);
+          if (!size > 0) {
+            continue;
+          }
           const fileContent = (await readFile(hookFile, 'utf8')).trim();
-          console.log('check hook file content:', hookFile, !!fileContent);
+          console.log('check hook file content:', !!fileContent);
           if (!fileContent) {
             continue;
           }
@@ -68,11 +73,12 @@ for (const cse of cases) {
       expect(hookFile).to.be.ok();
     });
 
-    it('value should be ok', function () {
+    it('value should be ok', async function () {
       describe(`it has expected structure`, function () {
-        const content = fs.readFileSync(hookFile, 'utf8').trim();
-        console.log('fatal error report:', content);
-        checkProfile(diag, JSON.parse(content));
+        if (typeof cse.check !== 'function') {
+          return;
+        }
+        cse.check(hookFile);
       });
     });
   });

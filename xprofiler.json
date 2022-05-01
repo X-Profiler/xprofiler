@@ -49,14 +49,6 @@
     "format": "number"
   },
   {
-    "name": "enable_fatal_error_hook",
-    "env": "XPROFILER_ENABLE_FATAL_ERROR_HOOK",
-    "rules": [
-      "boolean"
-    ],
-    "format": "boolean"
-  },
-  {
     "name": "patch_http",
     "env": "XPROFILER_PATCH_HTTP",
     "rules": [
@@ -75,6 +67,30 @@
   {
     "name": "check_throw",
     "env": "XPROFILER_CHECK_THROW",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
+  },
+  {
+    "name": "enable_fatal_error_hook",
+    "env": "XPROFILER_ENABLE_FATAL_ERROR_HOOK",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
+  },
+  {
+    "name": "enable_fatal_error_report",
+    "env": "XPROFILER_ENABLE_FATAL_ERROR_REPORT",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
+  },
+  {
+    "name": "enable_fatal_error_coredump",
+    "env": "XPROFILER_ENABLE_FATAL_ERROR_COREDUMP",
     "rules": [
       "boolean"
     ],

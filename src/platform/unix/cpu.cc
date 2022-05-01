@@ -14,9 +14,14 @@ double GetNowCpuUsage() {
     return -1;
   }
 
+  uint64_t duration = (uv_hrtime() - last_time) / kNanosecondsPerSecond;
+  if (duration <= 0) {
+    return -1;
+  }
+
   // calculate cpu usage
-  double cpu_now_ = 100 * (clock() - last_cpu_usage) / CLOCKS_PER_SEC /
-                    ((uv_hrtime() - last_time) / kNanosecondsPerSecond);
+  double cpu_now_ =
+      100 * (clock() - last_cpu_usage) / CLOCKS_PER_SEC / duration;
 
   // update time & cpu usage
   last_time = uv_hrtime();

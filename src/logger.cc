@@ -79,7 +79,7 @@ static void Log(const LOG_LEVEL output_level, const char* type,
 
   // time of day
   char time_string_ms[64];
-  char time_string_ms_alinode[64];
+  char time_string_ms_alinode[128];
   time_t tt = time(NULL);
   struct tm* ptm = localtime(&tt);
   strftime(time_string_ms, sizeof(time_string_ms), "%Y-%m-%d %H:%M:%S", ptm);

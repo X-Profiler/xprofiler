@@ -13,6 +13,7 @@ const xprofctl = path.join(__dirname, '../bin/xprofctl');
 const xctl = require('../lib/xctl');
 const utils = require('./fixtures/utils');
 
+const currentPlatform = os.platform();
 const commandTestFixture = require('./fixtures/command.test');
 const { checkProfile } = commandTestFixture;
 const logdir = utils.createLogDir('logdir_command');
@@ -48,10 +49,12 @@ function convertOptions(options) {
 
 describe('commands', () => {
   for (let i = 0; i < testConfig.length; i++) {
-    const { cmd, options = {}, profileRules, errored = false, xctlRules, xprofctlRules } = testConfig[i];
+    const { cmd, options = {}, profileRules, errored = false, xctlRules, xprofctlRules, platform } = testConfig[i];
     for (let j = 0; j < testFiles.length; j++) {
       const { jspath, desc, threadId = 0 } = testFiles[j];
-      const title = `execute [${cmd}] on thread(${threadId}) with options: ${JSON.stringify(options)} ${desc}`;
+      const ospt = platform || currentPlatform;
+      const title =
+        `[${ospt}] execute [${cmd}] on thread(${threadId}) with options: ${JSON.stringify(options)} ${desc}`;
       describe(title, function () {
         let resByXctl = '';
         let resByXprofctl = '';
@@ -76,7 +79,7 @@ describe('commands', () => {
           await utils.sleep(500);
           // send cmd with xprofctl (cli)
           const extra = convertOptions(options);
-          const nodeExe = os.platform() === 'win32' ? 'node ' : '';
+          const nodeExe = currentPlatform === 'win32' ? 'node ' : '';
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xprofctl cmd.');
           resByXprofctl = await exec(`${nodeExe}${xprofctl} ${cmd} -p ${pid} -w ${threadId}${extra}`, {
             env: Object.assign({}, process.env, {
@@ -133,6 +136,17 @@ describe('commands', () => {
               if (profileRules && typeof profileRules === 'object') {
                 const profile = JSON.parse(fs.readFileSync(resByXctl.data.filepath, 'utf8'));
                 checkProfile(profileRules, profile);
+              }
+
+              if (typeof profileRules === 'string') {
+                const profile = fs.readFileSync(resByXctl.data.filepath, 'utf8').trim();
+                it(`profile content should be ${profileRules}`, function () {
+                  expect(profileRules).to.be(profile);
+                });
+              }
+
+              if (typeof profileRules === 'function') {
+                profileRules(resByXctl.data.filepath);
               }
             }
 

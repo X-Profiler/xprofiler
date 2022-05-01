@@ -14,7 +14,7 @@ const logdir = utils.createLogDir('logdir_start');
 const tmphome = utils.createLogDir('tmphome_start');
 
 describe(`xprofiler starting`, function () {
-  const invaidPid = 25416;
+  const invaidPid = 9999999;
   const xprofilerPath = path.join(tmphome, '.xprofiler');
   const checkTime = 2;
   before(async function () {

@@ -32,18 +32,23 @@ const args = yargs
   .command('stop_gc_profiling', '生成 gcprofile', normalYargs)
   .command('heapdump', '生成 heapsnapshot', normalYargs)
   .command('diag_report', '生成诊断报告', normalYargs)
+  .command('generate_cored', '生成 coredump', normalYargs)
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
   .command('set_config', '设置 xprofiler 配置',
     yargs => yargs
       .group(['enable_log_uv_handles', 'disable_log_uv_handles', 'log_level',
-        'log_type'], '配置项:')
+        'log_type', 'enable_fatal_error_report', 'enable_fatal_error_coredump'], '配置项:')
       .describe('enable_log_uv_handles', '开启 libuv 句柄详情采集')
       .describe('disable_log_uv_handles', '关闭 libuv 句柄详情采集')
       .describe('log_level', '日志级别: info, error, debug')
       .describe('log_type', '日志输出未知: 文件, 控制台')
+      .describe('enable_fatal_error_report', 'Fatal Error 发生时自动生成 Report 报告')
+      .describe('enable_fatal_error_coredump', 'Fatal Error 发生时自动生成 Coredump 文件')
       .boolean('enable_log_uv_handles')
       .boolean('disable_log_uv_handles')
+      .boolean('enable_fatal_error_report')
+      .boolean('enable_fatal_error_coredump')
       .choices('log_level', [0, 1, 2])
       .choices('log_type', [0, 1])
       .hide('v')
@@ -144,6 +149,10 @@ xctl(pid, thread_id, action, options.data)
       case 'diag_report':
         console.log(`诊断报告文件路径: ${data.filepath}`);
         console.log(`生成诊断报告可能需要数秒至数十秒.`);
+        break;
+      case 'generate_coredump':
+        console.log(`Coredump 文件路径: ${data.filepath}`);
+        console.log(`生成 Coredump 可能需要数秒至数十秒.`);
         break;
       default:
         console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);

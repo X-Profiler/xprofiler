@@ -94,12 +94,6 @@ const configure = {
     envValue: 1,
     userValue: 1
   },
-  enable_fatal_error_hook: {
-    defaultValue: true,
-    envKey: 'XPROFILER_ENABLE_FATAL_ERROR_HOOK',
-    envValue: 'NO',
-    userValue: false
-  },
   patch_http: {
     defaultValue: true,
     envKey: 'XPROFILER_PATCH_HTTP',
@@ -117,7 +111,25 @@ const configure = {
     envKey: 'XPROFILER_CHECK_THROW',
     envValue: 'NO',
     userValue: false
-  }
+  },
+  enable_fatal_error_hook: {
+    defaultValue: true,
+    envKey: 'XPROFILER_ENABLE_FATAL_ERROR_HOOK',
+    envValue: 'NO',
+    userValue: false
+  },
+  enable_fatal_error_report: {
+    defaultValue: true,
+    envKey: 'XPROFILER_ENABLE_FATAL_ERROR_REPORT',
+    envValue: 'NO',
+    userValue: false
+  },
+  enable_fatal_error_coredump: {
+    defaultValue: false,
+    envKey: 'XPROFILER_ENABLE_FATAL_ERROR_COREDUMP',
+    envValue: 'YES',
+    userValue: true
+  },
 };
 
 module.exports = getTestKeys(configure);

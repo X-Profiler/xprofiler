@@ -7,10 +7,12 @@ export interface XprofilerConfig {
   log_type?: 0 | 1;
   log_format_alinode?: boolean;
   enable_log_uv_handles?: boolean;
-  enable_fatal_error_hook?: boolean;
   patch_http?: boolean;
   patch_http_timeout?: number;
   check_throw?: boolean;
+  enable_fatal_error_hook?: boolean;
+  enable_fatal_error_report?: boolean;
+  enable_fatal_error_coredump?: boolean;
 }
 
 /**
