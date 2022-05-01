@@ -3,7 +3,6 @@
 const assert = require('assert');
 const path = require('path');
 const { once, fork, createLogDir, cleanDir } = require('./fixtures/utils');
-const { canIUseWorker } = require('../lib/worker_threads');
 const xctl = require('../lib/xctl');
 const { sleep } = require('../lib/utils');
 const mm = require('mm');
@@ -11,7 +10,7 @@ const mm = require('mm');
 let logdir;
 let tmphome;
 
-(canIUseWorker ? describe : describe.skip)('worker_threads', () => {
+describe('worker_threads', () => {
   let proc;
   beforeEach(() => {
     mm(process.env, 'XPROFILER_UNIT_TEST_TMP_HOMEDIR', tmphome);
