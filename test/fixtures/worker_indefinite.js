@@ -1,6 +1,8 @@
 'use strict';
 
-if (Number.parseInt(process.versions.node.split('.')[0], 10) <= 10) {
+const { testWorkerThreads } = require('./utils');
+
+if (!testWorkerThreads()) {
   process.exit(0);
 }
 
@@ -23,5 +25,5 @@ if (workerThreads.isMainThread) {
     console.log('worker exited', code);
   });
 } else {
-  setInterval(() => {}, 1000);
+  setInterval(() => { }, 1000);
 }

@@ -146,3 +146,7 @@ exports.filterTestCaseByPlatform = function filterTestCaseByPlatform(list) {
 
   return list.filter(item => !item.platform || item.platform === os.platform());
 };
+
+exports.testWorkerThreads = function testWorkerThreads() {
+  return Number.parseInt(process.versions.node.split('.')[0], 10) > 10;
+};

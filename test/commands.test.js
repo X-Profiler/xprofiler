@@ -27,13 +27,15 @@ const testFiles = [
   {
     jspath: path.join(__dirname, './fixtures/non-blocking.js'),
     desc: 'when js main thread non blocking'
-  },
-  {
+  }
+];
+if (utils.testWorkerThreads()) {
+  testFiles.push({
     jspath: path.join(__dirname, './fixtures/worker_blocking.js'),
     desc: 'when js worker thread blocking',
     threadId: 1,
-  },
-];
+  });
+}
 
 function convertOptions(options) {
   let extra = '';

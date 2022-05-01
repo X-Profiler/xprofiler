@@ -30,8 +30,9 @@ xprofiler 插件支持三大主流操作系统：
 - v15.x
 - v16.x
 - v17.x
+- v18.x
 
-更低的版本因为已经不在官方 LTS 计划中，故正常情况下不再支持。
+更低的版本因为在此项目创建时已经不在官方 LTS 计划中，故正常情况下不再支持。
 
 
 ## II. 快速开始
@@ -194,7 +195,7 @@ copyright 2019
 
 ## III. 插件架构和实现原理
 
-// TODO
+参见 [文档 - 整体架构](https://www.yuque.com/hyj1991/easy-monitor/architecture)
 
 
 ## IV. 稳定性

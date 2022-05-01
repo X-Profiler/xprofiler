@@ -1,5 +1,5 @@
 #ifndef XPROFILER_SRC_COMMANDS_COREDUMPER_H
-#define XPROFILER_SRC_COMMANDS_COREDUMOER_H
+#define XPROFILER_SRC_COMMANDS_COREDUMPER_H
 
 #include <string>
 
@@ -10,4 +10,4 @@ class Coredumper {
 };
 }  // namespace xprofiler
 
-#endif /* XPROFILER_SRC_COMMANDS_COREDUMOER_H */
+#endif /* XPROFILER_SRC_COMMANDS_COREDUMPER_H */

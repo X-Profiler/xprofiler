@@ -1,12 +1,18 @@
 'use strict';
 
+const { testWorkerThreads } = require('./test/fixtures/utils');
 const defaultExclude = require('@istanbuljs/schema/default-exclude');
 const os = require('os');
 
-let platformExclude = [
-  os.platform() === 'win32' ? 'lib/clean.js' : ''
-];
+const ingores = [];
+if (os.platform() === 'win32') {
+  ingores.push('lib/clean.js');
+}
+
+if (!testWorkerThreads()) {
+  ingores.push('lib/worker_threads.js');
+}
 
 module.exports = {
-  exclude: platformExclude.concat(defaultExclude)
+  exclude: ingores.concat(defaultExclude)
 };
