@@ -54,7 +54,12 @@
             "cflags_cc!": ["-fno-exceptions"],
             "conditions": [
                 ["OS == 'linux'", {
-                    "cflags": ["-O2", "-std=c++14"],
+                    "cflags": [
+                        "-O2",
+                        "-std=c++14",
+                        "-Wno-sign-compare",
+                        "-Wno-cast-function-type",
+                    ],
                     "defines": [
                         'XPROFILER_IPC_PATH="<!(node -p \"require(\'./package.json\').xctlIpcPath.unix\")"',
                     ],
