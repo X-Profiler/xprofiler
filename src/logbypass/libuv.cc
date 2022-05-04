@@ -84,7 +84,7 @@ void WriteLibuvHandleInfoToLog(EnvironmentData* env_data,
          uv_handle_statistics->active_handles);
   } else if (enable_log_uv_handles) {
     InfoT("uv", env_data->thread_id(),
-          "active_handles: %d, "
+          "active_handles: %ld, "
           "active_file_handles: %d, "
           "active_and_ref_file_handles: %d, "
           "active_tcp_handles: %d, "
@@ -103,7 +103,7 @@ void WriteLibuvHandleInfoToLog(EnvironmentData* env_data,
           uv_handle_statistics->active_timer_handles,
           uv_handle_statistics->active_and_ref_timer_handles);
   } else {
-    InfoT("uv", env_data->thread_id(), "[%ld] active_handles: %d",
+    InfoT("uv", env_data->thread_id(), "active_handles: %ld",
           uv_handle_statistics->active_handles);
   }
 }

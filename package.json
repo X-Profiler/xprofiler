@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -17,8 +17,8 @@
     "install": "node-pre-gyp install --fallback-to-build",
     "package": "node scripts/build.js",
     "pack-common": "node scripts/common.js",
-    "pack-6u": "node scripts/6u.js",
     "pack-7u": "node scripts/7u.js",
+    "pack-8u": "node scripts/8u.js",
     "copy": "node scripts/copy.js",
     "build": "npm run lint && node-pre-gyp rebuild",
     "format": "clang-format --version && clang-format -i --glob=\"src/**/!(report_win)[.h|.cc]\"",
