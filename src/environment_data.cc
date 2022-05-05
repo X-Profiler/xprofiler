@@ -79,20 +79,23 @@ void EnvironmentData::AtExit(void* arg) {
   env_data->gc_prologue_callbacks_.clear();
 
   uv_close(reinterpret_cast<uv_handle_t*>(&env_data->interrupt_async_),
-           nullptr);
+           CloseCallback<&EnvironmentData::interrupt_async_>);
   uv_close(reinterpret_cast<uv_handle_t*>(&env_data->statistics_async_),
-           CloseCallback);
+           CloseCallback<&EnvironmentData::statistics_async_>);
   per_thread::environment_data = nullptr;
   // Release the unique_ptr, but delete it in CloseCallback.
   env_data.release();
 }
 
 // static
+template <uv_async_t EnvironmentData::*field>
 void EnvironmentData::CloseCallback(uv_handle_t* handle) {
   EnvironmentData* env_data =
-      ContainerOf(&EnvironmentData::statistics_async_,
-                  reinterpret_cast<uv_async_t*>(handle));
-  delete env_data;
+      ContainerOf(field, reinterpret_cast<uv_async_t*>(handle));
+  env_data->closed_handle_count_++;
+  if (env_data->closed_handle_count_ == kHandleCount) {
+    delete env_data;
+  }
 }
 
 void EnvironmentData::SendCollectStatistics() {

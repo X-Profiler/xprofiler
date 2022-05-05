@@ -130,7 +130,7 @@ exports.fork = function fork(filepath, options = {}) {
 
   proc.on('exit', (code, signal) => {
     if (code !== 0) {
-      console.log('process exited with non-zero code: pid(%d), code(%d), signal(%d)', proc.pid, code, signal);
+      console.log('process exited with non-zero code: pid(%d), code(%s), signal(%s)', proc.pid, code, signal);
       console.log('stdout:\n', stdout);
       console.log('');
       console.log('stderr:\n', stderr);
