@@ -66,6 +66,7 @@ class EnvironmentData {
 
  private:
   static void AtExit(void* arg);
+  template <uv_async_t EnvironmentData::*field>
   static void CloseCallback(uv_handle_t* handle);
   static void InterruptBusyCallback(v8::Isolate* isolate, void* data);
   static void InterruptIdleCallback(uv_async_t* handle);
@@ -95,6 +96,9 @@ class EnvironmentData {
   MemoryStatistics memory_statistics_;
   HttpStatistics http_statistics_;
   UvHandleStatistics uv_handle_statistics_;
+
+  uint32_t closed_handle_count_ = 0;
+  static const uint32_t kHandleCount = 2;
 };
 
 }  // namespace xprofiler

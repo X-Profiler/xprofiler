@@ -163,7 +163,7 @@ npm i xprofiler -g
 此命令可以对安装并启用了 xprofiler 插件的 node.js 进程进行一些操作，安装后执行 `xprofctl -h` 可以查看其用法:
 
 ```bash
-xprofctl <action> -p <pid> [-t profiling_time]
+xprofctl <action> -p <pid> [-w <thread_id>] [-t profiling_time]
 
 命令：
   xprofctl start_cpu_profiling   启动 cpu 采样
@@ -179,9 +179,10 @@ xprofctl <action> -p <pid> [-t profiling_time]
   xprofctl set_config            设置 xprofiler 配置
 
 选项：
-  -p, --pid      进程 pid                                                [必需]
-  -h, --help     显示帮助信息                                              [布尔]
-  -v, --version  显示版本号                                               [布尔]
+  -p, --pid                  进程 pid               [必需]
+  -w, --worker_thread_id     线程 id                [可选]
+  -h, --help                 显示帮助信息            [布尔]
+  -v, --version              显示版本号              [布尔]
 
 示例：
   xprofctl start_cpu_profiling -p 29156  触发进程 29156 开始进行 cpu 采样
