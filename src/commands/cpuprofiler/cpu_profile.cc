@@ -10,9 +10,7 @@ using Nan::Utf8String;
 using std::ofstream;
 
 void CpuProfile::DeleteCpuProfile(const v8::CpuProfile* profile) {
-#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
   const_cast<v8::CpuProfile*>(profile)->Delete();
-#endif
 }
 
 void CpuProfile::Serialize(v8::Isolate* isolate, CpuProfilePtr node,

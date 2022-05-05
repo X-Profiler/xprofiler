@@ -49,11 +49,6 @@ void GetRss(size_t* rss) {
 
 void SetHeapStatistics(XprofilerHeapStatistics* heap_statistics) {
   GetHeapStatistics(heap_statistics->handle());
-#if (NODE_MODULE_VERSION < NODE_12_0_MODULE_VERSION)
-  Isolate* isolate = Isolate::GetCurrent();
-  heap_statistics->external_memory() =
-      isolate->AdjustAmountOfExternalAllocatedMemory(0);
-#endif
 }
 
 void SetHeapSpaceStatistics(

@@ -31,17 +31,9 @@ struct XprofilerHeapStatistics {
     return heap_statistics_.total_physical_size();
   }
   size_t malloced_memory() { return heap_statistics_.malloced_memory(); }
-#if (NODE_MODULE_VERSION >= NODE_12_0_MODULE_VERSION)
   size_t external_memory() { return heap_statistics_.external_memory(); }
-#else
-  size_t& external_memory() { return external_memory_; }
-#endif
 
  private:
-#if (NODE_MODULE_VERSION < NODE_12_0_MODULE_VERSION)
-  // external memory
-  size_t external_memory_ = 0;
-#endif
   v8::HeapStatistics heap_statistics_;
 };
 
