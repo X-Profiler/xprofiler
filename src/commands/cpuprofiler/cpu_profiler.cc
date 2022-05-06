@@ -11,9 +11,7 @@ using v8::Local;
 using v8::String;
 
 void CpuProfiler::DeleteCpuProfiler(v8::CpuProfiler* profiler) {
-#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
   profiler->Dispose();
-#endif
 }
 
 void CpuProfiler::StartProfiling(v8::Isolate* isolate, std::string t) {
@@ -38,11 +36,7 @@ void CpuProfiler::StopProfiling(v8::Isolate* isolate, std::string t,
 }
 
 CpuProfiler::CpuProfiler(v8::Isolate* isolate) : isolate_(isolate) {
-#if (NODE_MODULE_VERSION > NODE_8_0_MODULE_VERSION)
   cpu_profiler_ = CpuProfilerPtr(v8::CpuProfiler::New(Isolate::GetCurrent()));
-#else
-  cpu_profiler_ = CpuProfilerPtr(isolate->GetCpuProfiler());
-#endif
 }
 
 CpuProfiler::~CpuProfiler() {}

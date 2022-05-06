@@ -25,7 +25,8 @@ function execCmd(cmd) {
   cp.execSync(cmd, {
     env: process.env,
     cwd: path.join(__dirname, '../'),
-    stdio: 'inherit'
+    stdio: 'inherit',
+    shell: '/bin/bash',
   });
 }
 
@@ -49,11 +50,12 @@ module.exports = async versions => {
 
   for (const version of versions) {
     debug(`>>>>>>>> start build with ${version}`);
+    const tnvmPath = path.join(os.homedir(), '.tnvm/tnvm.sh');
     let npmBin = 'npm';
-    let change = `source ~/.bashrc && tnvm use ${version}`;
+    let change = `source ${tnvmPath} && tnvm use ${version}`;
     const nvmNodeVersion = /^node-v(.*)$/.exec(version)[1];
     if (isWindows) {
-      npmBin =  path.join(os.tmpdir(), '../../', `Roaming\\nvm\\v${nvmNodeVersion}\\npm.cmd`);
+      npmBin = path.join(os.tmpdir(), '../../', `Roaming\\nvm\\v${nvmNodeVersion}\\npm.cmd`);
       change = `nvm use ${nvmNodeVersion}`;
     }
 

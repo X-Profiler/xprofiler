@@ -34,9 +34,5 @@ module.exports = {
     './demo.js',
     './nyc.config.js',
   ],
-  semver: [
-    'eslint@6',
-    'mocha@7',
-    'yargs@15',
-  ]
+  semver: []
 };

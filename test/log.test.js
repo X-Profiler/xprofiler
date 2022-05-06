@@ -8,6 +8,7 @@ const moment = require('moment');
 const xprofiler = require('../xprofiler');
 const pack = require('../package.json');
 const utils = require('./fixtures/utils');
+const { threadId } = require('../lib/worker_threads');
 
 // clean logdir
 const log_dir = utils.createLogDir('logdir');
@@ -113,6 +114,12 @@ for (const testConfig of testConfigList) {
             it(`pid should be ${process.pid}`, function () {
               expect(Number(d.pid)).to.be(process.pid);
             });
+
+            if (testConfig.variant === 'xprofiler') {
+              it(`tid should be ${threadId}`, function () {
+                expect(Number(d.tid)).to.be(threadId);
+              });
+            }
 
             it(`content should be "${log.content}"`, function () {
               expect(d.detail).to.be(log.content);

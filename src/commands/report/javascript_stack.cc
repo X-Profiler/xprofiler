@@ -5,15 +5,9 @@
 #include "xpf_v8.h"
 
 static const size_t kMaxFramesCount = 255;
-#if (NODE_MODULE_VERSION >= NODE_9_0_MODULE_VERSION)
 static const char* v8_states[] = {
     "JS",       "GC",    "PARSER",   "BYTECODE_COMPILER",
     "COMPILER", "OTHER", "EXTERNAL", "IDLE"};
-#else
-static const char* v8_states[] = {
-    "JS",       "GC",   "COMPILER", "OTHER",
-    "EXTERNAL", "IDLE", "PARSER",   "BYTECODE_COMPILER"};
-#endif
 
 namespace xprofiler {
 using Nan::Utf8String;
@@ -68,12 +62,8 @@ void NodeReport::SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
     else
       writer->json_keyvalue("pcAddress", "nullptr");
 
-#if (NODE_VERSION_AT_LEAST(10, 12, 0))
     // needs v8 version >= 6.8
     Local<StackFrame> frame = stack->GetFrame(isolate_, i);
-#else
-    Local<StackFrame> frame = stack->GetFrame(i);
-#endif
 
     Utf8String fn_name_s(frame->GetFunctionName());
     Utf8String script_name(frame->GetScriptName());
