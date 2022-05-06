@@ -1,5 +1,6 @@
 #include "commands/dump.h"
 #include "commands/parser.h"
+#include "environment_data.h"
 #include "logger.h"
 #include "nan.h"
 #include "platform/platform.h"
@@ -38,7 +39,9 @@ void RunCommandsListener(const FunctionCallbackInfo<Value>& info) {
     info.GetReturnValue().Set(False());
     return;
   }
-  Info("init", "commands listener: listener thread created.");
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+  InfoT("init", env_data->thread_id(),
+        "commands listener: listener thread created.");
 
   info.GetReturnValue().Set(True());
 }

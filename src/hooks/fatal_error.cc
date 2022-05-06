@@ -1,6 +1,7 @@
 #include "commands/coredumper/coredumper.h"
 #include "commands/report/node_report.h"
 #include "configure-inl.h"
+#include "environment_data.h"
 #include "library/utils.h"
 #include "logger.h"
 #include "nan.h"
@@ -24,6 +25,8 @@ constexpr char module_type[] = "fatal_error";
   fflush(stderr);
 
   Isolate* isolate = TryGetCurrentIsolate();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  ThreadId thread_id = env_data->thread_id();
 
   // generate report before abort
   if (GetEnableFatalErrorReport()) {
@@ -31,9 +34,9 @@ constexpr char module_type[] = "fatal_error";
                       to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
                       to_string(GetNextDiagFileId()) + ".diag";
 
-    Info(module_type, "dump report to %s.", filepath.c_str());
+    InfoT(module_type, thread_id, "dump report to %s.", filepath.c_str());
     NodeReport::GetNodeReport(isolate, filepath, location, message, true);
-    Info(module_type, "report dumped.");
+    InfoT(module_type, thread_id, "report dumped.");
   }
 
   // generator core file before abort
@@ -41,9 +44,9 @@ constexpr char module_type[] = "fatal_error";
     string filepath = GetLogDir() + GetSep() + "x-fatal-error-" +
                       to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
                       to_string(GetNextDiagFileId()) + ".core";
-    Info(module_type, "dump core to %s.", filepath.c_str());
+    InfoT(module_type, thread_id, "dump core to %s.", filepath.c_str());
     Coredumper::WriteCoredump(filepath);
-    Info(module_type, "core dumped.");
+    InfoT(module_type, thread_id, "core dumped.");
   }
 
   Abort();

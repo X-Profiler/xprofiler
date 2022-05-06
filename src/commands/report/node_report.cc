@@ -47,11 +47,13 @@ void NodeReport::WriteNodeReport(JSONWriter* writer, std::string location,
 void NodeReport::GetNodeReport(v8::Isolate* isolate, std::string filepath,
                                std::string location, std::string message,
                                bool fatal_error) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   NodeReport report(isolate);
   ofstream outfile;
   outfile.open(filepath, ios::out | ios::binary);
   if (!outfile.is_open()) {
-    Error("node_report", "open file %s failed.", filepath.c_str());
+    ErrorT("node_report", env_data->thread_id(), "open file %s failed.",
+           filepath.c_str());
     outfile.close();
     return;
   }

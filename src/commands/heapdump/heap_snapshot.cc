@@ -1,5 +1,6 @@
 #include "heap_snapshot.h"
 
+#include "environment_data.h"
 #include "library/writer.h"
 #include "logger.h"
 
@@ -45,9 +46,12 @@ class FileOutputStream final : public OutputStream {
 
 void HeapSnapshot::Serialize(HeapSnapshotPointer profile,
                              std::string filename) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   FileOutputStream stream(filename);
   if (!stream.is_open()) {
-    Error("heapdump", "open file %s failed.", filename.c_str());
+    ErrorT("heapdump", env_data->thread_id(), "open file %s failed.",
+           filename.c_str());
     return;
   }
   profile->Serialize(&stream, v8::HeapSnapshot::kJSON);

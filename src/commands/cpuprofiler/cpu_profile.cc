@@ -1,6 +1,7 @@
 #include "cpu_profile.h"
 
 #include "cpu_profile_node.h"
+#include "environment_data.h"
 #include "library/writer.h"
 #include "logger.h"
 #include "xpf_v8.h"
@@ -15,11 +16,13 @@ void CpuProfile::DeleteCpuProfile(const v8::CpuProfile* profile) {
 
 void CpuProfile::Serialize(v8::Isolate* isolate, CpuProfilePtr node,
                            std::string filename) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   HandleScope scope(isolate);
   ofstream outfile;
   outfile.open(filename, std::ios::out | std::ios::binary);
   if (!outfile.is_open()) {
-    Error("cpu_profile", "open file %s failed.", filename.c_str());
+    ErrorT("cpu_profile", env_data->thread_id(), "open file %s failed.",
+           filename.c_str());
     return;
   }
 

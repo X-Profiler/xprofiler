@@ -73,7 +73,8 @@ void GcProfiler::StartGCProfiling(v8::Isolate* isolate, std::string filename) {
   std::unique_ptr<GcProfiler> gc_profiler =
       std::unique_ptr<GcProfiler>(new GcProfiler(isolate, filename));
   if (!gc_profiler->is_open()) {
-    Error("gc_profiler", "open file %s failed.", filename.c_str());
+    ErrorT("gc_profiler", env_data->thread_id(), "open file %s failed.",
+           filename.c_str());
     return;
   }
   env_data->gc_profiler = std::move(gc_profiler);

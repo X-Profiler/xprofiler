@@ -1,5 +1,6 @@
 #include "sampling_heap_profiler.h"
 
+#include "environment_data.h"
 #include "library/writer.h"
 #include "logger.h"
 #include "xpf_v8.h"
@@ -47,9 +48,11 @@ void SamplingHeapProfiler::StartSamplingHeapProfiling(v8::Isolate* isolate) {
 
 void SamplingHeapProfiler::StopSamplingHeapProfiling(v8::Isolate* isolate,
                                                      std::string filename) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   ofstream outfile(filename, std::ios::out | std::ios::binary);
   if (!outfile.is_open()) {
-    Error("sampling_heap_profiler", "open file %s failed.", filename.c_str());
+    ErrorT("sampling_heap_profiler", env_data->thread_id(),
+           "open file %s failed.", filename.c_str());
     return;
   }
   HandleScope scope(isolate);
