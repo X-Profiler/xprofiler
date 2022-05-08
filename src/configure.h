@@ -5,6 +5,7 @@
 #include "library/error.h"
 #include "logger.h"
 #include "nan.h"
+#include "process_data.h"
 
 namespace xprofiler {
 
@@ -45,10 +46,6 @@ class ConfigStore {
   bool enable_fatal_error_report = true;
   bool enable_fatal_error_coredump = false;
 };
-
-namespace per_process {
-extern ConfigStore config_store;
-}
 
 }  // namespace xprofiler
 

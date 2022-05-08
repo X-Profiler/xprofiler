@@ -28,12 +28,16 @@ class ProcessData {
   EnvironmentRegistry* environment_registry() {
     return &environment_registry_;
   };
+
+  ConfigStore* config_store() { return &config_store_; }
+
   std::unique_ptr<LogByPass> log_by_pass;
   Mutex log_by_pass_mutex;
   Mutex logger_mutex;
 
  private:
   EnvironmentRegistry environment_registry_;
+  ConfigStore config_store_;
 };
 
 }  // namespace xprofiler

@@ -19,10 +19,6 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-namespace per_process {
-ConfigStore config_store;
-}
-
 #define LOCAL_VALUE(key)     \
   Local<Value> key##_value = \
       Get(config, OneByteString(isolate, #key)).ToLocalChecked();
@@ -32,35 +28,37 @@ ConfigStore config_store;
   if (key##_value->IsString()) {                                           \
     Local<String> key##_string = To<String>(key##_value).ToLocalChecked(); \
     Utf8String key##_utf8string(key##_string);                             \
-    per_process::config_store.key = *key##_utf8string;                     \
+    ProcessData::Get()->config_store()->key = *key##_utf8string;           \
   }
 
-#define CONVERT_UINT32(key)                                                \
-  LOCAL_VALUE(key)                                                         \
-  if (key##_value->IsUint32()) {                                           \
-    per_process::config_store.key = To<uint32_t>(key##_value).ToChecked(); \
+#define CONVERT_UINT32(key)                    \
+  LOCAL_VALUE(key)                             \
+  if (key##_value->IsUint32()) {               \
+    ProcessData::Get()->config_store()->key =  \
+        To<uint32_t>(key##_value).ToChecked(); \
   }
 
 #define CONVERT_UINT32_WITH_TYPE(key, type)                       \
   LOCAL_VALUE(key)                                                \
   if (key##_value->IsUint32()) {                                  \
-    per_process::config_store.key =                               \
+    ProcessData::Get()->config_store()->key =                     \
         static_cast<type>(To<uint32_t>(key##_value).ToChecked()); \
   }
 
-#define CONVERT_BOOL(key)                                              \
-  LOCAL_VALUE(key)                                                     \
-  if (key##_value->IsBoolean()) {                                      \
-    per_process::config_store.key = To<bool>(key##_value).ToChecked(); \
+#define CONVERT_BOOL(key)                     \
+  LOCAL_VALUE(key)                            \
+  if (key##_value->IsBoolean()) {             \
+    ProcessData::Get()->config_store()->key = \
+        To<bool>(key##_value).ToChecked();    \
   }
 
 #define CONFIG_LOCAL_STRING(key, type)      \
   Set(config, OneByteString(isolate, #key), \
-      New<type>(per_process::config_store.key).ToLocalChecked());
+      New<type>(ProcessData::Get()->config_store()->key).ToLocalChecked());
 
 #define CONFIG_NATIVE_NUMBER(key, type)     \
   Set(config, OneByteString(isolate, #key), \
-      New<type>(per_process::config_store.key));
+      New<type>(ProcessData::Get()->config_store()->key));
 
 void Configure(const FunctionCallbackInfo<Value>& info) {
   Isolate* isolate = info.GetIsolate();
