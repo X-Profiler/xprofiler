@@ -132,9 +132,11 @@ void TransactionDone(string thread_name, string unique_key, XpfError& err) {
 
 template <typename T>
 T* GetProfilingData(void* data, string notify_type, string unique_key) {
+  Isolate* isolate = Isolate::GetCurrent();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   T* dump_data = static_cast<T*>(data);
-  Debug(module_type, "<%s> %s action start.", notify_type.c_str(),
-        unique_key.c_str());
+  DebugT(module_type, env_data->thread_id(), "<%s> %s action start.",
+         notify_type.c_str(), unique_key.c_str());
   return dump_data;
 }
 
@@ -146,37 +148,40 @@ T* GetDumpData(void* data) {
 }
 
 void AfterDumpFile(string& filepath, string notify_type, string unique_key) {
-  Debug(module_type, "<%s> %s dump file: %s.", notify_type.c_str(),
-        unique_key.c_str(), filepath.c_str());
+  Isolate* isolate = Isolate::GetCurrent();
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  DebugT(module_type, env_data->thread_id(), "<%s> %s dump file: %s.",
+         notify_type.c_str(), unique_key.c_str(), filepath.c_str());
   filepath = "";
 }
 
 }  // namespace
 
-#define CHECK_ERR(func)                                          \
-  func;                                                          \
-  if (err.Fail()) {                                              \
-    Debug(module_type, "<%s> %s error: %s", notify_type.c_str(), \
-          unique_key.c_str(), err.GetErrMessage());              \
-    return;                                                      \
+#define CHECK_ERR(func)                                                   \
+  func;                                                                   \
+  if (err.Fail()) {                                                       \
+    DebugT(module_type, env_data->thread_id(), "<%s> %s error: %s",       \
+           notify_type.c_str(), unique_key.c_str(), err.GetErrMessage()); \
+    return;                                                               \
   }
 
 void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
   BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
 
   // check transaction has been done
   XpfError err;
   string unique_key = traceid + "::" + Action2String(action);
   TransactionDone(notify_type, unique_key, err);
   if (err.Fail()) {
-    Debug(module_type, "%s", err.GetErrMessage());
+    DebugT(module_type, env_data->thread_id(), "%s", err.GetErrMessage());
     request_map.erase(unique_key);
     // clear dump_data
     if (dump_data->run_once) {
-      Debug(module_type, "<%s> %s dump_data cleared.", notify_type.c_str(),
-            unique_key.c_str());
+      DebugT(module_type, env_data->thread_id(), "<%s> %s dump_data cleared.",
+             notify_type.c_str(), unique_key.c_str());
       delete dump_data;
     }
     return;
@@ -184,8 +189,8 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
   // set action executing flag
   request_map.insert(make_pair(unique_key, true));
-  Debug(module_type, "<%s> %s handled.", notify_type.c_str(),
-        unique_key.c_str());
+  DebugT(module_type, env_data->thread_id(), "<%s> %s handled.",
+         notify_type.c_str(), unique_key.c_str());
 
   // check conflict action running
   CHECK_ERR(ConflictActionRunning(action, err))
@@ -251,7 +256,8 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       break;
     }
     default:
-      Error(module_type, "not support dump action: %d", action);
+      ErrorT(module_type, env_data->thread_id(), "not support dump action: %d",
+             action);
       break;
   }
 }

@@ -38,7 +38,7 @@ void AddSentRequest(const FunctionCallbackInfo<Value>& info) {
   HttpStatistics* http_statistics = env_data->http_statistics();
 
   if (!info[0]->IsNumber()) {
-    Error(module_type, "request cost must be number!");
+    ErrorT(module_type, env_data->thread_id(), "request cost must be number!");
     return;
   }
 
@@ -67,7 +67,7 @@ void AddHttpStatusCode(const FunctionCallbackInfo<Value>& info) {
   HttpStatistics* http_statistics = env_data->http_statistics();
 
   if (!info[0]->IsNumber()) {
-    Error(module_type, "request cost must be number!");
+    ErrorT(module_type, env_data->thread_id(), "request cost must be number!");
     return;
   }
 
