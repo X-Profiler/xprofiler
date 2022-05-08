@@ -1,5 +1,6 @@
 #include "configure.h"
 
+#include "process_data.h"
 #include "util-inl.h"
 
 namespace xprofiler {

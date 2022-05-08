@@ -2,6 +2,7 @@
 #define XPROFILER_SRC_CONFIGURE_INL_H
 
 #include "configure.h"
+#include "process_data.h"
 
 namespace xprofiler {
 std::string GetLogDir() { return ProcessData::Get()->config_store()->log_dir; }

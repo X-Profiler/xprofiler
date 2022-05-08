@@ -1,6 +1,7 @@
 #ifndef XPROFILER_SRC_PROCESS_DATA_H
 #define XPROFILER_SRC_PROCESS_DATA_H
 
+#include "configure.h"
 #include "environment_data.h"
 #include "environment_registry.h"
 #include "logbypass/log.h"

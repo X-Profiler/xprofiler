@@ -5,7 +5,6 @@
 #include "library/error.h"
 #include "logger.h"
 #include "nan.h"
-#include "process_data.h"
 
 namespace xprofiler {
 
