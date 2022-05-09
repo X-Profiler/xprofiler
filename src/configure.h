@@ -46,10 +46,6 @@ class ConfigStore {
   bool enable_fatal_error_coredump = false;
 };
 
-namespace per_process {
-extern ConfigStore config_store;
-}
-
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_CONFIGURE_H */

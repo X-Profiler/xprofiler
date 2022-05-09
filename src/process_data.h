@@ -1,6 +1,7 @@
 #ifndef XPROFILER_SRC_PROCESS_DATA_H
 #define XPROFILER_SRC_PROCESS_DATA_H
 
+#include "configure.h"
 #include "environment_data.h"
 #include "environment_registry.h"
 #include "logbypass/log.h"
@@ -28,12 +29,16 @@ class ProcessData {
   EnvironmentRegistry* environment_registry() {
     return &environment_registry_;
   };
+
+  ConfigStore* config_store() { return &config_store_; }
+
   std::unique_ptr<LogByPass> log_by_pass;
   Mutex log_by_pass_mutex;
   Mutex logger_mutex;
 
  private:
   EnvironmentRegistry environment_registry_;
+  ConfigStore config_store_;
 };
 
 }  // namespace xprofiler

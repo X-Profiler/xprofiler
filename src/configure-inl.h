@@ -2,52 +2,59 @@
 #define XPROFILER_SRC_CONFIGURE_INL_H
 
 #include "configure.h"
+#include "process_data.h"
 
 namespace xprofiler {
-std::string GetLogDir() { return per_process::config_store.log_dir; }
+std::string GetLogDir() { return ProcessData::Get()->config_store()->log_dir; }
 
-uint32_t GetLogInterval() { return per_process::config_store.log_interval; }
+uint32_t GetLogInterval() {
+  return ProcessData::Get()->config_store()->log_interval;
+}
 
-LOG_LEVEL GetLogLevel() { return per_process::config_store.log_level; }
+LOG_LEVEL GetLogLevel() {
+  return ProcessData::Get()->config_store()->log_level;
+}
 
-LOG_TYPE GetLogType() { return per_process::config_store.log_type; }
+LOG_TYPE GetLogType() { return ProcessData::Get()->config_store()->log_type; }
 
 bool GetFormatAsAlinode() {
-  return per_process::config_store.log_format_alinode;
+  return ProcessData::Get()->config_store()->log_format_alinode;
 }
 
 bool GetEnableLogUvHandles() {
-  return per_process::config_store.enable_log_uv_handles;
+  return ProcessData::Get()->config_store()->enable_log_uv_handles;
 }
 
 bool GetEnableFatalErrorHook() {
-  return per_process::config_store.enable_fatal_error_hook;
+  return ProcessData::Get()->config_store()->enable_fatal_error_hook;
 }
 
 bool GetEnableFatalErrorReport() {
-  return per_process::config_store.enable_fatal_error_report;
+  return ProcessData::Get()->config_store()->enable_fatal_error_report;
 }
 
 bool GetEnableFatalErrorCoredump() {
-  return per_process::config_store.enable_fatal_error_coredump;
+  return ProcessData::Get()->config_store()->enable_fatal_error_coredump;
 }
 
-bool GetPatchHttp() { return per_process::config_store.patch_http; }
+bool GetPatchHttp() { return ProcessData::Get()->config_store()->patch_http; }
 
 uint32_t GetPatchHttpTimeout() {
-  return per_process::config_store.patch_http_timeout;
+  return ProcessData::Get()->config_store()->patch_http_timeout;
 }
 
-bool GetCheckThrow() { return per_process::config_store.check_throw; }
+bool GetCheckThrow() { return ProcessData::Get()->config_store()->check_throw; }
 
 void SetLogLevel(LOG_LEVEL value) {
-  per_process::config_store.log_level = value;
+  ProcessData::Get()->config_store()->log_level = value;
 }
 
-void SetLogType(LOG_TYPE value) { per_process::config_store.log_type = value; }
+void SetLogType(LOG_TYPE value) {
+  ProcessData::Get()->config_store()->log_type = value;
+}
 
 void SetEnableLogUvHandles(bool value) {
-  per_process::config_store.enable_log_uv_handles = value;
+  ProcessData::Get()->config_store()->enable_log_uv_handles = value;
 }
 
 }  // namespace xprofiler
