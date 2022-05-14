@@ -72,7 +72,9 @@ describe('commands', () => {
             })
           });
           pid = p.pid;
-          await utils.sleep(4500);
+          await new Promise(resolve => p.on('message', msg =>
+            msg.type === utils.clientConst.xprofilerDone && resolve()));
+          await utils.sleep(500);
           // send cmd with xctl (function)
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xctl cmd.');
           resByXctl = await xctl(pid, threadId, cmd, options);
@@ -80,8 +82,9 @@ describe('commands', () => {
           // send cmd with xprofctl (cli)
           const extra = convertOptions(options);
           const nodeExe = currentPlatform === 'win32' ? 'node ' : '';
-          console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xprofctl cmd.');
-          resByXprofctl = await exec(`${nodeExe}${xprofctl} ${cmd} -p ${pid} -w ${threadId}${extra}`, {
+          const xprofctlCmd = `${nodeExe}${xprofctl} ${cmd} -p ${pid} -w ${threadId}${extra}`;
+          console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, `send xprofctl cmd: ${xprofctlCmd}.`);
+          resByXprofctl = await exec(xprofctlCmd, {
             env: Object.assign({}, process.env, {
               XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
             })

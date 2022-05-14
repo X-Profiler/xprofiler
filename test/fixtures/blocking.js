@@ -5,6 +5,7 @@ const mm = require('mm');
 const moment = require('moment');
 const { v4: uuid } = require('uuid');
 const traceid = uuid();
+const utils = require('./utils');
 console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking start.');
 
 const xprofiler = require('../../');
@@ -32,6 +33,8 @@ console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking xp
 xprofiler.setHooks();
 xprofiler.setHooks();
 console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking xprofiler.setHooks() done.');
+
+process.send({ type: utils.clientConst.xprofilerDone });
 
 /*eslint no-empty: "off"*/
 const start = Date.now();
