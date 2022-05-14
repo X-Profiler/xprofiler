@@ -3,6 +3,7 @@
 const mm = require('mm');
 const os = require('os');
 const http = require('http');
+const utils = require('./utils');
 const xprofiler = require('../../');
 
 if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
@@ -22,6 +23,8 @@ xprofiler.runCommandsListener();
 // set v8 hooks
 xprofiler.setHooks();
 xprofiler.setHooks();
+
+process.send({ type: utils.clientConst.xprofilerDone });
 
 // http server
 const server = http.createServer(function (req, res) {

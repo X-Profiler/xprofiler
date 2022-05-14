@@ -65,7 +65,12 @@ exports.arrayEqual = function (arr1, arr2) {
 };
 
 exports.getChildProcessExitInfo = function (proc) {
-  return new Promise(resolve => proc.on('close', (code, signal) => resolve({ code, signal })));
+  return new Promise(resolve => {
+    if (proc.exitCode !== null) {
+      return resolve({ code: proc.exitCode, signal: proc.signalCode });
+    }
+    proc.on('close', (code, signal) => resolve({ code, signal }));
+  });
 };
 
 exports.checkChildProcessExitInfo = function (expect, exitInfo) {
@@ -145,4 +150,8 @@ exports.filterTestCaseByPlatform = function filterTestCaseByPlatform(list) {
   }
 
   return list.filter(item => !item.platform || item.platform === os.platform());
+};
+
+exports.clientConst = {
+  xprofilerDone: 'XPROFILER_DONE'
 };
