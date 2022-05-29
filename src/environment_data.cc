@@ -207,8 +207,8 @@ void EnvironmentData::JsSetupEnvironmentData(
   env_data->thread_id_ = thread_id->Value();
   env_data->is_main_thread_ = is_main_thread->Value();
 
-  Nan::Utf8String node_version_(node_version);
-  env_data->node_version_ = (*node_version_);
+  Nan::Utf8String node_version_string(node_version);
+  env_data->node_version_ = (*node_version_string);
 }
 
 }  // namespace xprofiler

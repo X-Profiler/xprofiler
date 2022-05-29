@@ -26,7 +26,7 @@ function execCmd(cmd) {
     env: process.env,
     cwd: path.join(__dirname, '../'),
     stdio: 'inherit',
-    shell: '/bin/bash',
+    shell: isWindows ? undefined : '/bin/bash',
   });
 }
 
@@ -59,7 +59,7 @@ module.exports = async versions => {
       change = `nvm use ${nvmNodeVersion}`;
     }
 
-    const install = 'npm install';
+    const install = 'npm install --no-audit';
     const build = `${npmBin} run dep`;
     const pack = 'npx node-pre-gyp package && npx node-pre-gyp testpackage';
     const copy = `${npmBin} run copy`;
