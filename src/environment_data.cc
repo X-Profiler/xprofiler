@@ -199,9 +199,16 @@ void EnvironmentData::JsSetupEnvironmentData(
       data->Get(context, OneByteString(isolate, "isMainThread"))
           .ToLocalChecked()
           .As<Boolean>();
+  Local<v8::String> node_version =
+      data->Get(context, OneByteString(isolate, "nodeVersion"))
+          .ToLocalChecked()
+          .As<v8::String>();
 
   env_data->thread_id_ = thread_id->Value();
   env_data->is_main_thread_ = is_main_thread->Value();
+
+  Nan::Utf8String node_version_(node_version);
+  env_data->node_version_ = (*node_version_);
 }
 
 }  // namespace xprofiler

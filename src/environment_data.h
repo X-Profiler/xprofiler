@@ -53,6 +53,7 @@ class EnvironmentData {
 
   inline bool is_main_thread() const { return is_main_thread_; }
   inline ThreadId thread_id() const { return thread_id_; }
+  inline std::string node_version() const { return node_version_; }
 
   inline GcStatistics* gc_statistics() { return &gc_statistics_; }
   inline HttpStatistics* http_statistics() { return &http_statistics_; }
@@ -85,6 +86,7 @@ class EnvironmentData {
    * Use the JavaScript number representation.
    */
   ThreadId thread_id_ = ThreadId(-1);
+  std::string node_version_ = "";
 
   Mutex interrupt_mutex_;
   std::list<InterruptCallback> interrupt_requests_;
