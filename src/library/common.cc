@@ -3,6 +3,9 @@
 #include <atomic>
 #include <string>
 
+#include "environment_data.h"
+#include "v8.h"
+
 namespace xprofiler {
 namespace per_process {
 time_t load_time;
@@ -19,4 +22,9 @@ std::string GetStartTime(std::string format) {
 }
 
 size_t GetNextDiagFileId() { return per_process::next_file_id++; }
+
+std::string GetGlobalNodeVersion(v8::Isolate* isolate) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  return env_data->node_version();
+}
 }  // namespace xprofiler

@@ -30,7 +30,7 @@ void NodeReport::WriteNodeReport(JSONWriter* writer, std::string location,
   }
   writer->json_keyvalue("location", location);
   writer->json_keyvalue("message", message);
-  writer->json_keyvalue("nodeVersion", NODE_VERSION);
+  writer->json_keyvalue("nodeVersion", GetGlobalNodeVersion(isolate_));
   writer->json_keyvalue("osVersion", GetOsVersion());
   writer->json_keyvalue("loadTime", GetStartTime("%Y-%m-%d %H:%M:%S"));
   writer->json_keyvalue("dumpTime", ConvertTime("%Y-%m-%d %H:%M:%S"));

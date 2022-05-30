@@ -17,6 +17,7 @@ const xprofiler = require(bindingPath);
 xprofiler.setup({
   isMainThread: workerThreads.isMainThread,
   threadId: workerThreads.threadId,
+  nodeVersion: process.version
 });
 
 const runOnceStatus = {
