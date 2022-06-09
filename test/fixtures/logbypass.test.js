@@ -48,7 +48,9 @@ setSpaceKeys(memoryKeys);
 const alindoeGcRule = /^\d+$/;
 const xprofilerGcRule = /^\d+$/;
 function getGcRules(list, alinode) {
-  return setRules(list, alinode, { alinodeRule: alindoeGcRule, xprofilerRule: xprofilerGcRule });
+  const alinodeRule = value => alindoeGcRule.test(value) && Number(value) < 1000;
+  const xprofilerRule = value => xprofilerGcRule.test(value) && Number(value) < 1000;
+  return setRules(list, alinode, { alinodeRule, xprofilerRule });
 }
 
 // libuv handles

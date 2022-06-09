@@ -140,7 +140,12 @@ for (const testCase of cases) {
                 const key2 = utils.formatKey(key);
                 const regexp = key2 !== key ? struct[key2].regexp : struct[key2];
                 it(`${key}: ${detail[key]} shoule be ${regexp}`, function () {
-                  expect(regexp.test(detail[key])).to.be.ok();
+                  if (regexp instanceof RegExp) {
+                    expect(regexp.test(detail[key])).to.be.ok();
+                  }
+                  if (typeof regexp === 'function') {
+                    expect(regexp(detail[key])).to.be.ok();
+                  }
                 });
               }
             });
