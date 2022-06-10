@@ -93,8 +93,8 @@ xctl(pid, thread_id, action, options.data)
         break;
       case 'list_environments':
         console.log(`X-Profiler 环境列表(pid ${pid}):`);
-        for (const env of data.environments) {
-          console.log(`  - 线程(tid ${env.thread_id}): ${env.is_main_thread ? '主线程' : 'Worker线程'} 已启动${env.uptime}秒`);
+        for (const env of data.environments.sort((o, n) => Number(o.thread_id) > Number(n.thread_id) ? 1 : -1)) {
+          console.log(`  - 线程(tid ${env.thread_id}): ${env.is_main_thread ? '主线程' : 'Worker 线程'}已启动 ${env.uptime} 秒`);
         }
         break;
       case 'get_config':
