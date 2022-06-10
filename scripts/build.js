@@ -45,7 +45,7 @@ async function cleanReleaseDir() {
   }
 }
 
-module.exports = async versions => {
+exports = module.exports = async versions => {
   await cleanReleaseDir();
 
   for (const version of versions) {
@@ -69,3 +69,5 @@ module.exports = async versions => {
 
   debug('all build tasks done.');
 };
+
+exports.execCmd = execCmd;

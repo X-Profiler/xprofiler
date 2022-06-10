@@ -1,9 +1,6 @@
 'use strict';
 
 const build = require('./build');
+const { os8u } = require('./versions');
 
-const nodeVersions = [
-  'node-v18.1.0',
-];
-
-build(nodeVersions);
+build(os8u);

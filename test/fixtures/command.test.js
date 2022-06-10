@@ -214,7 +214,7 @@ exports = module.exports = function (logdir) {
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 环境列表\\(pid ${data.pid}\\):\n`
-          + '(?:  - 线程\\(tid \\d+\\): (?:主|Worker)线程 已启动\\d+秒\n?)+')];
+          + '(?:  - 线程\\(tid \\d+\\): (?:主|Worker)线程已启动 \\d+ 秒\n?)+')];
       }
     },
     {

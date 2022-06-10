@@ -56,12 +56,14 @@ describe('commands', () => {
       const title =
         `[${ospt}] execute [${cmd}] on thread(${threadId}) with options: ${JSON.stringify(options)} ${desc}`;
       describe(title, function () {
+        const commandExpiredTime = 5000;
         let resByXctl = '';
         let resByXprofctl = '';
         let pid = 0;
         let exitInfo = { code: null, signal: null };
         before(async function () {
           mm(os, 'homedir', () => tmphome);
+          mm(process.env, 'UNIT_TEST_COMMAND_EXPIRED_TIME', commandExpiredTime);
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'start fork.');
           const p = cp.fork(jspath, {
             env: Object.assign({}, process.env, {
@@ -86,7 +88,8 @@ describe('commands', () => {
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, `send xprofctl cmd: ${xprofctlCmd}.`);
           resByXprofctl = await exec(xprofctlCmd, {
             env: Object.assign({}, process.env, {
-              XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome
+              XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome,
+              UNIT_TEST_COMMAND_EXPIRED_TIME: commandExpiredTime,
             })
           });
           resByXprofctl = resByXprofctl.stderr.trim() + resByXprofctl.stdout.trim();
