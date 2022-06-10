@@ -95,7 +95,7 @@ void WriteHttpStatus(EnvironmentData* env_data, bool log_format_alinode,
          "live_http_request: %d, "
          "http_request_handled: %d, "
          "http_response_sent: %d, "
-         "http_rt: %.2lf",
+         "http_rt: %lf",
          http_statistics->live_http_request,
          http_statistics->http_response_sent,
          http_statistics->http_response_sent, rt);
@@ -116,7 +116,7 @@ void WriteHttpStatus(EnvironmentData* env_data, bool log_format_alinode,
           "http_response_sent: %d, "
           "http_request_timeout: %d, "
           "http_patch_timeout: %d, "
-          "http_rt: %.2lf",
+          "http_rt: %lf",
           format.c_str(), http_statistics->live_http_request,
           http_statistics->http_response_close,
           http_statistics->http_response_sent,

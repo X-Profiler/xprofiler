@@ -27,10 +27,9 @@ using v8::Local;
 using v8::String;
 using v8::Value;
 
-static const int kMaxMessageLength = 2048;
 static const int kMaxFormatLength = 2048;
 
-static void WriteToFile(const LOG_LEVEL output_level, char* log) {
+static void WriteToFile(const LOG_LEVEL output_level, const char* log) {
   // get time of date
   char time_string_day[32];
   time_t tt = time(NULL);
@@ -66,9 +65,8 @@ static void WriteToFile(const LOG_LEVEL output_level, char* log) {
   }
 }
 
-static void Log(const LOG_LEVEL output_level, const char* type,
-                ThreadId thread_id, const char* format,
-                va_list* arglist = nullptr) {
+void Log(const LOG_LEVEL output_level, const char* type, ThreadId thread_id,
+         const char* message) {
   LOG_LEVEL level = GetLogLevel();
   if (level < output_level) {
     return;
@@ -111,25 +109,17 @@ static void Log(const LOG_LEVEL output_level, const char* type,
   string pid = to_string(GetPid());
   string tid = to_string(static_cast<long>(thread_id));
 
-  // add log prefix
-  char tmp_format[kMaxFormatLength];
-  if (log_format_alinode) {
-    snprintf(tmp_format, sizeof(tmp_format), "[%s] [%s] [%s] [%s] %s\n",
-             time_string_ms_alinode, level_string.c_str(), type, pid.c_str(),
-             format);
-  } else {
-    snprintf(tmp_format, sizeof(tmp_format),
-             "[%s] [%s] [%s] [%s] [%s] [%s] %s\n", time_string_ms,
-             level_string.c_str(), type, pid.c_str(), tid.c_str(),
-             XPROFILER_VERSION, format);
-  }
-
   // compose log
-  char tmp_log[kMaxMessageLength];
-  if (arglist != nullptr)
-    vsnprintf(tmp_log, sizeof(tmp_log), tmp_format, *arglist);
-  else
-    snprintf(tmp_log, sizeof(tmp_log), "%s", tmp_format);
+  char tmp_log[kMaxFormatLength];
+  if (log_format_alinode) {
+    snprintf(tmp_log, sizeof(tmp_log), "[%s] [%s] [%s] [%s] %s\n",
+             time_string_ms_alinode, level_string.c_str(), type, pid.c_str(),
+             message);
+  } else {
+    snprintf(tmp_log, sizeof(tmp_log), "[%s] [%s] [%s] [%s] [%s] [%s] %s\n",
+             time_string_ms, level_string.c_str(), type, pid.c_str(),
+             tid.c_str(), XPROFILER_VERSION, message);
+  }
 
   // get log type
   switch (GetLogType()) {
@@ -146,34 +136,6 @@ static void Log(const LOG_LEVEL output_level, const char* type,
       break;
   }
 }
-
-/* native logger */
-
-#define NATIVE_LOGGERS(V) \
-  V(Info, LOG_INFO)       \
-  V(Error, LOG_ERROR)     \
-  V(Debug, LOG_DEBUG)
-
-#define DEFINE_LOGGER(name, level)                            \
-  void name(const char* component, const char* format, ...) { \
-    va_list args;                                             \
-    va_start(args, format);                                   \
-    Log(LOG_LEVEL::level, component, 0, format, &args);       \
-    va_end(args);                                             \
-  }
-NATIVE_LOGGERS(DEFINE_LOGGER);
-#undef DEFINE_LOGGER
-
-#define DEFINE_LOGGER(name, level)                                            \
-  void name##T(const char* component, ThreadId thread_id, const char* format, \
-               ...) {                                                         \
-    va_list args;                                                             \
-    va_start(args, format);                                                   \
-    Log(LOG_LEVEL::level, component, thread_id, format, &args);               \
-    va_end(args);                                                             \
-  }
-NATIVE_LOGGERS(DEFINE_LOGGER);
-#undef DEFINE_LOGGER
 
 #define JS_LOG_WITH_LEVEL(level)                                               \
   if (!info[0]->IsString() || !info[1]->IsString()) {                          \

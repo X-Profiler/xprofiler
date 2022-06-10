@@ -2,6 +2,7 @@
 #define XPROFILER_SRC_LOGGER_H
 
 #include "library/common.h"
+#include "library/printf-inl.h"
 #include "nan.h"
 
 namespace xprofiler {
@@ -9,14 +10,33 @@ namespace xprofiler {
 enum LOG_LEVEL { LOG_INFO, LOG_ERROR, LOG_DEBUG };
 enum LOG_TYPE { LOG_TO_FILE, LOG_TO_TTY };
 
-// normal external
-void Info(const char* component, const char* format, ...);
-void Error(const char* component, const char* format, ...);
-void Debug(const char* component, const char* format, ...);
+void Log(const LOG_LEVEL output_level, const char* type, ThreadId thread_id,
+         const char* message);
 
-void InfoT(const char* component, ThreadId thread_id, const char* format, ...);
-void ErrorT(const char* component, ThreadId thread_id, const char* format, ...);
-void DebugT(const char* component, ThreadId thread_id, const char* format, ...);
+// normal external
+#define NATIVE_LOGGERS(V) \
+  V(Info, LOG_INFO)       \
+  V(Error, LOG_ERROR)     \
+  V(Debug, LOG_DEBUG)
+
+#define DEFINE_LOGGER(name, level)                                            \
+  template <typename... Args>                                                 \
+  inline void name(const char* component, const char* format, Args... args) { \
+    std::string message = SPrintF(format, std::forward<Args>(args)...);       \
+    Log(LOG_LEVEL::level, component, 0, message.c_str());                     \
+  }
+NATIVE_LOGGERS(DEFINE_LOGGER);
+#undef DEFINE_LOGGER
+
+#define DEFINE_LOGGER(name, level)                                      \
+  template <typename... Args>                                           \
+  inline void name##T(const char* component, ThreadId thread_id,        \
+                      const char* format, Args... args) {               \
+    std::string message = SPrintF(format, std::forward<Args>(args)...); \
+    Log(LOG_LEVEL::level, component, thread_id, message.c_str());       \
+  }
+NATIVE_LOGGERS(DEFINE_LOGGER);
+#undef DEFINE_LOGGER
 
 // javascript accessible
 void JsInfo(const Nan::FunctionCallbackInfo<v8::Value>& info);
