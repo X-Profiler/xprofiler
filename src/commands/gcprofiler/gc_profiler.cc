@@ -46,7 +46,7 @@ NAN_GC_CALLBACK(GCTracerPrologueCallback) {
   if (env_data->gc_profiler == nullptr) {
     return;
   }
-  if (env_data->gc_profiler->get_current_gc_type() != 0) {
+  if (env_data->gc_profiler->current_gc_type() != 0) {
     return;
   }
   env_data->gc_profiler->set_current_gc_type(type);
@@ -65,7 +65,7 @@ NAN_GC_CALLBACK(GCTracerEpilogueCallback) {
   if (env_data->gc_profiler == nullptr) {
     return;
   }
-  if (env_data->gc_profiler->get_current_gc_type() != type) {
+  if (env_data->gc_profiler->current_gc_type() != type) {
     return;
   }
   env_data->gc_profiler->set_current_gc_type(0);
