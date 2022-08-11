@@ -19,7 +19,7 @@ class GcProfiler {
   JSONWriter* writer() { return &writer_; }
   uint64_t init() { return init_; }
   uint32_t current_gc_type() { return current_gc_type_; }
-  void set_current_gc_type(uint32_t type) { current_gc_type = type; }
+  void set_current_gc_type(uint32_t type) { current_gc_type_ = type; }
 
  private:
   GcProfiler(v8::Isolate* isolate, std::string filename);
