@@ -28,7 +28,7 @@ class GcProfiler {
   std::ofstream outfile_;
   JSONWriter writer_;
   uint64_t init_ = 0;
-  uint32_t current_gc_type = 0;
+  uint32_t current_gc_type_ = 0;
 };
 
 }  // namespace xprofiler
