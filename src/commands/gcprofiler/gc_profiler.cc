@@ -46,6 +46,10 @@ NAN_GC_CALLBACK(GCTracerPrologueCallback) {
   if (env_data->gc_profiler == nullptr) {
     return;
   }
+  if (env_data->gc_profiler->current_gc_type() != 0) {
+    return;
+  }
+  env_data->gc_profiler->set_current_gc_type(type);
   JSONWriter* writer = env_data->gc_profiler->writer();
   writer->json_start();
   writer->json_keyvalue("totalSpentfromStart", TotalGcDuration());
@@ -61,6 +65,10 @@ NAN_GC_CALLBACK(GCTracerEpilogueCallback) {
   if (env_data->gc_profiler == nullptr) {
     return;
   }
+  if (env_data->gc_profiler->current_gc_type() != type) {
+    return;
+  }
+  env_data->gc_profiler->set_current_gc_type(0);
   JSONWriter* writer = env_data->gc_profiler->writer();
   writer->json_keyvalue("end",
                         (uv_hrtime() - env_data->gc_profiler->init()) / 10e5);
