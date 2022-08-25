@@ -41,13 +41,6 @@ void DumpBeforeAbort(const char* location, const char* message) {
     Coredumper::WriteCoredump(filepath);
     InfoT(module_type, thread_id, "core dumped.");
   }
-}
-
-void OnOOMError(const char* location, bool is_heap_oom) {
-  const char* message =
-      is_heap_oom ? "Allocation failed - JavaScript heap out of memory"
-                  : "Allocation failed - process out of memory";
-  DumpBeforeAbort(location, message);
 
   if (location) {
     fprintf(stderr, "xprofiler: %s %s\n", location, message);
@@ -55,18 +48,18 @@ void OnOOMError(const char* location, bool is_heap_oom) {
     fprintf(stderr, "xprofiler: %s\n", message);
   }
   fflush(stderr);
+}
+
+[[noreturn]] void OnOOMError(const char* location, bool is_heap_oom) {
+  const char* message =
+      is_heap_oom ? "Allocation failed - JavaScript heap out of memory"
+                  : "Allocation failed - process out of memory";
+  DumpBeforeAbort(location, message);
   Abort();
 }
 
 [[noreturn]] void OnFatalError(const char* location, const char* message) {
   DumpBeforeAbort(location, message);
-
-  if (location) {
-    fprintf(stderr, "xprofiler: %s %s\n", location, message);
-  } else {
-    fprintf(stderr, "xprofiler: %s\n", message);
-  }
-  fflush(stderr);
   Abort();
 }
 
