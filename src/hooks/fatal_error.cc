@@ -16,7 +16,7 @@ using v8::Isolate;
 
 constexpr char module_type[] = "fatal_error";
 
-[[noreturn]] void OnFatalError(const char* location, const char* message) {
+void DumpBeforeAbort(const char* location, const char* message) {
   if (location) {
     fprintf(stderr, "xprofiler: %s %s\n", location, message);
   } else {
@@ -48,11 +48,23 @@ constexpr char module_type[] = "fatal_error";
     Coredumper::WriteCoredump(filepath);
     InfoT(module_type, thread_id, "core dumped.");
   }
+}
 
+[[noreturn]] void OnOOMError(const char* location, bool is_heap_oom) {
+  const char* message =
+      is_heap_oom ? "Allocation failed - JavaScript heap out of memory"
+                  : "Allocation failed - process out of memory";
+  DumpBeforeAbort(location, message);
+  Abort();
+}
+
+[[noreturn]] void OnFatalError(const char* location, const char* message) {
+  DumpBeforeAbort(location, message);
   Abort();
 }
 
 void SetFatalErrorHandler(v8::Isolate* isolate) {
+  isolate->SetOOMErrorHandler(OnOOMError);
   isolate->SetFatalErrorHandler(OnFatalError);
 }
 }  // namespace xprofiler
