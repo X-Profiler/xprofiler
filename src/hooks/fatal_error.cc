@@ -17,6 +17,13 @@ using v8::Isolate;
 constexpr char module_type[] = "fatal_error";
 
 void DumpBeforeAbort(const char* location, const char* message) {
+  if (location) {
+    fprintf(stderr, "xprofiler: %s %s\n", location, message);
+  } else {
+    fprintf(stderr, "xprofiler: %s\n", message);
+  }
+  fflush(stderr);
+
   Isolate* isolate = TryGetCurrentIsolate();
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   ThreadId thread_id = env_data->thread_id();
@@ -41,13 +48,6 @@ void DumpBeforeAbort(const char* location, const char* message) {
     Coredumper::WriteCoredump(filepath);
     InfoT(module_type, thread_id, "core dumped.");
   }
-
-  if (location) {
-    fprintf(stderr, "xprofiler: %s %s\n", location, message);
-  } else {
-    fprintf(stderr, "xprofiler: %s\n", message);
-  }
-  fflush(stderr);
 }
 
 [[noreturn]] void OnOOMError(const char* location, bool is_heap_oom) {
