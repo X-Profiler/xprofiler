@@ -20,11 +20,9 @@ module.exports = {
     'codecov',
     'eslint',
     'expect.js',
-    'formstream',
     'mm',
     'mocha',
     'nyc',
-    'tunnel-agent',
   ],
   exclude: [
     './build',
