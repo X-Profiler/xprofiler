@@ -25,7 +25,6 @@ module.exports = {
     'mocha',
     'nyc',
     'tunnel-agent',
-    'urllib',
   ],
   exclude: [
     './build',
