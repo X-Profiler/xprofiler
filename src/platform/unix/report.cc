@@ -4,9 +4,19 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
+#if defined(__linux__) && !defined(__GLIBC__) || defined(__UCLIBC__) || \
+    defined(_AIX)
+#define HAVE_EXECINFO_H 0
+#else
+#define HAVE_EXECINFO_H 1
+#endif
+
+#if HAVE_EXECINFO_H
 #include <cxxabi.h>
-#include <dlfcn.h>
 #include <execinfo.h>
+#endif
+
+#include <dlfcn.h>
 #include <inttypes.h>
 #include <sys/resource.h>
 #include <sys/utsname.h>
@@ -47,12 +57,7 @@ string GetPcAddress(void* pc) {
   return (string)buf;
 }
 
-#if (defined(__linux__) && !defined(__GLIBC__))
-void PrintNativeStack(JSONWriter* writer) {
-  writer->json_arraystart("nativeStacks");
-  writer->json_arrayend();
-}
-#else
+#if (HAVE_EXECINFO_H)
 void PrintNativeStack(JSONWriter* writer) {
   writer->json_arraystart("nativeStacks");
   void* frames[256];
@@ -79,6 +84,11 @@ void PrintNativeStack(JSONWriter* writer) {
     }
     writer->json_end();
   }
+  writer->json_arrayend();
+}
+#else
+void PrintNativeStack(JSONWriter* writer) {
+  writer->json_arraystart("nativeStacks");
   writer->json_arrayend();
 }
 #endif
