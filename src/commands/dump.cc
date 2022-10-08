@@ -45,7 +45,6 @@ const DependentMap dependent_map = {
 namespace {
 uv_thread_t uv_profiling_callback_thread;
 ActionMap action_map;
-RequestMap request_map;
 std::string cpuprofile_filepath = "";
 std::string sampling_heapprofile_filepath = "";
 std::string heapsnapshot_filepath = "";
@@ -123,13 +122,6 @@ void DependentActionRunning(DumpAction action, XpfError& err) {
   }
 }
 
-void TransactionDone(string thread_name, string unique_key, XpfError& err) {
-  if (request_map.find(unique_key) != request_map.end()) {
-    err = XpfError::Failure("<%s> %s has been executed by other thread.",
-                            thread_name.c_str(), unique_key.c_str());
-  }
-}
-
 template <typename T>
 T* GetProfilingData(void* data, string notify_type, string unique_key) {
   Isolate* isolate = Isolate::GetCurrent();
@@ -137,13 +129,6 @@ T* GetProfilingData(void* data, string notify_type, string unique_key) {
   T* dump_data = static_cast<T*>(data);
   DebugT(module_type, env_data->thread_id(), "<%s> %s action start.",
          notify_type.c_str(), unique_key.c_str());
-  return dump_data;
-}
-
-template <typename T>
-T* GetDumpData(void* data) {
-  T* dump_data = static_cast<T*>(data);
-  if (!dump_data->run_once) dump_data->run_once = true;
   return dump_data;
 }
 
@@ -157,11 +142,17 @@ void AfterDumpFile(string& filepath, string notify_type, string unique_key) {
 
 }  // namespace
 
+#define CLEAR_DATA                                                         \
+  DebugT(module_type, env_data->thread_id(), "<%s> %s dump_data cleared.", \
+         notify_type.c_str(), unique_key.c_str());                         \
+  delete dump_data;
+
 #define CHECK_ERR(func)                                                   \
   func;                                                                   \
   if (err.Fail()) {                                                       \
     DebugT(module_type, env_data->thread_id(), "<%s> %s error: %s",       \
            notify_type.c_str(), unique_key.c_str(), err.GetErrMessage()); \
+    CLEAR_DATA;                                                           \
     return;                                                               \
   }
 
@@ -174,21 +165,8 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
   // check transaction has been done
   XpfError err;
   string unique_key = traceid + "::" + Action2String(action);
-  TransactionDone(notify_type, unique_key, err);
-  if (err.Fail()) {
-    DebugT(module_type, env_data->thread_id(), "%s", err.GetErrMessage());
-    request_map.erase(unique_key);
-    // clear dump_data
-    if (dump_data->run_once) {
-      DebugT(module_type, env_data->thread_id(), "<%s> %s dump_data cleared.",
-             notify_type.c_str(), unique_key.c_str());
-      delete dump_data;
-    }
-    return;
-  }
 
   // set action executing flag
-  request_map.insert(make_pair(unique_key, true));
   DebugT(module_type, env_data->thread_id(), "<%s> %s handled.",
          notify_type.c_str(), unique_key.c_str());
 
@@ -207,7 +185,8 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       break;
     }
     case STOP_CPU_PROFILING: {
-      CpuProfilerDumpData* tmp = GetDumpData<CpuProfilerDumpData>(data);
+      dump_data->run_once = true;
+      CpuProfilerDumpData* tmp = static_cast<CpuProfilerDumpData*>(data);
       CpuProfiler::StopProfiling(isolate, tmp->title, cpuprofile_filepath);
       AfterDumpFile(cpuprofile_filepath, notify_type, unique_key);
       action_map.erase(START_CPU_PROFILING);
@@ -225,6 +204,7 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
+      dump_data->run_once = true;
       SamplingHeapProfiler::StopSamplingHeapProfiling(
           isolate, sampling_heapprofile_filepath);
       AfterDumpFile(sampling_heapprofile_filepath, notify_type, unique_key);
@@ -237,6 +217,7 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       break;
     }
     case STOP_GC_PROFILING: {
+      dump_data->run_once = true;
       GcProfiler::StopGCProfiling(isolate);
       AfterDumpFile(gcprofile_filepath, notify_type, unique_key);
       action_map.erase(START_GC_PROFILING);
@@ -260,9 +241,16 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
              action);
       break;
   }
+
+  // clear dump_data
+  if (dump_data->run_once) {
+    CLEAR_DATA;
+  }
+  return;
 }
 
 #undef CHECK_ERR
+#undef CLEAR_DATA
 
 static void WaitForProfile(uint64_t profiling_time) {
   uint64_t start = uv_hrtime();
@@ -440,6 +428,7 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
                                           data, profiling, err);          \
     if (err.Fail()) {                                                     \
       error(format("%s", err.GetErrMessage()));                           \
+      delete data;                                                        \
       return;                                                             \
     }                                                                     \
     success(result);                                                      \
