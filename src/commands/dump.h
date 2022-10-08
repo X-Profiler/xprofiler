@@ -22,7 +22,6 @@ enum DumpAction {
 };
 
 using ActionMap = std::unordered_map<int, bool>;
-using RequestMap = std::unordered_map<std::string, bool>;
 using ConflictMap = std::unordered_map<int, std::vector<DumpAction>>;
 using DependentMap = std::unordered_map<int, DumpAction>;
 
