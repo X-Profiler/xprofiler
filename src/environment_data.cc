@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "commands/dump.h"
 #include "logbypass/log.h"
 #include "process_data.h"
 #include "util-inl.h"
@@ -67,6 +68,9 @@ void EnvironmentData::AtExit(void* arg) {
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope scope(registry);
   std::unique_ptr<EnvironmentData> env_data = registry->Unregister(isolate);
+
+  // finish sampling
+  FinishSampling(isolate, "at_exit");
 
   for (auto callback : env_data->gc_epilogue_callbacks_) {
     Nan::RemoveGCEpilogueCallback(callback);

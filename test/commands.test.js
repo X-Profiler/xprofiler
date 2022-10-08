@@ -74,13 +74,16 @@ describe('commands', () => {
             })
           });
           pid = p.pid;
+
+          // wait for xprofiler to start
           await new Promise(resolve => p.on('message', msg =>
             msg.type === utils.clientConst.xprofilerDone && resolve()));
-          await utils.sleep(500);
+
           // send cmd with xctl (function)
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xctl cmd.');
           resByXctl = await xctl(pid, threadId, cmd, options);
           await utils.sleep(500);
+
           // send cmd with xprofctl (cli)
           const extra = convertOptions(options);
           const nodeExe = currentPlatform === 'win32' ? 'node ' : '';
@@ -93,6 +96,8 @@ describe('commands', () => {
             })
           });
           resByXprofctl = resByXprofctl.stderr.trim() + resByXprofctl.stdout.trim();
+
+          // exit info
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'wait for child process done.');
           exitInfo = await utils.getChildProcessExitInfo(p);
         });

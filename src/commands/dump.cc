@@ -259,6 +259,25 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 #undef CHECK_ERR
 #undef CLEAR_DATA
 
+void FinishSampling(Isolate* isolate, const char* reason) {
+  // EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+
+  // DebugT(module_type, env_data->thread_id(), "finish sampling because: %s.",
+  //        reason);
+
+  // for (auto itor = env_data->action_map().begin();
+  //      itor != env_data->action_map().end(); itor++) {
+  //   // constructor dump data
+  //   BaseDumpData* data = new BaseDumpData;
+  //   data = new BaseDumpData;
+  //   data->traceid = "finish";
+  //   data->thread_id = env_data->thread_id();
+  //   data->action = itor->first;
+
+  //   HandleAction(isolate, (void*)data, reason);
+  // }
+}
+
 static void WaitForProfile(uint64_t profiling_time) {
   uint64_t start = uv_hrtime();
   while (uv_hrtime() - start < profiling_time * 10e5) {

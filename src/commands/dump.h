@@ -21,9 +21,9 @@ enum DumpAction {
   COREDUMP,
 };
 
-using ActionMap = std::unordered_map<int, bool>;
-using ConflictMap = std::unordered_map<int, std::vector<DumpAction>>;
-using DependentMap = std::unordered_map<int, DumpAction>;
+using ActionMap = std::unordered_map<DumpAction, bool>;
+using ConflictMap = std::unordered_map<DumpAction, std::vector<DumpAction>>;
+using DependentMap = std::unordered_map<DumpAction, DumpAction>;
 
 struct BaseDumpData {
   std::string traceid;
@@ -46,6 +46,8 @@ struct GcProfilerDumpData : BaseDumpData {};
 struct NodeReportDumpData : BaseDumpData {};
 
 struct CoreDumpData : BaseDumpData {};
+
+void FinishSampling(v8::Isolate* isolate, const char* reason);
 
 COMMAND_CALLBACK(StartCpuProfiling);
 COMMAND_CALLBACK(StopCpuProfiling);
