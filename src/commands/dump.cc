@@ -46,6 +46,7 @@ const DependentMap dependent_map = {
 namespace {
 uv_thread_t uv_profiling_callback_thread;
 ActionMap action_map;
+SamplingRecordMap sampling_map;
 std::string cpuprofile_filepath = "";
 std::string sampling_heapprofile_filepath = "";
 std::string heapsnapshot_filepath = "";
@@ -124,8 +125,8 @@ void DependentActionRunning(DumpAction action, XpfError& err) {
 }
 
 template <typename T>
-T* GetProfilingData(void* data, string notify_type, string unique_key) {
-  Isolate* isolate = Isolate::GetCurrent();
+T* GetProfilingData(Isolate* isolate, void* data, string notify_type,
+                    string unique_key) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   T* dump_data = static_cast<T*>(data);
   DebugT(module_type, env_data->thread_id(), "<%s> %s action start.",
@@ -180,9 +181,13 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
   // start run action
   switch (action) {
     case START_CPU_PROFILING: {
-      CpuProfilerDumpData* tmp =
-          GetProfilingData<CpuProfilerDumpData>(data, notify_type, unique_key);
+      CpuProfilerDumpData* tmp = GetProfilingData<CpuProfilerDumpData>(
+          isolate, data, notify_type, unique_key);
       CpuProfiler::StartProfiling(isolate, tmp->title);
+
+      // after start cpu profiling
+      dump_data->action = STOP_CPU_PROFILING;
+      sampling_map.insert(make_pair(START_CPU_PROFILING, data));
       break;
     }
     case STOP_CPU_PROFILING: {
@@ -190,18 +195,29 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       CpuProfilerDumpData* tmp = static_cast<CpuProfilerDumpData*>(data);
       CpuProfiler::StopProfiling(isolate, tmp->title, cpuprofile_filepath);
       AfterDumpFile(cpuprofile_filepath, notify_type, unique_key);
+
+      // after stop cpu profiling
       action_map.erase(START_CPU_PROFILING);
       action_map.erase(STOP_CPU_PROFILING);
+      sampling_map.erase(START_CPU_PROFILING);
       break;
     }
     case HEAPDUMP: {
       HeapProfiler::TakeSnapshot(isolate, heapsnapshot_filepath);
       AfterDumpFile(heapsnapshot_filepath, notify_type, unique_key);
+
+      // after heapdump
       action_map.erase(HEAPDUMP);
       break;
     }
     case START_SAMPLING_HEAP_PROFILING: {
+      GetProfilingData<SamplingHeapProfilerDumpData>(isolate, data, notify_type,
+                                                     unique_key);
       SamplingHeapProfiler::StartSamplingHeapProfiling(isolate);
+
+      // after start sampling heap profiling
+      dump_data->action = STOP_SAMPLING_HEAP_PROFILING;
+      sampling_map.insert(make_pair(START_SAMPLING_HEAP_PROFILING, data));
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
@@ -209,31 +225,47 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       SamplingHeapProfiler::StopSamplingHeapProfiling(
           isolate, sampling_heapprofile_filepath);
       AfterDumpFile(sampling_heapprofile_filepath, notify_type, unique_key);
+
+      // after stop sampling heap profiling
       action_map.erase(START_SAMPLING_HEAP_PROFILING);
       action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
+      sampling_map.erase(START_SAMPLING_HEAP_PROFILING);
       break;
     }
     case START_GC_PROFILING: {
+      GetProfilingData<GcProfilerDumpData>(isolate, data, notify_type,
+                                           unique_key);
       GcProfiler::StartGCProfiling(isolate, gcprofile_filepath);
+
+      // after start gc profiling
+      dump_data->action = STOP_GC_PROFILING;
+      sampling_map.insert(make_pair(START_GC_PROFILING, data));
       break;
     }
     case STOP_GC_PROFILING: {
       dump_data->run_once = true;
       GcProfiler::StopGCProfiling(isolate);
       AfterDumpFile(gcprofile_filepath, notify_type, unique_key);
+
+      // after stop gc profiling
       action_map.erase(START_GC_PROFILING);
       action_map.erase(STOP_GC_PROFILING);
+      sampling_map.erase(START_GC_PROFILING);
       break;
     }
     case NODE_REPORT: {
       NodeReport::GetNodeReport(isolate, node_report_filepath);
       AfterDumpFile(node_report_filepath, notify_type, unique_key);
+
+      // after node report
       action_map.erase(NODE_REPORT);
       break;
     }
     case COREDUMP: {
       Coredumper::WriteCoredump(coredump_filepath);
       AfterDumpFile(coredump_filepath, notify_type, unique_key);
+
+      // after coredump
       action_map.erase(COREDUMP);
       break;
     }
@@ -253,6 +285,15 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 #undef CHECK_ERR
 #undef CLEAR_DATA
 
+void FinishSampling(Isolate* isolate, const char* reason) {
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  DebugT(module_type, env_data->thread_id(), "finish sampling because: %s.",
+         reason);
+  for (auto itor = sampling_map.begin(); itor != sampling_map.end(); itor++) {
+    HandleAction(isolate, itor->second, reason);
+  }
+}
+
 static void WaitForProfile(uint64_t profiling_time) {
   uint64_t start = uv_hrtime();
   while (uv_hrtime() - start < profiling_time * 10e5) {
@@ -270,10 +311,12 @@ static void NotifyJsThread(EnvironmentData* env_data, void* data) {
       });
 }
 
-template <typename T, DumpAction stop_action>
-void StopProfiling(T* dump_data) {
+static void ProfilingWatchDog(void* data) {
+  BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
+  string traceid = dump_data->traceid;
+
+  // sleep profiling time
   WaitForProfile(dump_data->profiling_time);
-  dump_data->action = stop_action;
 
   ThreadId thread_id = dump_data->thread_id;
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
@@ -282,31 +325,8 @@ void StopProfiling(T* dump_data) {
   if (env_data == nullptr) {
     return;
   }
-  NotifyJsThread(env_data, dump_data);
-}
 
-static void ProfilingWatchDog(void* data) {
-  BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
-  string traceid = dump_data->traceid;
-  DumpAction action = dump_data->action;
-
-  switch (action) {
-    case START_CPU_PROFILING:
-      StopProfiling<CpuProfilerDumpData, STOP_CPU_PROFILING>(
-          static_cast<CpuProfilerDumpData*>(dump_data));
-      break;
-    case START_SAMPLING_HEAP_PROFILING:
-      StopProfiling<SamplingHeapProfilerDumpData, STOP_SAMPLING_HEAP_PROFILING>(
-          static_cast<SamplingHeapProfilerDumpData*>(dump_data));
-      break;
-    case START_GC_PROFILING:
-      StopProfiling<GcProfilerDumpData, STOP_GC_PROFILING>(
-          static_cast<GcProfilerDumpData*>(dump_data));
-      break;
-    default:
-      Error(module_type, "watch dog not support dump action: %s", action);
-      break;
-  }
+  NotifyJsThread(env_data, data);
 }
 
 static string CreateFilepath(string prefix, string ext) {
