@@ -6,8 +6,6 @@
 #include "logger.h"
 
 namespace xprofiler {
-using nlohmann::json;
-
 void Sleep(int seconds);
 
 std::string FmtMessage(const char* format, ...);
@@ -15,11 +13,11 @@ std::string FmtMessage(const char* format, ...);
 std::string ConvertTime(std::string format);
 
 template <typename T>
-T GetJsonValue(json data, std::string key, XpfError& err) {
+T GetJsonValue(nlohmann::json data, std::string key, XpfError& err) {
   T result = T();
   try {
     result = data[key].get<T>();
-  } catch (json::exception& e) {
+  } catch (nlohmann::json::exception& e) {
     // format error message
     // ref: https://en.cppreference.com/w/cpp/error/exception/what
     char error_message[256];

@@ -16,6 +16,7 @@
 #include "v8.h"
 
 namespace xprofiler {
+using nlohmann::json;
 using std::make_pair;
 using std::string;
 using std::to_string;
@@ -318,9 +319,9 @@ static string CreateFilepath(string prefix, string ext) {
   func;                 \
   if (err.Fail()) return result;
 
-template <typename T>
-static json DoDumpAction(json command, DumpAction action, string prefix,
-                         string ext, T* data, bool profiling, XpfError& err) {
+template <DumpAction action, bool profiling, typename T>
+static json DoDumpAction(json command, string prefix, string ext, T* data,
+                         XpfError& err) {
   json result;
 
   // get traceid
@@ -419,19 +420,18 @@ static json DoDumpAction(json command, DumpAction action, string prefix,
   return result;
 }
 
-#define V(func, data_type, action, profiling, prefix, ext)                \
-  COMMAND_CALLBACK(func) {                                                \
-    /* TODO(legendecas): smart pointers */                                \
-    data_type* data = new data_type;                                      \
-    XpfError err;                                                         \
-    json result = DoDumpAction<data_type>(command, action, #prefix, #ext, \
-                                          data, profiling, err);          \
-    if (err.Fail()) {                                                     \
-      error(format("%s", err.GetErrMessage()));                           \
-      delete data;                                                        \
-      return;                                                             \
-    }                                                                     \
-    success(result);                                                      \
+#define V(func, data_type, action, profiling, prefix, ext)                     \
+  COMMAND_CALLBACK(func) {                                                     \
+    data_type* data = new data_type;                                           \
+    XpfError err;                                                              \
+    json result = DoDumpAction<action, profiling, data_type>(command, #prefix, \
+                                                             #ext, data, err); \
+    if (err.Fail()) {                                                          \
+      error(format("%s", err.GetErrMessage()));                                \
+      delete data;                                                             \
+      return;                                                                  \
+    }                                                                          \
+    success(result);                                                           \
   }
 
 // cpu profiling
