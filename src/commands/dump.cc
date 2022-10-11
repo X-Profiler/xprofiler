@@ -46,7 +46,6 @@ const DependentMap dependent_map = {
 namespace {
 uv_thread_t uv_profiling_callback_thread;
 ActionMap action_map;
-SamplingRecordMap sampling_map;
 std::string cpuprofile_filepath = "";
 std::string sampling_heapprofile_filepath = "";
 std::string heapsnapshot_filepath = "";
@@ -187,7 +186,8 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
       // after start cpu profiling
       dump_data->action = STOP_CPU_PROFILING;
-      sampling_map.insert(make_pair(START_CPU_PROFILING, data));
+      env_data->sampling_record_map()->insert(
+          make_pair(START_CPU_PROFILING, data));
       break;
     }
     case STOP_CPU_PROFILING: {
@@ -199,7 +199,7 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       // after stop cpu profiling
       action_map.erase(START_CPU_PROFILING);
       action_map.erase(STOP_CPU_PROFILING);
-      sampling_map.erase(START_CPU_PROFILING);
+      env_data->sampling_record_map()->erase(START_CPU_PROFILING);
       break;
     }
     case HEAPDUMP: {
@@ -217,7 +217,8 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
       // after start sampling heap profiling
       dump_data->action = STOP_SAMPLING_HEAP_PROFILING;
-      sampling_map.insert(make_pair(START_SAMPLING_HEAP_PROFILING, data));
+      env_data->sampling_record_map()->insert(
+          make_pair(START_SAMPLING_HEAP_PROFILING, data));
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
@@ -229,7 +230,7 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       // after stop sampling heap profiling
       action_map.erase(START_SAMPLING_HEAP_PROFILING);
       action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
-      sampling_map.erase(START_SAMPLING_HEAP_PROFILING);
+      env_data->sampling_record_map()->erase(START_SAMPLING_HEAP_PROFILING);
       break;
     }
     case START_GC_PROFILING: {
@@ -239,7 +240,8 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
       // after start gc profiling
       dump_data->action = STOP_GC_PROFILING;
-      sampling_map.insert(make_pair(START_GC_PROFILING, data));
+      env_data->sampling_record_map()->insert(
+          make_pair(START_GC_PROFILING, data));
       break;
     }
     case STOP_GC_PROFILING: {
@@ -250,7 +252,7 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       // after stop gc profiling
       action_map.erase(START_GC_PROFILING);
       action_map.erase(STOP_GC_PROFILING);
-      sampling_map.erase(START_GC_PROFILING);
+      env_data->sampling_record_map()->erase(START_GC_PROFILING);
       break;
     }
     case NODE_REPORT: {
@@ -287,9 +289,12 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
 void FinishSampling(Isolate* isolate, const char* reason) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+
   DebugT(module_type, env_data->thread_id(), "finish sampling because: %s.",
          reason);
-  for (auto itor = sampling_map.begin(); itor != sampling_map.end(); itor++) {
+
+  for (auto itor = env_data->sampling_record_map()->begin();
+       itor != env_data->sampling_record_map()->end(); itor++) {
     HandleAction(isolate, itor->second, reason);
   }
 }

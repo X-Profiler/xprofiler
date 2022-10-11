@@ -5,6 +5,7 @@
 #include <list>
 
 #include "commands/cpuprofiler/cpu_profiler.h"
+#include "commands/dump.h"
 #include "commands/gcprofiler/gc_profiler.h"
 #include "library/common.h"
 #include "logbypass/gc.h"
@@ -62,6 +63,10 @@ class EnvironmentData {
     return &uv_handle_statistics_;
   }
 
+  inline SamplingRecordMap* sampling_record_map() {
+    return &sampling_record_map_;
+  }
+
   std::unique_ptr<GcProfiler> gc_profiler;
   std::unique_ptr<CpuProfiler> cpu_profiler;
 
@@ -101,6 +106,8 @@ class EnvironmentData {
 
   uint32_t closed_handle_count_ = 0;
   static const uint32_t kHandleCount = 2;
+
+  SamplingRecordMap sampling_record_map_;
 };
 
 }  // namespace xprofiler
