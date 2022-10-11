@@ -70,7 +70,7 @@ void EnvironmentData::AtExit(void* arg) {
   std::unique_ptr<EnvironmentData> env_data = registry->Unregister(isolate);
 
   // finish sampling
-  FinishSampling(isolate, "process exit");
+  FinishSampling(isolate, "normal exit");
 
   for (auto callback : env_data->gc_epilogue_callbacks_) {
     Nan::RemoveGCEpilogueCallback(callback);

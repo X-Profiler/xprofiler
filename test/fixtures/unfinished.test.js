@@ -6,6 +6,7 @@ const { profileRule: { cpuprofile, heapprofile, gcprofile }, checkProfile } = re
 
 exports = module.exports = function () {
   const list = [
+    // fataerror
     {
       title: '<fatalerror / oom> cpu profiling',
       jspath: path.join(__dirname, 'fatal-error.js'),
@@ -35,7 +36,39 @@ exports = module.exports = function () {
         const content = fs.readFileSync(file, 'utf8').trim();
         checkProfile(gcprofile, JSON.parse(content));
       }
-    }
+    },
+
+    // exit 0
+    {
+      title: '<normal exit> cpu profiling',
+      jspath: path.join(__dirname, 'exit.js'),
+      tid: 0,
+      cmd: 'start_cpu_profiling',
+      check(file) {
+        const content = fs.readFileSync(file, 'utf8').trim();
+        checkProfile(cpuprofile, JSON.parse(content));
+      }
+    },
+    {
+      title: '<normal exit> heap profiling',
+      jspath: path.join(__dirname, 'exit.js'),
+      tid: 0,
+      cmd: 'start_heap_profiling',
+      check(file) {
+        const content = fs.readFileSync(file, 'utf8').trim();
+        checkProfile(heapprofile, JSON.parse(content));
+      }
+    },
+    {
+      title: '<normal exit> gc profiling',
+      jspath: path.join(__dirname, 'exit.js'),
+      tid: 0,
+      cmd: 'start_gc_profiling',
+      check(file) {
+        const content = fs.readFileSync(file, 'utf8').trim();
+        checkProfile(gcprofile, JSON.parse(content));
+      }
+    },
   ];
 
   return list;
