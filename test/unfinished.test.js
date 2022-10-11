@@ -5,6 +5,7 @@ const fs = require('fs');
 const cp = require('child_process');
 const mm = require('mm');
 const expect = require('expect.js');
+const moment = require('moment');
 const utils = require('./fixtures/utils');
 const xctl = require('../lib/xctl');
 const cases = require('./fixtures/unfinished.test')();
@@ -19,6 +20,7 @@ describe('unfinished sampling before process exit', function () {
   for (const cse of cases) {
     describe(cse.title, function () {
       let resByXctl = { ok: false };
+      let exitInfo = { code: null, signal: null };
 
       before(async function () {
         mm(os, 'homedir', () => tmphome);
@@ -42,7 +44,7 @@ describe('unfinished sampling before process exit', function () {
         resByXctl = await xctl(pid, cse.tid, cse.cmd, { profiling_time: 5 * 60 * 1000 });
 
         // process exit
-        await new Promise(resolve => p.on('close', resolve));
+        exitInfo = await utils.getChildProcessExitInfo(p);
         await utils.sleep(2000);
       });
 
@@ -51,6 +53,13 @@ describe('unfinished sampling before process exit', function () {
           mm.restore();
           utils.cleanDir(logdir);
           utils.cleanDir(tmphome);
+        }
+      });
+
+      it(`child process should be exited with code 0`, function () {
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, `exit info: ${JSON.stringify(exitInfo)}`);
+        if (cse.checkExitInfo) {
+          utils.checkChildProcessExitInfo(expect, exitInfo);
         }
       });
 

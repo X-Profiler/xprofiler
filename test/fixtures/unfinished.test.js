@@ -12,6 +12,7 @@ exports = module.exports = function () {
       jspath: path.join(__dirname, 'fatal-error.js'),
       tid: 0,
       cmd: 'start_cpu_profiling',
+      checkExitInfo: false,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
         checkProfile(cpuprofile, JSON.parse(content));
@@ -22,6 +23,7 @@ exports = module.exports = function () {
       jspath: path.join(__dirname, 'fatal-error.js'),
       tid: 0,
       cmd: 'start_heap_profiling',
+      checkExitInfo: false,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
         checkProfile(heapprofile, JSON.parse(content));
@@ -32,6 +34,7 @@ exports = module.exports = function () {
       jspath: path.join(__dirname, 'fatal-error.js'),
       tid: 0,
       cmd: 'start_gc_profiling',
+      checkExitInfo: false,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
         checkProfile(gcprofile, JSON.parse(content));
@@ -44,6 +47,7 @@ exports = module.exports = function () {
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_cpu_profiling',
+      checkExitInfo: true,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
         checkProfile(cpuprofile, JSON.parse(content));
@@ -54,6 +58,7 @@ exports = module.exports = function () {
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_heap_profiling',
+      checkExitInfo: true,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
         checkProfile(heapprofile, JSON.parse(content));
@@ -64,6 +69,7 @@ exports = module.exports = function () {
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_gc_profiling',
+      checkExitInfo: true,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
         checkProfile(gcprofile, JSON.parse(content));
