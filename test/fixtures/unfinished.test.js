@@ -6,7 +6,7 @@ const { profileRule: { cpuprofile, heapprofile, gcprofile }, checkProfile } = re
 
 exports = module.exports = function () {
   const list = [
-    // fataerror
+    // fatal error
     {
       title: '<fatal_error> cpu profiling',
       jspath: path.join(__dirname, 'fatal-error.js'),

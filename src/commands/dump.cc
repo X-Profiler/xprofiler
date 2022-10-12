@@ -256,7 +256,6 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type,
   if (dump_data->run_once) {
     CLEAR_DATA;
   }
-  return;
 }
 
 #undef CHECK_ERR
@@ -277,11 +276,13 @@ void FinishSampling(Isolate* isolate, const char* reason) {
   DebugT(module_type, env_data->thread_id(), "finish sampling because: %s.",
          reason);
 
+  ActionMap current;
+  current.swap(*env_data->action_map());
+
   void* data = nullptr;
 
-  for (auto itor = env_data->action_map()->begin();
-       itor != env_data->action_map()->end(); itor++) {
-    switch (itor->first) {
+  for (auto itor : current) {
+    switch (itor.first) {
       case START_CPU_PROFILING:
         data = static_cast<void*>(
             CreateFinishDumpData<STOP_CPU_PROFILING, CpuProfilerDumpData>(
