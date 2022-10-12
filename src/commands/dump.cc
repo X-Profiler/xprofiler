@@ -40,19 +40,6 @@ const DependentMap dependent_map = {
     {STOP_SAMPLING_HEAP_PROFILING, START_SAMPLING_HEAP_PROFILING},
     {STOP_GC_PROFILING, START_GC_PROFILING}};
 
-/**
- * Per-process slots. Diagnostics action can not be performed concurrently.
- */
-namespace {
-uv_thread_t uv_profiling_callback_thread;
-ActionMap action_map;
-std::string cpuprofile_filepath = "";
-std::string sampling_heapprofile_filepath = "";
-std::string heapsnapshot_filepath = "";
-std::string gcprofile_filepath = "";
-std::string node_report_filepath = "";
-std::string coredump_filepath = "";
-
 string Action2String(DumpAction action) {
   string name = "";
   switch (action) {
@@ -90,16 +77,17 @@ string Action2String(DumpAction action) {
   return name;
 }
 
-void ActionRunning(DumpAction action, XpfError& err) {
+void ActionRunning(ActionMap action_map, DumpAction action, XpfError& err) {
   if (action_map.find(action) != action_map.end()) {
     err = XpfError::Failure("%s is running.", Action2String(action).c_str());
   }
 }
 
-void ConflictActionRunning(DumpAction action, XpfError& err) {
+void ConflictActionRunning(ActionMap action_map, DumpAction action,
+                           XpfError& err) {
   if (conflict_map.find(action) != conflict_map.end()) {
     for (DumpAction confilct : conflict_map.at(action)) {
-      ActionRunning(confilct, err);
+      ActionRunning(action_map, confilct, err);
       if (err.Fail()) {
         err = XpfError::Failure(
             "%s conflict action %s is running, please wait for done.",
@@ -110,10 +98,11 @@ void ConflictActionRunning(DumpAction action, XpfError& err) {
   }
 }
 
-void DependentActionRunning(DumpAction action, XpfError& err) {
+void DependentActionRunning(ActionMap action_map, DumpAction action,
+                            XpfError& err) {
   if (dependent_map.find(action) != dependent_map.end()) {
     DumpAction dependent_action = dependent_map.at(action);
-    ActionRunning(dependent_action, err);
+    ActionRunning(action_map, dependent_action, err);
     if (err.Success())
       err = XpfError::Failure("%s dependent action %s is not running.",
                               Action2String(action).c_str(),
@@ -124,8 +113,8 @@ void DependentActionRunning(DumpAction action, XpfError& err) {
 }
 
 template <typename T>
-T* GetProfilingData(void* data, string notify_type, string unique_key) {
-  Isolate* isolate = Isolate::GetCurrent();
+T* GetProfilingData(Isolate* isolate, void* data, string notify_type,
+                    string unique_key) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   T* dump_data = static_cast<T*>(data);
   DebugT(module_type, env_data->thread_id(), "<%s> %s action start.",
@@ -133,15 +122,13 @@ T* GetProfilingData(void* data, string notify_type, string unique_key) {
   return dump_data;
 }
 
-void AfterDumpFile(string& filepath, string notify_type, string unique_key) {
-  Isolate* isolate = Isolate::GetCurrent();
+void AfterDumpFile(Isolate* isolate, string& filepath, string notify_type,
+                   string unique_key) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   DebugT(module_type, env_data->thread_id(), "<%s> %s dump file: %s.",
          notify_type.c_str(), unique_key.c_str(), filepath.c_str());
   filepath = "";
 }
-
-}  // namespace
 
 #define CLEAR_DATA                                                         \
   DebugT(module_type, env_data->thread_id(), "<%s> %s dump_data cleared.", \
@@ -161,7 +148,11 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
   BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
+
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  if (env_data == nullptr) {
+    return;
+  }
 
   // check transaction has been done
   XpfError err;
@@ -172,69 +163,80 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
          notify_type.c_str(), unique_key.c_str());
 
   // check conflict action running
-  CHECK_ERR(ConflictActionRunning(action, err))
+  CHECK_ERR(ConflictActionRunning(env_data->action_map, action, err))
 
   // check dependent action running
-  CHECK_ERR(DependentActionRunning(action, err))
+  CHECK_ERR(DependentActionRunning(env_data->action_map, action, err))
 
   // start run action
   switch (action) {
     case START_CPU_PROFILING: {
-      CpuProfilerDumpData* tmp =
-          GetProfilingData<CpuProfilerDumpData>(data, notify_type, unique_key);
+      CpuProfilerDumpData* tmp = GetProfilingData<CpuProfilerDumpData>(
+          isolate, data, notify_type, unique_key);
       CpuProfiler::StartProfiling(isolate, tmp->title);
       break;
     }
     case STOP_CPU_PROFILING: {
       dump_data->run_once = true;
       CpuProfilerDumpData* tmp = static_cast<CpuProfilerDumpData*>(data);
-      CpuProfiler::StopProfiling(isolate, tmp->title, cpuprofile_filepath);
-      AfterDumpFile(cpuprofile_filepath, notify_type, unique_key);
-      action_map.erase(START_CPU_PROFILING);
-      action_map.erase(STOP_CPU_PROFILING);
+      CpuProfiler::StopProfiling(isolate, tmp->title,
+                                 env_data->cpuprofile_filepath);
+      AfterDumpFile(isolate, env_data->cpuprofile_filepath, notify_type,
+                    unique_key);
+      env_data->action_map.erase(START_CPU_PROFILING);
+      env_data->action_map.erase(STOP_CPU_PROFILING);
       break;
     }
     case HEAPDUMP: {
-      HeapProfiler::TakeSnapshot(isolate, heapsnapshot_filepath);
-      AfterDumpFile(heapsnapshot_filepath, notify_type, unique_key);
-      action_map.erase(HEAPDUMP);
+      HeapProfiler::TakeSnapshot(isolate, env_data->heapsnapshot_filepath);
+      AfterDumpFile(isolate, env_data->heapsnapshot_filepath, notify_type,
+                    unique_key);
+      env_data->action_map.erase(HEAPDUMP);
       break;
     }
     case START_SAMPLING_HEAP_PROFILING: {
+      GetProfilingData<SamplingHeapProfilerDumpData>(isolate, data, notify_type,
+                                                     unique_key);
       SamplingHeapProfiler::StartSamplingHeapProfiling(isolate);
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
       dump_data->run_once = true;
       SamplingHeapProfiler::StopSamplingHeapProfiling(
-          isolate, sampling_heapprofile_filepath);
-      AfterDumpFile(sampling_heapprofile_filepath, notify_type, unique_key);
-      action_map.erase(START_SAMPLING_HEAP_PROFILING);
-      action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
+          isolate, env_data->sampling_heapprofile_filepath);
+      AfterDumpFile(isolate, env_data->sampling_heapprofile_filepath,
+                    notify_type, unique_key);
+      env_data->action_map.erase(START_SAMPLING_HEAP_PROFILING);
+      env_data->action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
       break;
     }
     case START_GC_PROFILING: {
-      GcProfiler::StartGCProfiling(isolate, gcprofile_filepath);
+      GetProfilingData<GcProfilerDumpData>(isolate, data, notify_type,
+                                           unique_key);
+      GcProfiler::StartGCProfiling(isolate, env_data->gcprofile_filepath);
       break;
     }
     case STOP_GC_PROFILING: {
       dump_data->run_once = true;
       GcProfiler::StopGCProfiling(isolate);
-      AfterDumpFile(gcprofile_filepath, notify_type, unique_key);
-      action_map.erase(START_GC_PROFILING);
-      action_map.erase(STOP_GC_PROFILING);
+      AfterDumpFile(isolate, env_data->gcprofile_filepath, notify_type,
+                    unique_key);
+      env_data->action_map.erase(START_GC_PROFILING);
+      env_data->action_map.erase(STOP_GC_PROFILING);
       break;
     }
     case NODE_REPORT: {
-      NodeReport::GetNodeReport(isolate, node_report_filepath);
-      AfterDumpFile(node_report_filepath, notify_type, unique_key);
-      action_map.erase(NODE_REPORT);
+      NodeReport::GetNodeReport(isolate, env_data->node_report_filepath);
+      AfterDumpFile(isolate, env_data->node_report_filepath, notify_type,
+                    unique_key);
+      env_data->action_map.erase(NODE_REPORT);
       break;
     }
     case COREDUMP: {
-      Coredumper::WriteCoredump(coredump_filepath);
-      AfterDumpFile(coredump_filepath, notify_type, unique_key);
-      action_map.erase(COREDUMP);
+      Coredumper::WriteCoredump(env_data->coredump_filepath);
+      AfterDumpFile(isolate, env_data->coredump_filepath, notify_type,
+                    unique_key);
+      env_data->action_map.erase(COREDUMP);
       break;
     }
     default:
@@ -329,18 +331,7 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
   CHECK_ERR(ThreadId thread_id =
                 GetJsonValue<ThreadId>(command, "thread_id", err))
 
-  // check action running
-  CHECK_ERR(ActionRunning(action, err))
-
-  // check conflict action running
-  CHECK_ERR(ConflictActionRunning(action, err))
-
-  // check dependent action running
-  CHECK_ERR(DependentActionRunning(action, err))
-
-  // set action running flag
-  action_map.insert(make_pair(action, true));
-
+  // get environment
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope scope(registry);
   EnvironmentData* env_data = registry->Get(thread_id);
@@ -349,44 +340,56 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
     return result;
   }
 
+  // check action running
+  CHECK_ERR(ActionRunning(env_data->action_map, action, err))
+
+  // check conflict action running
+  CHECK_ERR(ConflictActionRunning(env_data->action_map, action, err))
+
+  // check dependent action running
+  CHECK_ERR(DependentActionRunning(env_data->action_map, action, err))
+
+  // set action running flag
+  env_data->action_map.insert(make_pair(action, true));
+
   // get file name
   switch (action) {
     case START_CPU_PROFILING:
-      cpuprofile_filepath = CreateFilepath(prefix, ext);
-      result["filepath"] = cpuprofile_filepath;
+      env_data->cpuprofile_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = env_data->cpuprofile_filepath;
       break;
     case STOP_CPU_PROFILING:
-      result["filepath"] = cpuprofile_filepath;
+      result["filepath"] = env_data->cpuprofile_filepath;
       break;
     case HEAPDUMP:
-      heapsnapshot_filepath = CreateFilepath(prefix, ext);
-      result["filepath"] = heapsnapshot_filepath;
+      env_data->heapsnapshot_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = env_data->heapsnapshot_filepath;
       break;
     case START_SAMPLING_HEAP_PROFILING:
-      sampling_heapprofile_filepath = CreateFilepath(prefix, ext);
-      result["filepath"] = sampling_heapprofile_filepath;
+      env_data->sampling_heapprofile_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = env_data->sampling_heapprofile_filepath;
       break;
     case STOP_SAMPLING_HEAP_PROFILING:
-      result["filepath"] = sampling_heapprofile_filepath;
+      result["filepath"] = env_data->sampling_heapprofile_filepath;
       break;
     case START_GC_PROFILING:
-      gcprofile_filepath = CreateFilepath(prefix, ext);
-      result["filepath"] = gcprofile_filepath;
+      env_data->gcprofile_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = env_data->gcprofile_filepath;
       break;
     case STOP_GC_PROFILING:
-      result["filepath"] = gcprofile_filepath;
+      result["filepath"] = env_data->gcprofile_filepath;
       break;
     case NODE_REPORT:
-      node_report_filepath = CreateFilepath(prefix, ext);
-      result["filepath"] = node_report_filepath;
+      env_data->node_report_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = env_data->node_report_filepath;
       break;
     case COREDUMP:
 #ifdef __linux__
-      coredump_filepath = CreateFilepath(prefix, ext);
-      result["filepath"] = coredump_filepath;
+      env_data->coredump_filepath = CreateFilepath(prefix, ext);
+      result["filepath"] = env_data->coredump_filepath;
 #else
       err = XpfError::Failure("generate_coredump only support linux now.");
-      action_map.erase(COREDUMP);
+      env_data->action_map.erase(COREDUMP);
 #endif
       break;
     default:
@@ -411,8 +414,8 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
   if (err.Success()) {
     data->run_once = false;
     data->profiling_time = profiling_time;
-    uv_thread_create(&uv_profiling_callback_thread, ProfilingWatchDog,
-                     (void*)data);
+    uv_thread_create(env_data->uv_profiling_callback_thread(),
+                     ProfilingWatchDog, (void*)data);
   } else {
     err = XpfError::Succeed();
   }
