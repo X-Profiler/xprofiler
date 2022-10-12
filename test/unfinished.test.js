@@ -41,7 +41,7 @@ describe('unfinished sampling before process exit', function () {
 
         // send cmd
         const pid = p.pid;
-        resByXctl = await xctl(pid, cse.tid, cse.cmd, { profiling_time: 5 * 60 * 1000 });
+        resByXctl = await xctl(pid, cse.tid, cse.cmd, cse.options);
 
         // process exit
         exitInfo = await utils.getChildProcessExitInfo(p);

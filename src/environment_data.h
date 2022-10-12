@@ -63,9 +63,7 @@ class EnvironmentData {
     return &uv_handle_statistics_;
   }
 
-  inline SamplingRecordMap* sampling_record_map() {
-    return &sampling_record_map_;
-  }
+  inline ActionMap& action_map() { return action_map_; }
 
   std::unique_ptr<GcProfiler> gc_profiler;
   std::unique_ptr<CpuProfiler> cpu_profiler;
@@ -107,7 +105,7 @@ class EnvironmentData {
   uint32_t closed_handle_count_ = 0;
   static const uint32_t kHandleCount = 2;
 
-  SamplingRecordMap sampling_record_map_;
+  ActionMap action_map_;
 };
 
 }  // namespace xprofiler

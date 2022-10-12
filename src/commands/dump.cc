@@ -45,7 +45,6 @@ const DependentMap dependent_map = {
  */
 namespace {
 uv_thread_t uv_profiling_callback_thread;
-ActionMap action_map;
 std::string cpuprofile_filepath = "";
 std::string sampling_heapprofile_filepath = "";
 std::string heapsnapshot_filepath = "";
@@ -90,16 +89,17 @@ string Action2String(DumpAction action) {
   return name;
 }
 
-void ActionRunning(DumpAction action, XpfError& err) {
+void ActionRunning(ActionMap action_map, DumpAction action, XpfError& err) {
   if (action_map.find(action) != action_map.end()) {
     err = XpfError::Failure("%s is running.", Action2String(action).c_str());
   }
 }
 
-void ConflictActionRunning(DumpAction action, XpfError& err) {
+void ConflictActionRunning(ActionMap action_map, DumpAction action,
+                           XpfError& err) {
   if (conflict_map.find(action) != conflict_map.end()) {
     for (DumpAction confilct : conflict_map.at(action)) {
-      ActionRunning(confilct, err);
+      ActionRunning(action_map, confilct, err);
       if (err.Fail()) {
         err = XpfError::Failure(
             "%s conflict action %s is running, please wait for done.",
@@ -110,10 +110,11 @@ void ConflictActionRunning(DumpAction action, XpfError& err) {
   }
 }
 
-void DependentActionRunning(DumpAction action, XpfError& err) {
+void DependentActionRunning(ActionMap action_map, DumpAction action,
+                            XpfError& err) {
   if (dependent_map.find(action) != dependent_map.end()) {
     DumpAction dependent_action = dependent_map.at(action);
-    ActionRunning(dependent_action, err);
+    ActionRunning(action_map, dependent_action, err);
     if (err.Success())
       err = XpfError::Failure("%s dependent action %s is not running.",
                               Action2String(action).c_str(),
@@ -162,6 +163,7 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  ActionMap action_map = env_data->action_map();
 
   // check transaction has been done
   XpfError err;
@@ -172,10 +174,10 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
          notify_type.c_str(), unique_key.c_str());
 
   // check conflict action running
-  CHECK_ERR(ConflictActionRunning(action, err))
+  CHECK_ERR(ConflictActionRunning(action_map, action, err))
 
   // check dependent action running
-  CHECK_ERR(DependentActionRunning(action, err))
+  CHECK_ERR(DependentActionRunning(action_map, action, err))
 
   // start run action
   switch (action) {
@@ -186,8 +188,6 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
       // after start cpu profiling
       dump_data->action = STOP_CPU_PROFILING;
-      env_data->sampling_record_map()->insert(
-          make_pair(START_CPU_PROFILING, data));
       break;
     }
     case STOP_CPU_PROFILING: {
@@ -199,7 +199,6 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       // after stop cpu profiling
       action_map.erase(START_CPU_PROFILING);
       action_map.erase(STOP_CPU_PROFILING);
-      env_data->sampling_record_map()->erase(START_CPU_PROFILING);
       break;
     }
     case HEAPDUMP: {
@@ -217,8 +216,6 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
       // after start sampling heap profiling
       dump_data->action = STOP_SAMPLING_HEAP_PROFILING;
-      env_data->sampling_record_map()->insert(
-          make_pair(START_SAMPLING_HEAP_PROFILING, data));
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
@@ -230,7 +227,6 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       // after stop sampling heap profiling
       action_map.erase(START_SAMPLING_HEAP_PROFILING);
       action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
-      env_data->sampling_record_map()->erase(START_SAMPLING_HEAP_PROFILING);
       break;
     }
     case START_GC_PROFILING: {
@@ -240,8 +236,6 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 
       // after start gc profiling
       dump_data->action = STOP_GC_PROFILING;
-      env_data->sampling_record_map()->insert(
-          make_pair(START_GC_PROFILING, data));
       break;
     }
     case STOP_GC_PROFILING: {
@@ -252,7 +246,6 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       // after stop gc profiling
       action_map.erase(START_GC_PROFILING);
       action_map.erase(STOP_GC_PROFILING);
-      env_data->sampling_record_map()->erase(START_GC_PROFILING);
       break;
     }
     case NODE_REPORT: {
@@ -293,9 +286,16 @@ void FinishSampling(Isolate* isolate, const char* reason) {
   DebugT(module_type, env_data->thread_id(), "finish sampling because: %s.",
          reason);
 
-  for (auto itor = env_data->sampling_record_map()->begin();
-       itor != env_data->sampling_record_map()->end(); itor++) {
-    HandleAction(isolate, itor->second, reason);
+  for (auto itor = env_data->action_map().begin();
+       itor != env_data->action_map().end(); itor++) {
+    // constructor dump data
+    BaseDumpData* data = new BaseDumpData;
+    data = new BaseDumpData;
+    data->traceid = "finish";
+    data->thread_id = env_data->thread_id();
+    data->action = itor->first;
+
+    HandleAction(isolate, (void*)data, reason);
   }
 }
 
@@ -354,18 +354,7 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
   CHECK_ERR(ThreadId thread_id =
                 GetJsonValue<ThreadId>(command, "thread_id", err))
 
-  // check action running
-  CHECK_ERR(ActionRunning(action, err))
-
-  // check conflict action running
-  CHECK_ERR(ConflictActionRunning(action, err))
-
-  // check dependent action running
-  CHECK_ERR(DependentActionRunning(action, err))
-
-  // set action running flag
-  action_map.insert(make_pair(action, true));
-
+  // get environment
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope scope(registry);
   EnvironmentData* env_data = registry->Get(thread_id);
@@ -373,6 +362,20 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
     err = XpfError::Failure("Thread not found: %f", thread_id);
     return result;
   }
+
+  ActionMap action_map = env_data->action_map();
+
+  // check action running
+  CHECK_ERR(ActionRunning(action_map, action, err))
+
+  // check conflict action running
+  CHECK_ERR(ConflictActionRunning(action_map, action, err))
+
+  // check dependent action running
+  CHECK_ERR(DependentActionRunning(action_map, action, err))
+
+  // set action running flag
+  action_map.insert(make_pair(action, true));
 
   // get file name
   switch (action) {

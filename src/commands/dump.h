@@ -24,7 +24,6 @@ enum DumpAction {
 using ActionMap = std::unordered_map<DumpAction, bool>;
 using ConflictMap = std::unordered_map<DumpAction, std::vector<DumpAction>>;
 using DependentMap = std::unordered_map<DumpAction, DumpAction>;
-using SamplingRecordMap = std::unordered_map<DumpAction, void*>;
 
 struct BaseDumpData {
   std::string traceid;
