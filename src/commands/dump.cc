@@ -174,6 +174,7 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       CpuProfilerDumpData* tmp = GetProfilingData<CpuProfilerDumpData>(
           isolate, data, notify_type, unique_key);
       CpuProfiler::StartProfiling(isolate, tmp->title);
+      tmp->action = STOP_CPU_PROFILING;
       break;
     }
     case STOP_CPU_PROFILING: {
@@ -195,9 +196,11 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       break;
     }
     case START_SAMPLING_HEAP_PROFILING: {
-      GetProfilingData<SamplingHeapProfilerDumpData>(isolate, data, notify_type,
-                                                     unique_key);
+      SamplingHeapProfilerDumpData* tmp =
+          GetProfilingData<SamplingHeapProfilerDumpData>(
+              isolate, data, notify_type, unique_key);
       SamplingHeapProfiler::StartSamplingHeapProfiling(isolate);
+      tmp->action = STOP_SAMPLING_HEAP_PROFILING;
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
@@ -211,9 +214,10 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       break;
     }
     case START_GC_PROFILING: {
-      GetProfilingData<GcProfilerDumpData>(isolate, data, notify_type,
-                                           unique_key);
+      GcProfilerDumpData* tmp = GetProfilingData<GcProfilerDumpData>(
+          isolate, data, notify_type, unique_key);
       GcProfiler::StartGCProfiling(isolate, env_data->gcprofile_filepath);
+      tmp->action = STOP_GC_PROFILING;
       break;
     }
     case STOP_GC_PROFILING: {
@@ -272,11 +276,13 @@ static void NotifyJsThread(EnvironmentData* env_data, void* data) {
       });
 }
 
-template <typename T, DumpAction stop_action>
-void StopProfiling(T* dump_data) {
-  WaitForProfile(dump_data->profiling_time);
-  dump_data->action = stop_action;
+static void ProfilingWatchDog(void* data) {
+  BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
 
+  // sleep for profiling time
+  WaitForProfile(dump_data->profiling_time);
+
+  // get environment
   ThreadId thread_id = dump_data->thread_id;
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope scope(registry);
@@ -284,31 +290,8 @@ void StopProfiling(T* dump_data) {
   if (env_data == nullptr) {
     return;
   }
+
   NotifyJsThread(env_data, dump_data);
-}
-
-static void ProfilingWatchDog(void* data) {
-  BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
-  string traceid = dump_data->traceid;
-  DumpAction action = dump_data->action;
-
-  switch (action) {
-    case START_CPU_PROFILING:
-      StopProfiling<CpuProfilerDumpData, STOP_CPU_PROFILING>(
-          static_cast<CpuProfilerDumpData*>(dump_data));
-      break;
-    case START_SAMPLING_HEAP_PROFILING:
-      StopProfiling<SamplingHeapProfilerDumpData, STOP_SAMPLING_HEAP_PROFILING>(
-          static_cast<SamplingHeapProfilerDumpData*>(dump_data));
-      break;
-    case START_GC_PROFILING:
-      StopProfiling<GcProfilerDumpData, STOP_GC_PROFILING>(
-          static_cast<GcProfilerDumpData*>(dump_data));
-      break;
-    default:
-      Error(module_type, "watch dog not support dump action: %s", action);
-      break;
-  }
 }
 
 static string CreateFilepath(string prefix, string ext) {
