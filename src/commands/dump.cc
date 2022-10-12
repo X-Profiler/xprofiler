@@ -77,13 +77,13 @@ string Action2String(DumpAction action) {
   return name;
 }
 
-void ActionRunning(ActionMap action_map, DumpAction action, XpfError& err) {
-  if (action_map.find(action) != action_map.end()) {
+void ActionRunning(ActionMap* action_map, DumpAction action, XpfError& err) {
+  if (action_map->find(action) != action_map->end()) {
     err = XpfError::Failure("%s is running.", Action2String(action).c_str());
   }
 }
 
-void ConflictActionRunning(ActionMap action_map, DumpAction action,
+void ConflictActionRunning(ActionMap* action_map, DumpAction action,
                            XpfError& err) {
   if (conflict_map.find(action) != conflict_map.end()) {
     for (DumpAction confilct : conflict_map.at(action)) {
@@ -98,7 +98,7 @@ void ConflictActionRunning(ActionMap action_map, DumpAction action,
   }
 }
 
-void DependentActionRunning(ActionMap action_map, DumpAction action,
+void DependentActionRunning(ActionMap* action_map, DumpAction action,
                             XpfError& err) {
   if (dependent_map.find(action) != dependent_map.end()) {
     DumpAction dependent_action = dependent_map.at(action);
@@ -163,10 +163,10 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
          notify_type.c_str(), unique_key.c_str());
 
   // check conflict action running
-  CHECK_ERR(ConflictActionRunning(env_data->action_map, action, err))
+  CHECK_ERR(ConflictActionRunning(env_data->action_map(), action, err))
 
   // check dependent action running
-  CHECK_ERR(DependentActionRunning(env_data->action_map, action, err))
+  CHECK_ERR(DependentActionRunning(env_data->action_map(), action, err))
 
   // start run action
   switch (action) {
@@ -184,15 +184,15 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
                                  env_data->cpuprofile_filepath);
       AfterDumpFile(isolate, env_data->cpuprofile_filepath, notify_type,
                     unique_key);
-      env_data->action_map.erase(START_CPU_PROFILING);
-      env_data->action_map.erase(STOP_CPU_PROFILING);
+      env_data->action_map()->erase(START_CPU_PROFILING);
+      env_data->action_map()->erase(STOP_CPU_PROFILING);
       break;
     }
     case HEAPDUMP: {
       HeapProfiler::TakeSnapshot(isolate, env_data->heapsnapshot_filepath);
       AfterDumpFile(isolate, env_data->heapsnapshot_filepath, notify_type,
                     unique_key);
-      env_data->action_map.erase(HEAPDUMP);
+      env_data->action_map()->erase(HEAPDUMP);
       break;
     }
     case START_SAMPLING_HEAP_PROFILING: {
@@ -209,8 +209,8 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
           isolate, env_data->sampling_heapprofile_filepath);
       AfterDumpFile(isolate, env_data->sampling_heapprofile_filepath,
                     notify_type, unique_key);
-      env_data->action_map.erase(START_SAMPLING_HEAP_PROFILING);
-      env_data->action_map.erase(STOP_SAMPLING_HEAP_PROFILING);
+      env_data->action_map()->erase(START_SAMPLING_HEAP_PROFILING);
+      env_data->action_map()->erase(STOP_SAMPLING_HEAP_PROFILING);
       break;
     }
     case START_GC_PROFILING: {
@@ -225,22 +225,22 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
       GcProfiler::StopGCProfiling(isolate);
       AfterDumpFile(isolate, env_data->gcprofile_filepath, notify_type,
                     unique_key);
-      env_data->action_map.erase(START_GC_PROFILING);
-      env_data->action_map.erase(STOP_GC_PROFILING);
+      env_data->action_map()->erase(START_GC_PROFILING);
+      env_data->action_map()->erase(STOP_GC_PROFILING);
       break;
     }
     case NODE_REPORT: {
       NodeReport::GetNodeReport(isolate, env_data->node_report_filepath);
       AfterDumpFile(isolate, env_data->node_report_filepath, notify_type,
                     unique_key);
-      env_data->action_map.erase(NODE_REPORT);
+      env_data->action_map()->erase(NODE_REPORT);
       break;
     }
     case COREDUMP: {
       Coredumper::WriteCoredump(env_data->coredump_filepath);
       AfterDumpFile(isolate, env_data->coredump_filepath, notify_type,
                     unique_key);
-      env_data->action_map.erase(COREDUMP);
+      env_data->action_map()->erase(COREDUMP);
       break;
     }
     default:
@@ -324,16 +324,16 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
   }
 
   // check action running
-  CHECK_ERR(ActionRunning(env_data->action_map, action, err))
+  CHECK_ERR(ActionRunning(env_data->action_map(), action, err))
 
   // check conflict action running
-  CHECK_ERR(ConflictActionRunning(env_data->action_map, action, err))
+  CHECK_ERR(ConflictActionRunning(env_data->action_map(), action, err))
 
   // check dependent action running
-  CHECK_ERR(DependentActionRunning(env_data->action_map, action, err))
+  CHECK_ERR(DependentActionRunning(env_data->action_map(), action, err))
 
   // set action running flag
-  env_data->action_map.insert(make_pair(action, true));
+  env_data->action_map()->insert(make_pair(action, true));
 
   // get file name
   switch (action) {
@@ -372,7 +372,7 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
       result["filepath"] = env_data->coredump_filepath;
 #else
       err = XpfError::Failure("generate_coredump only support linux now.");
-      env_data->action_map.erase(COREDUMP);
+      env_data->action_map()->erase(COREDUMP);
 #endif
       break;
     default:

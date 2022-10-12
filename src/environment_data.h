@@ -70,7 +70,7 @@ class EnvironmentData {
   inline uv_thread_t* uv_profiling_callback_thread() {
     return &uv_profiling_callback_thread_;
   };
-  ActionMap action_map;
+  inline ActionMap* action_map() { return &action_map_; }
   std::string cpuprofile_filepath = "";
   std::string sampling_heapprofile_filepath = "";
   std::string heapsnapshot_filepath = "";
@@ -115,6 +115,8 @@ class EnvironmentData {
 
   uint32_t closed_handle_count_ = 0;
   static const uint32_t kHandleCount = 2;
+
+  ActionMap action_map_;
 };
 
 }  // namespace xprofiler
