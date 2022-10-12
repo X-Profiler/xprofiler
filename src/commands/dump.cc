@@ -135,16 +135,19 @@ void AfterDumpFile(Isolate* isolate, string& filepath, string notify_type,
          notify_type.c_str(), unique_key.c_str());                         \
   delete dump_data;
 
-#define CHECK_ERR(func)                                                   \
-  func;                                                                   \
-  if (err.Fail()) {                                                       \
-    DebugT(module_type, env_data->thread_id(), "<%s> %s error: %s",       \
-           notify_type.c_str(), unique_key.c_str(), err.GetErrMessage()); \
-    CLEAR_DATA;                                                           \
-    return;                                                               \
+#define CHECK_ERR(func)                                                     \
+  if (need_check) {                                                         \
+    func;                                                                   \
+    if (err.Fail()) {                                                       \
+      DebugT(module_type, env_data->thread_id(), "<%s> %s error: %s",       \
+             notify_type.c_str(), unique_key.c_str(), err.GetErrMessage()); \
+      CLEAR_DATA;                                                           \
+      return;                                                               \
+    }                                                                       \
   }
 
-void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
+void HandleAction(v8::Isolate* isolate, void* data, string notify_type,
+                  bool need_check = true) {
   BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
   string traceid = dump_data->traceid;
   DumpAction action = dump_data->action;
@@ -259,23 +262,51 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type) {
 #undef CHECK_ERR
 #undef CLEAR_DATA
 
+template <DumpAction action, typename T>
+T* CreateFinishDumpData(EnvironmentData* env_data) {
+  T* data = new T;
+  data->traceid = "finish";
+  data->thread_id = env_data->thread_id();
+  data->action = action;
+  return data;
+}
+
 void FinishSampling(Isolate* isolate, const char* reason) {
-  // EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
+  EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
 
-  // DebugT(module_type, env_data->thread_id(), "finish sampling because: %s.",
-  //        reason);
+  DebugT(module_type, env_data->thread_id(), "finish sampling because: %s.",
+         reason);
 
-  // for (auto itor = env_data->action_map().begin();
-  //      itor != env_data->action_map().end(); itor++) {
-  //   // constructor dump data
-  //   BaseDumpData* data = new BaseDumpData;
-  //   data = new BaseDumpData;
-  //   data->traceid = "finish";
-  //   data->thread_id = env_data->thread_id();
-  //   data->action = itor->first;
+  void* data = nullptr;
 
-  //   HandleAction(isolate, (void*)data, reason);
-  // }
+  for (auto itor = env_data->action_map()->begin();
+       itor != env_data->action_map()->end(); itor++) {
+    switch (itor->first) {
+      case START_CPU_PROFILING:
+        data = static_cast<void*>(
+            CreateFinishDumpData<STOP_CPU_PROFILING, CpuProfilerDumpData>(
+                env_data));
+        break;
+      case START_SAMPLING_HEAP_PROFILING:
+        data = static_cast<void*>(
+            CreateFinishDumpData<STOP_SAMPLING_HEAP_PROFILING,
+                                 SamplingHeapProfilerDumpData>(env_data));
+        break;
+      case START_GC_PROFILING:
+        data = static_cast<void*>(
+            CreateFinishDumpData<STOP_GC_PROFILING, GcProfilerDumpData>(
+                env_data));
+        break;
+      default:
+        break;
+    }
+
+    if (data == nullptr) {
+      continue;
+    }
+
+    HandleAction(isolate, data, reason, false);
+  }
 }
 
 static void WaitForProfile(uint64_t profiling_time) {

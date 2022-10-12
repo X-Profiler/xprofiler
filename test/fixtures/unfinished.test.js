@@ -8,7 +8,7 @@ exports = module.exports = function () {
   const list = [
     // fataerror
     {
-      title: '<fatalerror / oom> cpu profiling',
+      title: '<fatal_error> cpu profiling',
       jspath: path.join(__dirname, 'fatal-error.js'),
       tid: 0,
       cmd: 'start_cpu_profiling',
@@ -20,7 +20,7 @@ exports = module.exports = function () {
       }
     },
     {
-      title: '<fatalerror / oom> heap profiling',
+      title: '<fatal_error> heap profiling',
       jspath: path.join(__dirname, 'fatal-error.js'),
       tid: 0,
       cmd: 'start_heap_profiling',
@@ -32,7 +32,7 @@ exports = module.exports = function () {
       }
     },
     {
-      title: '<fatalerror / oom> gc profiling',
+      title: '<fatal_error> gc profiling',
       jspath: path.join(__dirname, 'fatal-error.js'),
       tid: 0,
       cmd: 'start_gc_profiling',
@@ -46,7 +46,7 @@ exports = module.exports = function () {
 
     // exit 0 with profiling time
     {
-      title: '<normal exit> cpu profiling',
+      title: '<at_exit> cpu profiling',
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_cpu_profiling',
@@ -58,7 +58,7 @@ exports = module.exports = function () {
       }
     },
     {
-      title: '<normal exit> heap profiling',
+      title: '<at_exit> heap profiling',
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_heap_profiling',
@@ -70,7 +70,7 @@ exports = module.exports = function () {
       }
     },
     {
-      title: '<normal exit> gc profiling',
+      title: '<at_exit> gc profiling',
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_gc_profiling',
@@ -84,7 +84,7 @@ exports = module.exports = function () {
 
     // exit 0 with no profiling time
     {
-      title: '<normal exit> cpu profiling',
+      title: '<at_exit> cpu profiling',
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_cpu_profiling',
@@ -96,7 +96,7 @@ exports = module.exports = function () {
       }
     },
     {
-      title: '<normal exit> heap profiling',
+      title: '<at_exit> heap profiling',
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_heap_profiling',
@@ -104,11 +104,11 @@ exports = module.exports = function () {
       checkExitInfo: true,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
-        checkProfile(cpuprofile, JSON.parse(content));
+        checkProfile(heapprofile, JSON.parse(content));
       }
     },
     {
-      title: '<normal exit> gc profiling',
+      title: '<at_exit> gc profiling',
       jspath: path.join(__dirname, 'exit.js'),
       tid: 0,
       cmd: 'start_gc_profiling',
@@ -116,7 +116,7 @@ exports = module.exports = function () {
       checkExitInfo: true,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
-        checkProfile(cpuprofile, JSON.parse(content));
+        checkProfile(gcprofile, JSON.parse(content));
       }
     },
   ];
