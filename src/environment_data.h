@@ -5,6 +5,7 @@
 #include <list>
 
 #include "commands/cpuprofiler/cpu_profiler.h"
+#include "commands/dump.h"
 #include "commands/gcprofiler/gc_profiler.h"
 #include "library/common.h"
 #include "logbypass/gc.h"
@@ -65,6 +66,18 @@ class EnvironmentData {
   std::unique_ptr<GcProfiler> gc_profiler;
   std::unique_ptr<CpuProfiler> cpu_profiler;
 
+  // dump action
+  inline uv_thread_t* uv_profiling_callback_thread() {
+    return &uv_profiling_callback_thread_;
+  };
+  inline ActionMap* action_map() { return &action_map_; }
+  std::string cpuprofile_filepath = "";
+  std::string sampling_heapprofile_filepath = "";
+  std::string heapsnapshot_filepath = "";
+  std::string gcprofile_filepath = "";
+  std::string node_report_filepath = "";
+  std::string coredump_filepath = "";
+
  private:
   static void AtExit(void* arg);
   template <uv_async_t EnvironmentData::*field>
@@ -80,6 +93,7 @@ class EnvironmentData {
   v8::Isolate* isolate_;
   uv_loop_t* loop_;
   uv_async_t statistics_async_;
+  uv_thread_t uv_profiling_callback_thread_;
 
   bool is_main_thread_ = false;
   /* We don't have a native method to get the uint64_t thread id.
@@ -101,6 +115,8 @@ class EnvironmentData {
 
   uint32_t closed_handle_count_ = 0;
   static const uint32_t kHandleCount = 2;
+
+  ActionMap action_map_;
 };
 
 }  // namespace xprofiler
