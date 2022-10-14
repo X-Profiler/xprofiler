@@ -29,8 +29,10 @@ void DumpBeforeAbort(const char* location, const char* message) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   ThreadId thread_id = env_data->thread_id();
 
+#ifndef _WIN32
   // finish sampling
   FinishSampling(isolate, "fatal_error");
+#endif
 
   // generate report before abort
   if (GetEnableFatalErrorReport()) {
