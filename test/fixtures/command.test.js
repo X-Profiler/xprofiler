@@ -394,7 +394,7 @@ exports = module.exports = function (logdir) {
   return filterTestCaseByPlatform(list);
 };
 
-exports.profileRule = { diag };
+exports.profileRule = { diag, cpuprofile, heapprofile, gcprofile };
 
 exports.checkProfile = checkProfile;
 

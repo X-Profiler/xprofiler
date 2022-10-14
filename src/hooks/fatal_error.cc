@@ -1,4 +1,5 @@
 #include "commands/coredumper/coredumper.h"
+#include "commands/dump.h"
 #include "commands/report/node_report.h"
 #include "configure-inl.h"
 #include "environment_data.h"
@@ -27,6 +28,11 @@ void DumpBeforeAbort(const char* location, const char* message) {
   Isolate* isolate = TryGetCurrentIsolate();
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   ThreadId thread_id = env_data->thread_id();
+
+#ifndef _WIN32
+  // finish sampling
+  FinishSampling(isolate, "fatal_error");
+#endif
 
   // generate report before abort
   if (GetEnableFatalErrorReport()) {
