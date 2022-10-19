@@ -944,6 +944,14 @@ static int CreateElfCore(void* handle,
                 mappings[i].end_address - mappings[i].start_address;
           }
 
+          /* We could save the first page of ELF to record the BuildId,
+           * let the debugger later find the corresponding binary it used.
+           */
+          if (!dontdump && mappings[i].write_size == 0 && 
+                  (mappings[i].flags & PF_X) != 0) {
+            mappings[i].write_size = pagesize;
+          }
+
           /* Remove mapping, if it was not readable, or completely zero
            * anyway. The former is usually the case of stack guard pages, and
            * the latter occasionally happens for unused memory.
