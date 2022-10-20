@@ -38,7 +38,7 @@ process.send({ type: utils.clientConst.xprofilerDone });
 
 /*eslint no-empty: "off"*/
 const start = Date.now();
-while (Date.now() - start < 8000) {
+while (Date.now() - start < 10000) {
 
 }
 

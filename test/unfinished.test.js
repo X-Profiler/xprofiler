@@ -42,11 +42,12 @@ describe('unfinished sampling before process exit', function () {
         // wait for xprofiler to start
         await new Promise(resolve => p.on('message', msg =>
           msg.type === utils.clientConst.xprofilerDone && resolve()));
-        await utils.sleep(1000);
+        await utils.sleep(500);
 
         // send cmd
         const pid = p.pid;
         resByXctl = await xctl(pid, cse.tid, cse.cmd, cse.options);
+        await utils.sleep(500);
 
         // process exit
         exitInfo = await utils.getChildProcessExitInfo(p);

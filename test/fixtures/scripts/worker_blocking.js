@@ -30,7 +30,7 @@ if (workerThreads.isMainThread) {
   console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking start.');
 
   const start = Date.now();
-  while (Date.now() - start < 8000) { /** ignore */ }
+  while (Date.now() - start < 10000) { /** ignore */ }
 
   console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking done.');
 }

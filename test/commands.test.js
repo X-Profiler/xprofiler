@@ -80,7 +80,7 @@ describe('commands', () => {
           // wait for xprofiler to start
           await new Promise(resolve => p.on('message', msg =>
             msg.type === utils.clientConst.xprofilerDone && resolve()));
-          await utils.sleep(1000);
+          await utils.sleep(500);
 
           // send cmd with xctl (function)
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xctl cmd.');

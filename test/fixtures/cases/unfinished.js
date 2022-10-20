@@ -5,7 +5,7 @@ const path = require('path');
 const { profileRule: { cpuprofile, heapprofile, gcprofile }, checkProfile } = require('./command');
 
 const exitFatalErrorScriptPath = path.join(__dirname, '../scripts/fatal_error.js');
-const exitNormalScriptPath = path.join(__dirname, '../scripts/exit.js')
+const exitNormalScriptPath = path.join(__dirname, '../scripts/exit.js');
 
 exports = module.exports = function () {
   const list = [
