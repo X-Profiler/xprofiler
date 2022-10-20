@@ -6,7 +6,7 @@ const expect = require('expect.js');
 const moment = require('moment');
 const pack = require('../package.json');
 const utils = require('./fixtures/utils');
-const getTestCases = require('./fixtures/logbypass.test');
+const getTestCases = require('./fixtures/cases/logbypass');
 
 const logdirBlocking = utils.createLogDir('log_bypass_blocking');
 const logdirNonBlocking = utils.createLogDir('log_bypass_non_blocking');

@@ -66,6 +66,9 @@ exports.arrayEqual = function (arr1, arr2) {
 
 exports.getChildProcessExitInfo = function (proc) {
   return new Promise(resolve => {
+    if (!proc.connected) {
+      return resolve({ code: proc.exitCode, signal: proc.signalCode });
+    }
     if (proc.exitCode !== null) {
       return resolve({ code: proc.exitCode, signal: proc.signalCode });
     }

@@ -4,8 +4,8 @@ const os = require('os');
 const cp = require('child_process');
 const moment = require('moment');
 const expect = require('expect.js');
-const { filterTestCaseByPlatform } = require('./utils');
-const pkg = require('../../package.json');
+const { filterTestCaseByPlatform } = require('../utils');
+const pkg = require('../../../package.json');
 
 const currentPlatform = os.platform();
 

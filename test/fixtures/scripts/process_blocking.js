@@ -5,10 +5,10 @@ const mm = require('mm');
 const moment = require('moment');
 const { v4: uuid } = require('uuid');
 const traceid = uuid();
-const utils = require('./utils');
+const utils = require('../utils');
 console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking start.');
 
-const xprofiler = require('../../');
+const xprofiler = require('../../../');
 
 if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
   mm(os, 'homedir', () => process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR);

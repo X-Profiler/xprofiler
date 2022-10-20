@@ -3,8 +3,8 @@
 const mm = require('mm');
 const os = require('os');
 const http = require('http');
-const utils = require('./utils');
-const xprofiler = require('../../');
+const utils = require('../utils');
+const xprofiler = require('../../../');
 
 if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
   mm(os, 'homedir', () => process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR);
@@ -35,7 +35,7 @@ server.unref();
 
 function sendRequest(abort) {
   const req = http.request('http://localhost:8445');
-  req.on('error', err => console.error('non-blocking', err.message));
+  req.on('error', err => console.error('normal process', err.message));
   req.end();
 
   if (abort) {

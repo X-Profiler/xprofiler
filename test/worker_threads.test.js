@@ -31,7 +31,7 @@ describe('worker_threads', () => {
 
   describe('load', () => {
     it('should load xprofiler and exit cleanly', async () => {
-      proc = fork(path.join(__dirname, 'fixtures/worker.js'), {
+      proc = fork(path.join(__dirname, 'fixtures/scripts/worker_normal.js'), {
         env: Object.assign({}, process.env, {
           XPROFILER_LOG_DIR: logdir,
           XPROFILER_LOG_LEVEL: 2,
@@ -46,14 +46,14 @@ describe('worker_threads', () => {
 
   describe('xctl', () => {
     it('list_environments', async () => {
-      proc = fork(path.join(__dirname, 'fixtures/worker_indefinite.js'), {
+      proc = fork(path.join(__dirname, 'fixtures/scripts/worker_indefinite.js'), {
         env: Object.assign({}, process.env, {
           XPROFILER_LOG_DIR: logdir,
           XPROFILER_LOG_LEVEL: 2,
           XPROFILER_LOG_TYPE: 1,
         }),
       });
-      await sleep(2000);
+      await sleep(5000);
       console.log('perform list_environments');
       const result = await xctl(proc.pid, 0, 'list_environments', {
         logdir,
@@ -69,7 +69,7 @@ describe('worker_threads', () => {
           includesWorker = true;
         }
         /** uptime(s) */
-        assert(env.uptime < 5);
+        assert(env.uptime < 10);
       }
       assert(includesWorker);
 

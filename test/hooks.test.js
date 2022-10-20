@@ -12,7 +12,7 @@ const exists = promisify(fs.exists);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 const utils = require('./fixtures/utils');
-const cases = require('./fixtures/hooks.test')();
+const cases = require('./fixtures/cases/hooks')();
 
 const currentPlatform = os.platform();
 

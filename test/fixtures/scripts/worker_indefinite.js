@@ -8,7 +8,7 @@ if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
   mm(os, 'homedir', () => process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR);
 }
 
-const xprofiler = require('../../xprofiler');
+const xprofiler = require('../../../');
 xprofiler.start();
 
 if (workerThreads.isMainThread) {
