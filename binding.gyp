@@ -56,7 +56,7 @@
                 ["OS == 'linux'", {
                     "cflags": [
                         "-O3",
-                        "-std=c++14",
+                        "-std=c++17",
                         "-Wno-sign-compare",
                         "-Wno-cast-function-type",
                     ],
@@ -80,7 +80,7 @@
                         "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
                         "GCC_OPTIMIZATION_LEVEL": "3",
                         "OTHER_CFLAGS": [
-                            "-std=c++14",
+                            "-std=c++17",
                             "-Wconversion",
                             "-Wno-sign-conversion",
                         ]
