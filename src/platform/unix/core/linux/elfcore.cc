@@ -947,8 +947,8 @@ static int CreateElfCore(void* handle,
           /* We could save the first page of ELF to record the BuildId,
            * let the debugger later find the corresponding binary it used.
            */
-          if (!dontdump && mappings[i].write_size == 0 && 
-                  (mappings[i].flags & PF_X) != 0) {
+          if (!dontdump && mappings[i].write_size == 0 &&
+              (mappings[i].flags & PF_X) != 0) {
             mappings[i].write_size = pagesize;
           }
 
