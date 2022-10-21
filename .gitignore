@@ -64,6 +64,8 @@ package-lock.json
 
 .vscode
 
+.VSCodeCounter
+
 build
 
 demo.js
