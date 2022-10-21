@@ -4,7 +4,7 @@
 [![Codecov branch](https://img.shields.io/codecov/c/github/X-Profiler/xprofiler/master)](https://codecov.io/gh/X-Profiler/xprofiler/branch/master)
 [![Continuous integration](https://github.com/X-Profiler/xprofiler/actions/workflows/nodejs.yml/badge.svg?branch=master)](https://github.com/X-Profiler/xprofiler/actions/workflows/nodejs.yml?query=branch:master)
 [![Npm](https://img.shields.io/npm/dm/xprofiler)](https://www.npmjs.com/package/xprofiler)
-[![License](https://img.shields.io/github/license/X-Profiler/xprofiler)](LICENSE)
+[![License](https://img.shields.io/badge/license-BSD--2--Clause-green)](LICENSE)
 
 Easy-Monitor v3.0 Node.js Runtime 插件，输出性能日志，并且可以进行实时的运行时状态采样。
 
