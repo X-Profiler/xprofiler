@@ -2,13 +2,17 @@
 
 const os = require('os');
 const fs = require('fs');
+const path = require('path');
 const cp = require('child_process');
 const mm = require('mm');
 const expect = require('expect.js');
 const moment = require('moment');
+const promisify = require('util').promisify;
+const readdir = promisify(fs.readdir);
+const unlink = promisify(fs.unlink);
 const utils = require('./fixtures/utils');
 const xctl = require('../lib/xctl');
-const cases = require('./fixtures/unfinished.test')();
+const cases = require('./fixtures/cases/unfinished')();
 
 const casesLength = cases.length;
 
@@ -25,32 +29,38 @@ describe('unfinished sampling before process exit', function () {
       before(async function () {
         mm(os, 'homedir', () => tmphome);
         const p = cp.fork(cse.jspath, {
-          execArgv: ['--max-old-space-size=128'],
+          execArgv: ['--max-old-space-size=256'],
           env: Object.assign({}, process.env, {
             XPROFILER_LOG_DIR: logdir,
             XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome,
             XPROFILER_LOG_LEVEL: 2,
             XPROFILER_LOG_TYPE: 1,
-            XPROFILER_FATAL_ERROR_INTERVAL: 100,
+            XPROFILER_FATAL_ERROR_INTERVAL: 1000,
           })
         });
 
         // wait for xprofiler to start
         await new Promise(resolve => p.on('message', msg =>
           msg.type === utils.clientConst.xprofilerDone && resolve()));
+        await utils.sleep(500);
 
         // send cmd
         const pid = p.pid;
         resByXctl = await xctl(pid, cse.tid, cse.cmd, cse.options);
+        await utils.sleep(500);
 
         // process exit
         exitInfo = await utils.getChildProcessExitInfo(p);
         await utils.sleep(2000);
       });
 
-      after(function () {
+      after(async function () {
+        mm.restore();
+        const files = await readdir(logdir);
+        for (const file of files) {
+          await unlink(path.join(logdir, file));
+        }
         if (cse === cases[casesLength - 1]) {
-          mm.restore();
           utils.cleanDir(logdir);
           utils.cleanDir(tmphome);
         }

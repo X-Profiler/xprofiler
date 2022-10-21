@@ -4,7 +4,7 @@ const fs = require('fs');
 const mm = require('mm');
 const expect = require('expect.js');
 const xprofiler = require('../xprofiler');
-const testXprofilerConfigKeys = require('./fixtures/config.test');
+const testXprofilerConfigKeys = require('./fixtures/cases/config');
 const utils = require('./fixtures/utils');
 const testKeys = Object.keys(testXprofilerConfigKeys);
 

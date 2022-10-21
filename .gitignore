@@ -70,7 +70,9 @@ demo.js
 
 client.js
 
-logdir
-
 release
+
+logdir*
+
+tmphome*
 

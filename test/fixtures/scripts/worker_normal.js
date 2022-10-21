@@ -1,7 +1,7 @@
 'use strict';
 
 const workerThreads = require('worker_threads');
-require('../../xprofiler');
+require('../../../').start();
 
 if (workerThreads.isMainThread) {
   const w = new workerThreads.Worker(__filename);
@@ -9,5 +9,5 @@ if (workerThreads.isMainThread) {
     console.log('worker exited', code);
   });
 } else {
-  setTimeout(() => {}, 1000);
+  setTimeout(() => { }, 1000);
 }

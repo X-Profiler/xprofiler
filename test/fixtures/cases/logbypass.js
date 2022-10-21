@@ -2,9 +2,9 @@
 
 const path = require('path');
 const moment = require('moment');
-const utils = require('./utils');
-const blocking = path.join(__dirname, 'blocking.js');
-const nonBlocking = path.join(__dirname, 'non-blocking.js');
+const utils = require('../utils');
+const blocking = path.join(__dirname, '../scripts/process_blocking.js');
+const nonBlocking = path.join(__dirname, '../scripts/process_normal.js');
 
 function setRules(list, alinode, { alinodeRule, xprofilerRule }) {
   const rules = {};
@@ -113,7 +113,7 @@ function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, struc
     env: { XPROFILER_LOG_DIR: logdirBlocking }
   };
   const nonBlockingTarget = {
-    title: `${subtitle} non-blocking`,
+    title: `${subtitle} normal`,
     file: nonBlocking,
     env: { XPROFILER_LOG_DIR: logdirNonBlocking }
   };

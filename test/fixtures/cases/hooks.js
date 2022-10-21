@@ -4,15 +4,17 @@ const fs = require('fs');
 
 const path = require('path');
 const expect = require('expect.js');
-const { profileRule: { diag }, checkProfile, checkCoreDump } = require('./command.test');
-const { filterTestCaseByPlatform } = require('./utils');
+const { profileRule: { diag }, checkProfile, checkCoreDump } = require('./command');
+const { filterTestCaseByPlatform } = require('../utils');
+
+const exitFatalErrorScriptPath = path.join(__dirname, '../scripts/fatal_error.js');
 
 exports = module.exports = function () {
   const list = [
     {
       title: 'fatal error hook is valid',
       subTitle: 'x-fatal-error.diag is created when fatal error occured.',
-      jspath: path.join(__dirname, 'fatal-error.js'),
+      jspath: exitFatalErrorScriptPath,
       regexp: /x-fatal-error-(\d+)-(\d+)-(\d+).diag/,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
@@ -24,7 +26,7 @@ exports = module.exports = function () {
       platform: 'linux',
       title: 'fatal error hook is valid',
       subTitle: 'x-fatal-error.core is created when fatal error occured.',
-      jspath: path.join(__dirname, 'fatal-error.js'),
+      jspath: exitFatalErrorScriptPath,
       regexp: /x-fatal-error-(\d+)-(\d+)-(\d+).core/,
       check(file) {
         checkCoreDump(file, 'fatal error core elf information');
@@ -38,7 +40,7 @@ exports = module.exports = function () {
       platform: 'win32',
       title: 'fatal error hook is valid',
       subTitle: 'x-fatal-error.core is created when fatal error occured.',
-      jspath: path.join(__dirname, 'fatal-error.js'),
+      jspath: exitFatalErrorScriptPath,
       regexp: /x-fatal-error-(\d+)-(\d+)-(\d+).core/,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();
@@ -54,7 +56,7 @@ exports = module.exports = function () {
       platform: 'darwin',
       title: 'fatal error hook is valid',
       subTitle: 'x-fatal-error.core is created when fatal error occured.',
-      jspath: path.join(__dirname, 'fatal-error.js'),
+      jspath: exitFatalErrorScriptPath,
       regexp: /x-fatal-error-(\d+)-(\d+)-(\d+).core/,
       check(file) {
         const content = fs.readFileSync(file, 'utf8').trim();

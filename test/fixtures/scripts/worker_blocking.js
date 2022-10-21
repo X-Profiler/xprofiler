@@ -5,7 +5,7 @@ const os = require('os');
 const mm = require('mm');
 const moment = require('moment');
 const { v4: uuid } = require('uuid');
-const utils = require('./utils');
+const utils = require('../utils');
 
 const traceid = uuid();
 
@@ -13,7 +13,7 @@ if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
   mm(os, 'homedir', () => process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR);
 }
 
-const xprofiler = require('../../xprofiler');
+const xprofiler = require('../../../');
 xprofiler.start({ check_throw: false });
 
 if (workerThreads.isMainThread) {
@@ -30,7 +30,7 @@ if (workerThreads.isMainThread) {
   console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking start.');
 
   const start = Date.now();
-  while (Date.now() - start < 8000) { /** ignore */ }
+  while (Date.now() - start < 10000) { /** ignore */ }
 
   console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking done.');
 }

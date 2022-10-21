@@ -2,7 +2,7 @@
 
 const os = require('os');
 const path = require('path');
-const utils = require('./utils');
+const utils = require('../utils');
 
 function getExtra(key, expected, ext) {
   return ext.map(item => {

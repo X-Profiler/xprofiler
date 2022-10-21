@@ -5,6 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 const promisify = require('util').promisify;
+const readdir = promisify(fs.readdir);
+const unlink = promisify(fs.unlink);
 const exec = promisify(cp.exec);
 const mm = require('mm');
 const expect = require('expect.js');
@@ -14,22 +16,22 @@ const xctl = require('../lib/xctl');
 const utils = require('./fixtures/utils');
 
 const currentPlatform = os.platform();
-const commandTestFixture = require('./fixtures/command.test');
+const commandTestFixture = require('./fixtures/cases/command');
 const { checkProfile } = commandTestFixture;
 const logdir = utils.createLogDir('logdir_command');
 const tmphome = utils.createLogDir('tmphome_command');
 const testConfig = commandTestFixture(logdir);
 const testFiles = [
   {
-    jspath: path.join(__dirname, './fixtures/blocking.js'),
+    jspath: path.join(__dirname, './fixtures/scripts/process_normal.js'),
+    desc: 'when js main thread normal execute'
+  },
+  {
+    jspath: path.join(__dirname, './fixtures/scripts/process_blocking.js'),
     desc: 'when js main thread blocking'
   },
   {
-    jspath: path.join(__dirname, './fixtures/non-blocking.js'),
-    desc: 'when js main thread non blocking'
-  },
-  {
-    jspath: path.join(__dirname, './fixtures/worker_blocking.js'),
+    jspath: path.join(__dirname, './fixtures/scripts/worker_blocking.js'),
     desc: 'when js worker thread blocking',
     threadId: 1,
   },
@@ -78,6 +80,7 @@ describe('commands', () => {
           // wait for xprofiler to start
           await new Promise(resolve => p.on('message', msg =>
             msg.type === utils.clientConst.xprofilerDone && resolve()));
+          await utils.sleep(500);
 
           // send cmd with xctl (function)
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'send xctl cmd.');
@@ -102,8 +105,12 @@ describe('commands', () => {
           exitInfo = await utils.getChildProcessExitInfo(p);
         });
 
-        after(function () {
+        after(async function () {
           mm.restore();
+          const files = await readdir(logdir);
+          for (const file of files) {
+            await unlink(path.join(logdir, file));
+          }
           if (i === testConfig.length - 1 && j === testFiles.length - 1) {
             utils.cleanDir(logdir);
             utils.cleanDir(tmphome);
