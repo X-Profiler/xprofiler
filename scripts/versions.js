@@ -5,10 +5,11 @@ exports.os7u = [
   'node-v13.14.0',
   'node-v14.20.1',
   'node-v15.14.0',
-  'node-v16.17.1',
+  'node-v16.18.0',
   'node-v17.9.1',
 ];
 
 exports.os8u = [
-  'node-v18.10.0',
+  'node-v18.11.0',
+  'node-v19.0.0',
 ];
