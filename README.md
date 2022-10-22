@@ -4,13 +4,13 @@
 [![Codecov branch](https://img.shields.io/codecov/c/github/X-Profiler/xprofiler/master)](https://codecov.io/gh/X-Profiler/xprofiler/branch/master)
 [![Continuous integration](https://github.com/X-Profiler/xprofiler/actions/workflows/nodejs.yml/badge.svg?branch=master)](https://github.com/X-Profiler/xprofiler/actions/workflows/nodejs.yml?query=branch:master)
 [![Npm](https://img.shields.io/npm/dm/xprofiler)](https://www.npmjs.com/package/xprofiler)
-[![License](https://img.shields.io/github/license/X-Profiler/xprofiler)](LICENSE)
+[![License](https://img.shields.io/badge/license-BSD--2--Clause-green)](LICENSE)
 
 Easy-Monitor v3.0 Node.js Runtime 插件，输出性能日志，并且可以进行实时的运行时状态采样。
 
 点击访问 [控制台 Demo](http://www.devtoolx.com/easy-monitor) 进行体验，完整的性能监控部署文档：https://www.yuque.com/hyj1991/easy-monitor
 
-## I. 兼容性
+## 兼容性
 
 xprofiler 插件支持三大主流操作系统：
 
@@ -27,14 +27,14 @@ xprofiler 插件支持三大主流操作系统：
 - v16.x
 - v17.x
 - v18.x
-v v19.x
+- v19.x
 
 更低的版本因为在此项目创建时已经不在官方 LTS 计划中，故正常情况下不再支持。
 
 需要在 `node-v12.x` 以下的版本中使用，可以使用 `v1.x-staging` 分支的的最新版本：[1.4.0](https://github.com/X-Profiler/xprofiler/tree/v1.x-staging)
 
 
-## II. 快速开始
+## 快速开始
 
 ### 安装
 
@@ -193,17 +193,17 @@ copyright 2019
 ```
 
 
-## III. 插件架构和实现原理
+## 插件架构和实现原理
 
 参见 [文档 - 整体架构](https://www.yuque.com/hyj1991/easy-monitor/architecture)
 
 
-## IV. 稳定性
+## 稳定性
 
-xprofiler 每个 commit 都会通过 travis-ci/appveyor 进行在 windows/linux/macosX 下的编译以及单元测试，如果您在使用中依旧出现意外的 crash，可以反馈到 [Issue 列表](https://github.com/X-Profiler/xprofiler/issues) 进行跟踪处理。
+xprofiler 每个 commit 都会通过 github actions 进行在 windows/linux/macos 下的编译以及单元测试，如果您在使用中依旧出现意外的 crash，可以反馈到 [Issue 列表](https://github.com/X-Profiler/xprofiler/issues) 进行跟踪处理。
 
 
-## V. 测试与代码覆盖率
+## 测试与代码覆盖率
 
 在项目根目录下执行如下命令即可获取单元测试与代码覆盖率状况：
 
@@ -214,7 +214,7 @@ npm run cov
 master 分支的代码覆盖率情况可以参见 [codecov badge](https://codecov.io/gh/X-Profiler/xprofiler/branch/master)。
 
 
-## VI. 如何参与贡献
+## 如何参与贡献
 
 * fork 本仓库至你自己的 github 仓库列表中
 * clone 你 fork 出来的仓库至本地开发
@@ -225,6 +225,11 @@ master 分支的代码覆盖率情况可以参见 [codecov badge](https://codeco
 
 我们将在 review 后选择合并至本仓库内，贡献者也会加入到本项目的协作者列表中。
 
-## VII. License
+
+## 贡献者
+
+[![contributors](https://contrib.rocks/image?repo=x-profiler/xprofiler&max=240&columns=26)](https://github.com/x-profiler/xprofiler/graphs/contributors)
+
+## License
 
 [BSD-2-Clause](LICENSE)
