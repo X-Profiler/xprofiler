@@ -1,7 +1,7 @@
 #include "commands/listener.h"
-#include "environment_data.h"
 #include "hooks/set_hooks.h"
 #include "jsapi/include/export_configure.h"
+#include "jsapi/include/export_environment.h"
 #include "jsapi/include/export_http.h"
 #include "jsapi/include/export_logger.h"
 #include "library/common.h"
@@ -31,23 +31,17 @@ NAN_MODULE_INIT(Initialize) {
   Isolate* isolate = target->GetIsolate();
   EnvironmentData::Create(isolate);
 
+  // environment
+  CREATE_JS_BINDING(setup, JsSetupEnvironmentData);
+
   // config
   CREATE_JS_BINDING(configure, Configure);
   CREATE_JS_BINDING(getConfig, GetConfig);
 
-  // js logger
+  // logger
   CREATE_JS_BINDING(info, JsInfo);
   CREATE_JS_BINDING(error, JsError);
   CREATE_JS_BINDING(debug, JsDebug);
-
-  CREATE_JS_BINDING(setup, EnvironmentData::JsSetupEnvironmentData);
-
-  // performance log
-  CREATE_JS_BINDING(runLogBypass, RunLogBypass);
-
-  // commands listener
-  CREATE_JS_BINDING(checkSocketPath, CheckSocketPath);
-  CREATE_JS_BINDING(runCommandsListener, RunCommandsListener);
 
   // set hooks
   CREATE_JS_BINDING(setHooks, SetHooks);
@@ -58,6 +52,13 @@ NAN_MODULE_INIT(Initialize) {
   CREATE_JS_BINDING(addSentRequest, AddSentRequest);
   CREATE_JS_BINDING(addRequestTimeout, AddRequestTimeout);
   CREATE_JS_BINDING(addHttpStatusCode, AddHttpStatusCode);
+
+  // performance log
+  CREATE_JS_BINDING(runLogBypass, RunLogBypass);
+
+  // commands listener
+  CREATE_JS_BINDING(checkSocketPath, CheckSocketPath);
+  CREATE_JS_BINDING(runCommandsListener, RunCommandsListener);
 }
 
 NODE_MODULE_CONTEXT_AWARE(xprofiler, Initialize)

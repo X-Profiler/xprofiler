@@ -45,6 +45,7 @@
                 "src/commands/coredumper/coredumper.cc",
                 "src/hooks/set_hooks.cc",
                 "src/hooks/fatal_error.cc",
+                "src/jsapi/export_environment.cc",
                 "src/jsapi/export_configure.cc",
                 "src/jsapi/export_logger.cc",
                 "src/jsapi/export_http.cc",

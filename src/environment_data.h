@@ -34,8 +34,9 @@ class EnvironmentData {
   static EnvironmentData* TryGetCurrent();
   static void Create(v8::Isolate* isolate);
 
-  static void JsSetupEnvironmentData(
-      const Nan::FunctionCallbackInfo<v8::Value>& info);
+  static void JsSetupEnvironmentData(v8::Isolate* isolate, bool is_main_thread,
+                                     ThreadId thread_id,
+                                     std::string node_version);
 
   void SendCollectStatistics();
 
