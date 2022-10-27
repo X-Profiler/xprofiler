@@ -1,14 +1,9 @@
 #ifndef XPROFILER_SRC_COMMANDS_LISTENER_H
 #define XPROFILER_SRC_COMMANDS_LISTENER_H
-
-#include "nan.h"
+#include "environment_data.h"
 
 namespace xprofiler {
-using Nan::FunctionCallbackInfo;
-using v8::Value;
-
-// javascript-accessible
-void RunCommandsListener(const FunctionCallbackInfo<Value>& info);
-}  // namespace xprofiler
+int StartCommandsListener(EnvironmentData* env_data);
+}
 
 #endif /* XPROFILER_SRC_COMMANDS_LISTENER_H */
