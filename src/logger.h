@@ -3,7 +3,6 @@
 
 #include "library/common.h"
 #include "library/printf-inl.h"
-#include "nan.h"
 
 namespace xprofiler {
 // xprofiler logger
@@ -37,11 +36,6 @@ NATIVE_LOGGERS(DEFINE_LOGGER);
   }
 NATIVE_LOGGERS(DEFINE_LOGGER);
 #undef DEFINE_LOGGER
-
-// javascript accessible
-void JsInfo(const Nan::FunctionCallbackInfo<v8::Value>& info);
-void JsError(const Nan::FunctionCallbackInfo<v8::Value>& info);
-void JsDebug(const Nan::FunctionCallbackInfo<v8::Value>& info);
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_LOGGER_H */
