@@ -45,6 +45,7 @@
                 "src/commands/coredumper/coredumper.cc",
                 "src/hooks/set_hooks.cc",
                 "src/hooks/fatal_error.cc",
+                "src/jsapi/http.cc",
                 "src/util.cc",
             ],
             "include_dirs": [
