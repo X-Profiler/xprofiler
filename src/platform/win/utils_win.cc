@@ -1,7 +1,7 @@
 #ifdef _WIN32
 #include <windows.h>
 
-#include "../platform.h"
+#include "platform/platform.h"
 #include "uv.h"
 
 namespace xprofiler {

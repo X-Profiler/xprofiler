@@ -4,7 +4,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "../../logger.h"
+#include "logger.h"
 #include "configure-inl.h"
 
 namespace xprofiler {

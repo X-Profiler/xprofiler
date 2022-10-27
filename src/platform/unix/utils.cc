@@ -2,8 +2,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "../platform.h"
-#include "uv.h"
+#include "platform/platform.h"
 
 namespace xprofiler {
 void SleepCrossPlatform(int seconds) { sleep(seconds); }

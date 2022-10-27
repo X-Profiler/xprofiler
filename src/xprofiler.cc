@@ -5,9 +5,9 @@
 #include "jsapi/include/export_logger.h"
 #include "jsapi/include/export_thread_listener.h"
 #include "jsapi/include/export_thread_logbypass.h"
+#include "jsapi/include/export_utils.h"
 #include "library/common.h"
 #include "nan.h"
-#include "platform/platform.h"
 #include "process_data.h"
 
 namespace xprofiler {
@@ -34,17 +34,24 @@ NAN_MODULE_INIT(Initialize) {
   // environment
   CREATE_JS_BINDING(setup, JsSetupEnvironmentData);
 
+  // set hooks
+  CREATE_JS_BINDING(setHooks, SetHooks);
+
+  // utils
+  CREATE_JS_BINDING(checkSocketPath, CheckSocketPath);
+
   // config
   CREATE_JS_BINDING(configure, Configure);
   CREATE_JS_BINDING(getConfig, GetConfig);
+
+  // uv thread
+  CREATE_JS_BINDING(runLogBypass, RunLogBypass);
+  CREATE_JS_BINDING(runCommandsListener, RunCommandsListener);
 
   // logger
   CREATE_JS_BINDING(info, JsInfo);
   CREATE_JS_BINDING(error, JsError);
   CREATE_JS_BINDING(debug, JsDebug);
-
-  // set hooks
-  CREATE_JS_BINDING(setHooks, SetHooks);
 
   // http status
   CREATE_JS_BINDING(addLiveRequest, AddLiveRequest);
@@ -52,13 +59,6 @@ NAN_MODULE_INIT(Initialize) {
   CREATE_JS_BINDING(addSentRequest, AddSentRequest);
   CREATE_JS_BINDING(addRequestTimeout, AddRequestTimeout);
   CREATE_JS_BINDING(addHttpStatusCode, AddHttpStatusCode);
-
-  // performance log
-  CREATE_JS_BINDING(runLogBypass, RunLogBypass);
-
-  // commands listener
-  CREATE_JS_BINDING(checkSocketPath, CheckSocketPath);
-  CREATE_JS_BINDING(runCommandsListener, RunCommandsListener);
 }
 
 NODE_MODULE_CONTEXT_AWARE(xprofiler, Initialize)

@@ -1,7 +1,7 @@
 #ifdef _WIN32
 #include <windows.h>
 
-#include "../../logger.h"
+#include "logger.h"
 #include "configure-inl.h"
 #include "uv.h"
 

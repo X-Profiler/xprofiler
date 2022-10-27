@@ -1,5 +1,5 @@
-#include "../library/json.hpp"
-#include "../platform/platform.h"
+#include "library/json.hpp"
+#include "platform/platform.h"
 
 namespace xprofiler {
 using nlohmann::json;

@@ -50,6 +50,7 @@
                 "src/jsapi/export_hooks.cc",
                 "src/jsapi/export_http.cc",
                 "src/jsapi/export_thread_logbypass.cc",
+                "src/jsapi/export_thread_listener.cc",
             ],
             "include_dirs": [
                 'src',

@@ -4,7 +4,7 @@
 #include "nan.h"
 
 namespace xprofiler {
-void RunLogBypass(const Nan::FunctionCallbackInfo<v8::Value>& info);
+void CheckSocketPath(const Nan::FunctionCallbackInfo<v8::Value>& info);
 }
 
 #endif /* XPROFILER_SRC_JSAPI_THREAD_LOGBYPASS_H */

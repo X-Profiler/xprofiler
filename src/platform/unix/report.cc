@@ -32,7 +32,7 @@
 #include <mach-o/dyld.h>
 #endif
 
-#include "../../library/writer.h"
+#include "library/writer.h"
 
 extern char** environ;
 
