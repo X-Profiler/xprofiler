@@ -66,12 +66,14 @@ describe('unfinished sampling before process exit', function () {
         }
       });
 
-      (cse.checkExitInfo ? it : it.skip)(`child process should be exited with code 0`, function () {
+      (cse.skip ? it.skip : it)(`child process should be exited with code 0`, function () {
         console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, `exit info: ${JSON.stringify(exitInfo)}`);
-        utils.checkChildProcessExitInfo(expect, exitInfo);
+        if (cse.checkExitInfo) {
+          utils.checkChildProcessExitInfo(expect, exitInfo);
+        }
       });
 
-      (cse.checkExitInfo ? it : it.skip)(`sampling file should be exists when process exit`, function () {
+      (cse.skip ? it.skip : it)(`sampling file should be exists when process exit`, function () {
         console.log('xtcl:', JSON.stringify(resByXctl));
         expect(resByXctl.ok);
         const filepath = resByXctl.data.filepath;
@@ -79,7 +81,7 @@ describe('unfinished sampling before process exit', function () {
         expect(fs.existsSync(filepath));
       });
 
-      (cse.checkExitInfo ? it : it.skip)('value should be ok', async function () {
+      (cse.skip ? it.skip : it)('value should be ok', async function () {
         describe(`it has expected structure`, function () {
           if (typeof cse.check !== 'function') {
             return;

@@ -4,7 +4,6 @@
 #include "nan.h"
 
 namespace xprofiler {
-// javascript accessible
 void Configure(const Nan::FunctionCallbackInfo<v8::Value>& info);
 void GetConfig(const Nan::FunctionCallbackInfo<v8::Value>& info);
 

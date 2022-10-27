@@ -43,11 +43,11 @@
                 "src/commands/report/uv_statistics.cc",
                 "src/commands/report/system_statistics.cc",
                 "src/commands/coredumper/coredumper.cc",
-                "src/hooks/set_hooks.cc",
                 "src/hooks/fatal_error.cc",
                 "src/jsapi/export_environment.cc",
                 "src/jsapi/export_configure.cc",
                 "src/jsapi/export_logger.cc",
+                "src/jsapi/export_hooks.cc",
                 "src/jsapi/export_http.cc",
             ],
             "include_dirs": [
