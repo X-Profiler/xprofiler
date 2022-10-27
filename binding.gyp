@@ -9,8 +9,8 @@
                 "src/process_data.cc",
                 "src/xpf_thread.cc",
                 "src/xprofiler.cc",
-                "src/configure.cc",
                 "src/logger.cc",
+                "src/util.cc",
                 "src/library/json.hpp",
                 "src/library/error.cc",
                 "src/library/common.cc",
@@ -46,7 +46,7 @@
                 "src/hooks/set_hooks.cc",
                 "src/hooks/fatal_error.cc",
                 "src/jsapi/http.cc",
-                "src/util.cc",
+                "src/jsapi/configure.cc",
             ],
             "include_dirs": [
                 'src',

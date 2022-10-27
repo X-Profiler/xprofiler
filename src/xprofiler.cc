@@ -1,8 +1,8 @@
 #include "commands/listener.h"
-#include "configure.h"
 #include "environment_data.h"
 #include "hooks/set_hooks.h"
-#include "jsapi/http.h"
+#include "jsapi/include/configure.h"
+#include "jsapi/include/http.h"
 #include "library/common.h"
 #include "logbypass/log.h"
 #include "logger.h"
@@ -58,8 +58,6 @@ NAN_MODULE_INIT(Initialize) {
   CREATE_JS_BINDING(addSentRequest, AddSentRequest);
   CREATE_JS_BINDING(addRequestTimeout, AddRequestTimeout);
   CREATE_JS_BINDING(addHttpStatusCode, AddHttpStatusCode);
-
-  // js api
 }
 
 NODE_MODULE_CONTEXT_AWARE(xprofiler, Initialize)

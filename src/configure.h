@@ -1,10 +1,7 @@
 #ifndef XPROFILER_SRC_CONFIGURE_H
 #define XPROFILER_SRC_CONFIGURE_H
 
-#include "library/common.h"
-#include "library/error.h"
 #include "logger.h"
-#include "nan.h"
 
 namespace xprofiler {
 
@@ -24,10 +21,6 @@ inline bool GetEnableFatalErrorCoredump();
 inline void SetLogLevel(LOG_LEVEL value);
 inline void SetLogType(LOG_TYPE value);
 inline void SetEnableLogUvHandles(bool value);
-
-// javascript accessible
-void Configure(const Nan::FunctionCallbackInfo<v8::Value>& info);
-void GetConfig(const Nan::FunctionCallbackInfo<v8::Value>& info);
 
 class ConfigStore {
   // TODO(legendecas): accessors.
