@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include "../../library/writer.h"
+#include "library/writer.h"
 
 namespace xprofiler {
 using std::ostringstream;

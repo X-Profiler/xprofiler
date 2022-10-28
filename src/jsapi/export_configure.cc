@@ -1,4 +1,4 @@
-#include "configure.h"
+#include "export_configure.h"
 
 #include "process_data.h"
 #include "util-inl.h"

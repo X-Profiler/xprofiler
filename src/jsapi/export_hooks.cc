@@ -1,7 +1,7 @@
-#include "set_hooks.h"
+#include "export_hooks.h"
 
 #include "configure-inl.h"
-#include "fatal_error.h"
+#include "hooks/fatal_error.h"
 
 namespace xprofiler {
 using Nan::FunctionCallbackInfo;

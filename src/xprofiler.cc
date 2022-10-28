@@ -1,13 +1,13 @@
-#include "commands/listener.h"
-#include "configure.h"
-#include "environment_data.h"
-#include "hooks/set_hooks.h"
+#include "jsapi/export_configure.h"
+#include "jsapi/export_environment.h"
+#include "jsapi/export_hooks.h"
+#include "jsapi/export_http.h"
+#include "jsapi/export_logger.h"
+#include "jsapi/export_thread_listener.h"
+#include "jsapi/export_thread_logbypass.h"
+#include "jsapi/export_utils.h"
 #include "library/common.h"
-#include "logbypass/http.h"
-#include "logbypass/log.h"
-#include "logger.h"
 #include "nan.h"
-#include "platform/platform.h"
 #include "process_data.h"
 
 namespace xprofiler {
@@ -31,26 +31,27 @@ NAN_MODULE_INIT(Initialize) {
   Isolate* isolate = target->GetIsolate();
   EnvironmentData::Create(isolate);
 
+  // environment
+  CREATE_JS_BINDING(setup, JsSetupEnvironmentData);
+
+  // set hooks
+  CREATE_JS_BINDING(setHooks, SetHooks);
+
+  // utils
+  CREATE_JS_BINDING(checkSocketPath, CheckSocketPath);
+
   // config
   CREATE_JS_BINDING(configure, Configure);
   CREATE_JS_BINDING(getConfig, GetConfig);
 
-  // js logger
+  // uv thread
+  CREATE_JS_BINDING(runLogBypass, RunLogBypass);
+  CREATE_JS_BINDING(runCommandsListener, RunCommandsListener);
+
+  // logger
   CREATE_JS_BINDING(info, JsInfo);
   CREATE_JS_BINDING(error, JsError);
   CREATE_JS_BINDING(debug, JsDebug);
-
-  CREATE_JS_BINDING(setup, EnvironmentData::JsSetupEnvironmentData);
-
-  // performance log
-  CREATE_JS_BINDING(runLogBypass, RunLogBypass);
-
-  // commands listener
-  CREATE_JS_BINDING(checkSocketPath, CheckSocketPath);
-  CREATE_JS_BINDING(runCommandsListener, RunCommandsListener);
-
-  // set hooks
-  CREATE_JS_BINDING(setHooks, SetHooks);
 
   // http status
   CREATE_JS_BINDING(addLiveRequest, AddLiveRequest);

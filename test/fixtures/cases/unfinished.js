@@ -15,6 +15,7 @@ exports = module.exports = function () {
       jspath: exitFatalErrorScriptPath,
       tid: 0,
       cmd: 'start_cpu_profiling',
+      skip: true,
       options: { profiling_time: 5 * 60 * 1000 },
       checkExitInfo: false,
       check(file) {
@@ -27,6 +28,7 @@ exports = module.exports = function () {
       jspath: exitFatalErrorScriptPath,
       tid: 0,
       cmd: 'start_heap_profiling',
+      skip: true,
       options: { profiling_time: 5 * 60 * 1000 },
       checkExitInfo: false,
       check(file) {
@@ -39,6 +41,7 @@ exports = module.exports = function () {
       jspath: exitFatalErrorScriptPath,
       tid: 0,
       cmd: 'start_gc_profiling',
+      skip: true,
       options: { profiling_time: 5 * 60 * 1000 },
       checkExitInfo: false,
       check(file) {
@@ -53,6 +56,7 @@ exports = module.exports = function () {
       jspath: exitNormalScriptPath,
       tid: 0,
       cmd: 'start_cpu_profiling',
+      skip: false,
       options: { profiling_time: 5 * 60 * 1000 },
       checkExitInfo: true,
       check(file) {
@@ -65,6 +69,7 @@ exports = module.exports = function () {
       jspath: exitNormalScriptPath,
       tid: 0,
       cmd: 'start_heap_profiling',
+      skip: false,
       options: { profiling_time: 5 * 60 * 1000 },
       checkExitInfo: true,
       check(file) {
@@ -77,6 +82,7 @@ exports = module.exports = function () {
       jspath: exitNormalScriptPath,
       tid: 0,
       cmd: 'start_gc_profiling',
+      skip: false,
       options: { profiling_time: 5 * 60 * 1000 },
       checkExitInfo: true,
       check(file) {
@@ -91,6 +97,7 @@ exports = module.exports = function () {
       jspath: exitNormalScriptPath,
       tid: 0,
       cmd: 'start_cpu_profiling',
+      skip: false,
       options: undefined,
       checkExitInfo: true,
       check(file) {
@@ -103,6 +110,7 @@ exports = module.exports = function () {
       jspath: exitNormalScriptPath,
       tid: 0,
       cmd: 'start_heap_profiling',
+      skip: false,
       options: undefined,
       checkExitInfo: true,
       check(file) {
@@ -115,6 +123,7 @@ exports = module.exports = function () {
       jspath: exitNormalScriptPath,
       tid: 0,
       cmd: 'start_gc_profiling',
+      skip: false,
       options: undefined,
       checkExitInfo: true,
       check(file) {

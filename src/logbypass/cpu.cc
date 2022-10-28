@@ -1,5 +1,5 @@
-#include "../logger.h"
-#include "../platform/platform.h"
+#include "logger.h"
+#include "platform/platform.h"
 
 namespace xprofiler {
 #define EXTRA_SYMBOL

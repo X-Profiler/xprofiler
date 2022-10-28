@@ -2,17 +2,11 @@
 #include "commands/parser.h"
 #include "environment_data.h"
 #include "logger.h"
-#include "nan.h"
 #include "platform/platform.h"
 #include "uv.h"
 #include "xpf_mutex-inl.h"
 
 namespace xprofiler {
-using Nan::False;
-using Nan::FunctionCallbackInfo;
-using Nan::ThrowTypeError;
-using Nan::True;
-using v8::Value;
 
 namespace per_process {
 Mutex command_listener_mutex;
@@ -24,25 +18,20 @@ static void CreateCommandsListenerThread(void* unused) {
   CreateIpcServer(ParseCmd);
 }
 
-void RunCommandsListener(const FunctionCallbackInfo<Value>& info) {
+int StartCommandsListener(EnvironmentData* env_data) {
   Mutex::ScopedLock lock(per_process::command_listener_mutex);
   if (per_process::command_listener_thread_created) {
-    info.GetReturnValue().Set(True());
-    return;
+    return 0;
   }
-  int rc = 0;
-  // init commands listener thread
-  rc = uv_thread_create(&per_process::uv_commands_listener_thread,
-                        CreateCommandsListenerThread, nullptr);
-  if (rc != 0) {
-    ThrowTypeError("xprofiler: create uv commands listener thread failed!");
-    info.GetReturnValue().Set(False());
-    return;
-  }
-  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
-  InfoT("init", env_data->thread_id(),
-        "commands listener: listener thread created.");
 
-  info.GetReturnValue().Set(True());
+  // init commands listener thread
+  int rc = uv_thread_create(&per_process::uv_commands_listener_thread,
+                            CreateCommandsListenerThread, nullptr);
+  if (rc == 0) {
+    InfoT("init", env_data->thread_id(),
+          "commands listener: listener thread created.");
+  }
+
+  return rc;
 }
 }  // namespace xprofiler

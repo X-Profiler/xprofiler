@@ -10,12 +10,7 @@
 #include "xpf_v8.h"
 
 namespace xprofiler {
-using v8::Boolean;
-using v8::Context;
 using v8::Isolate;
-using v8::Local;
-using v8::Number;
-using v8::Object;
 
 namespace per_thread {
 thread_local EnvironmentData* environment_data = nullptr;
@@ -185,34 +180,16 @@ void EnvironmentData::CollectStatistics(uv_async_t* handle) {
   CollectLibuvHandleStatistics(env_data);
 }
 
-// javascript accessible
 // static
-void EnvironmentData::JsSetupEnvironmentData(
-    const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Isolate* isolate = info.GetIsolate();
+void EnvironmentData::JsSetupEnvironmentData(Isolate* isolate,
+                                             bool is_main_thread,
+                                             ThreadId thread_id,
+                                             std::string node_version) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
-  HandleScope scope(isolate);
-  Local<Context> context = isolate->GetCurrentContext();
 
-  Local<Object> data = info[0].As<Object>();
-  Local<Number> thread_id =
-      data->Get(context, OneByteString(isolate, "threadId"))
-          .ToLocalChecked()
-          .As<Number>();
-  Local<Boolean> is_main_thread =
-      data->Get(context, OneByteString(isolate, "isMainThread"))
-          .ToLocalChecked()
-          .As<Boolean>();
-  Local<v8::String> node_version =
-      data->Get(context, OneByteString(isolate, "nodeVersion"))
-          .ToLocalChecked()
-          .As<v8::String>();
-
-  env_data->thread_id_ = thread_id->Value();
-  env_data->is_main_thread_ = is_main_thread->Value();
-
-  Nan::Utf8String node_version_string(node_version);
-  env_data->node_version_ = (*node_version_string);
+  env_data->is_main_thread_ = is_main_thread;
+  env_data->thread_id_ = thread_id;
+  env_data->node_version_ = node_version;
 }
 
 }  // namespace xprofiler

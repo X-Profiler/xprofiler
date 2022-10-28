@@ -9,18 +9,12 @@
 #include "gc.h"
 #include "heap.h"
 #include "http.h"
-#include "library/utils.h"
 #include "libuv.h"
 #include "logger.h"
 #include "process_data.h"
 #include "uv.h"
 
 namespace xprofiler {
-using Nan::False;
-using Nan::FunctionCallbackInfo;
-using Nan::ThrowTypeError;
-using Nan::True;
-using v8::Value;
 
 void LogByPass::ThreadEntry(uv_loop_t* loop) {
   CHECK_EQ(0, uv_timer_init(loop, &cpu_interval_));
@@ -101,8 +95,7 @@ void LogByPass::Write(EnvironmentData* env_data, bool log_format_alinode) {
   WriteHttpStatus(env_data, log_format_alinode, GetPatchHttpTimeout());
 }
 
-void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
-  EnvironmentData* env_data = EnvironmentData::GetCurrent(info);
+void StartLogThread(EnvironmentData* env_data) {
   ThreadId thread_id = env_data->thread_id();
   // init gc hooks
   InitGcStatusHooks(env_data);
@@ -116,8 +109,6 @@ void RunLogBypass(const FunctionCallbackInfo<Value>& info) {
     data->log_by_pass->StartIfNeeded();
     InfoT("init", thread_id, "logbypass: log thread created.");
   }
-
-  info.GetReturnValue().Set(True());
 }
 
 }  // namespace xprofiler

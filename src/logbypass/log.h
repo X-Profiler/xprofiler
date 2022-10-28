@@ -28,8 +28,7 @@ class LogByPass final : public XpfThread {
   bool next_log_ = false;
 };
 
-// javascript-accessible
-void RunLogBypass(const Nan::FunctionCallbackInfo<v8::Value>& info);
+void StartLogThread(EnvironmentData* env_data);
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_LOGBYPASS_LOG_H */
