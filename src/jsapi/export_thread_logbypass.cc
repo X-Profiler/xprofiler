@@ -1,4 +1,4 @@
-#include "include/export_thread_logbypass.h"
+#include "export_thread_logbypass.h"
 
 #include "environment_data.h"
 #include "logbypass/log.h"
