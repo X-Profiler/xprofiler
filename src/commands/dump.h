@@ -25,27 +25,13 @@ using ActionMap = std::unordered_map<DumpAction, bool>;
 using ConflictMap = std::unordered_map<DumpAction, std::vector<DumpAction>>;
 using DependentMap = std::unordered_map<DumpAction, DumpAction>;
 
-struct BaseDumpData {
+struct DumpData {
   std::string traceid;
   DumpAction action;
   ThreadId thread_id;
   int profiling_time;
   bool run_once = true;
 };
-
-struct CpuProfilerDumpData : BaseDumpData {
-  std::string title = "xprofiler";
-};
-
-struct HeapdumpDumpData : BaseDumpData {};
-
-struct SamplingHeapProfilerDumpData : BaseDumpData {};
-
-struct GcProfilerDumpData : BaseDumpData {};
-
-struct NodeReportDumpData : BaseDumpData {};
-
-struct CoreDumpData : BaseDumpData {};
 
 void FinishSampling(v8::Isolate* isolate, const char* reason);
 

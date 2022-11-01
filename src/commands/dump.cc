@@ -1,5 +1,7 @@
 #include "dump.h"
 
+#include <thread>
+
 #include "configure-inl.h"
 #include "coredumper/coredumper.h"
 #include "cpuprofiler/cpu_profiler.h"
@@ -130,27 +132,20 @@ void AfterDumpFile(Isolate* isolate, string& filepath, string notify_type,
   filepath = "";
 }
 
-#define CLEAR_DATA                                                         \
-  DebugT(module_type, env_data->thread_id(), "<%s> %s dump_data cleared.", \
-         notify_type.c_str(), unique_key.c_str());                         \
-  delete dump_data;
-
 #define CHECK_ERR(func)                                                     \
   if (need_check) {                                                         \
     func;                                                                   \
     if (err.Fail()) {                                                       \
       DebugT(module_type, env_data->thread_id(), "<%s> %s error: %s",       \
              notify_type.c_str(), unique_key.c_str(), err.GetErrMessage()); \
-      CLEAR_DATA;                                                           \
       return;                                                               \
     }                                                                       \
   }
 
-void HandleAction(v8::Isolate* isolate, void* data, string notify_type,
-                  bool need_check = true) {
-  BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
-  string traceid = dump_data->traceid;
-  DumpAction action = dump_data->action;
+void HandleAction(v8::Isolate* isolate, std::unique_ptr<DumpData> data,
+                  const string& notify_type, bool need_check = true) {
+  const string& traceid = data->traceid;
+  DumpAction action = data->action;
 
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   if (env_data == nullptr) {
@@ -174,16 +169,11 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type,
   // start run action
   switch (action) {
     case START_CPU_PROFILING: {
-      CpuProfilerDumpData* tmp = GetProfilingData<CpuProfilerDumpData>(
-          isolate, data, notify_type, unique_key);
-      CpuProfiler::StartProfiling(isolate, tmp->title);
-      tmp->action = STOP_CPU_PROFILING;
+      CpuProfiler::StartProfiling(isolate, "xprofiler");
       break;
     }
     case STOP_CPU_PROFILING: {
-      dump_data->run_once = true;
-      CpuProfilerDumpData* tmp = static_cast<CpuProfilerDumpData*>(data);
-      CpuProfiler::StopProfiling(isolate, tmp->title,
+      CpuProfiler::StopProfiling(isolate, "xprofiler",
                                  env_data->cpuprofile_filepath);
       AfterDumpFile(isolate, env_data->cpuprofile_filepath, notify_type,
                     unique_key);
@@ -199,15 +189,10 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type,
       break;
     }
     case START_SAMPLING_HEAP_PROFILING: {
-      SamplingHeapProfilerDumpData* tmp =
-          GetProfilingData<SamplingHeapProfilerDumpData>(
-              isolate, data, notify_type, unique_key);
       SamplingHeapProfiler::StartSamplingHeapProfiling(isolate);
-      tmp->action = STOP_SAMPLING_HEAP_PROFILING;
       break;
     }
     case STOP_SAMPLING_HEAP_PROFILING: {
-      dump_data->run_once = true;
       SamplingHeapProfiler::StopSamplingHeapProfiling(
           isolate, env_data->sampling_heapprofile_filepath);
       AfterDumpFile(isolate, env_data->sampling_heapprofile_filepath,
@@ -217,14 +202,10 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type,
       break;
     }
     case START_GC_PROFILING: {
-      GcProfilerDumpData* tmp = GetProfilingData<GcProfilerDumpData>(
-          isolate, data, notify_type, unique_key);
       GcProfiler::StartGCProfiling(isolate, env_data->gcprofile_filepath);
-      tmp->action = STOP_GC_PROFILING;
       break;
     }
     case STOP_GC_PROFILING: {
-      dump_data->run_once = true;
       GcProfiler::StopGCProfiling(isolate);
       AfterDumpFile(isolate, env_data->gcprofile_filepath, notify_type,
                     unique_key);
@@ -251,19 +232,13 @@ void HandleAction(v8::Isolate* isolate, void* data, string notify_type,
              action);
       break;
   }
-
-  // clear dump_data
-  if (dump_data->run_once) {
-    CLEAR_DATA;
-  }
 }
 
 #undef CHECK_ERR
-#undef CLEAR_DATA
 
-template <DumpAction action, typename T>
-T* CreateFinishDumpData(EnvironmentData* env_data) {
-  T* data = new T;
+template <DumpAction action>
+std::unique_ptr<DumpData> CreateFinishDumpData(EnvironmentData* env_data) {
+  std::unique_ptr<DumpData> data = std::make_unique<DumpData>();
   data->traceid = "finish";
   data->thread_id = env_data->thread_id();
   data->action = action;
@@ -279,24 +254,18 @@ void FinishSampling(Isolate* isolate, const char* reason) {
   ActionMap current;
   current.swap(*env_data->action_map());
 
-  void* data = nullptr;
+  std::unique_ptr<DumpData> data;
 
   for (auto itor : current) {
     switch (itor.first) {
       case START_CPU_PROFILING:
-        data = static_cast<void*>(
-            CreateFinishDumpData<STOP_CPU_PROFILING, CpuProfilerDumpData>(
-                env_data));
+        data = CreateFinishDumpData<STOP_CPU_PROFILING>(env_data);
         break;
       case START_SAMPLING_HEAP_PROFILING:
-        data = static_cast<void*>(
-            CreateFinishDumpData<STOP_SAMPLING_HEAP_PROFILING,
-                                 SamplingHeapProfilerDumpData>(env_data));
+        data = CreateFinishDumpData<STOP_SAMPLING_HEAP_PROFILING>(env_data);
         break;
       case START_GC_PROFILING:
-        data = static_cast<void*>(
-            CreateFinishDumpData<STOP_GC_PROFILING, GcProfilerDumpData>(
-                env_data));
+        data = CreateFinishDumpData<STOP_GC_PROFILING>(env_data);
         break;
       default:
         break;
@@ -306,7 +275,7 @@ void FinishSampling(Isolate* isolate, const char* reason) {
       continue;
     }
 
-    HandleAction(isolate, data, reason, false);
+    HandleAction(isolate, std::move(data), reason, false);
   }
 }
 
@@ -318,32 +287,63 @@ static void WaitForProfile(uint64_t profiling_time) {
   }
 }
 
-static void NotifyJsThread(EnvironmentData* env_data, void* data) {
+constexpr const char* GetNotifyType(InterruptKind kind) {
+  return kind == InterruptKind::kBusy ? "v8_request_interrupt"
+                                      : "uv_async_send";
+}
+
+static void NotifyJsThread(EnvironmentData* env_data,
+                           std::unique_ptr<DumpData> data) {
   env_data->RequestInterrupt(
-      [data](EnvironmentData* env_data, InterruptKind kind) {
-        HandleAction(env_data->isolate(), data,
-                     kind == InterruptKind::kBusy ? "v8_request_interrupt"
-                                                  : "uv_async_send");
+      [data = std::move(data)](EnvironmentData* env_data,
+                               InterruptKind kind) mutable {
+        HandleAction(env_data->isolate(), std::move(data), GetNotifyType(kind));
       });
 }
 
-static void ProfilingWatchDog(void* data) {
-  BaseDumpData* dump_data = static_cast<BaseDumpData*>(data);
-
-  // sleep for profiling time
-  WaitForProfile(dump_data->profiling_time);
-
-  // get environment
-  ThreadId thread_id = dump_data->thread_id;
-  EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
-  EnvironmentRegistry::NoExitScope scope(registry);
-  EnvironmentData* env_data = registry->Get(thread_id);
-  if (env_data == nullptr) {
-    return;
+class ProfilingWatchdog {
+ public:
+  static void Run(std::unique_ptr<DumpData> data) {
+    // self-destructive.
+    new ProfilingWatchdog(std::move(data));
   }
 
-  NotifyJsThread(env_data, dump_data);
-}
+ private:
+  static void ThreadMain(void* data) {
+    ProfilingWatchdog* watchdog = static_cast<ProfilingWatchdog*>(data);
+    watchdog->ThreadEntry();
+  }
+
+  ProfilingWatchdog(std::unique_ptr<DumpData> data)
+      : data_(std::move(data)), thread_(ThreadMain, this) {
+    thread_.detach();
+  }
+
+  void ThreadEntry() {
+    // sleep for profiling time
+    WaitForProfile(data_->profiling_time);
+
+    // get environment
+    ThreadId thread_id = data_->thread_id;
+    EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
+    EnvironmentRegistry::NoExitScope scope(registry);
+    EnvironmentData* env_data = registry->Get(thread_id);
+    if (env_data == nullptr) {
+      delete this;
+      return;
+    }
+
+    env_data->RequestInterrupt([this](EnvironmentData* env_data,
+                                      InterruptKind kind) mutable {
+      HandleAction(env_data->isolate(), std::move(data_), GetNotifyType(kind));
+
+      delete this;
+    });
+  }
+
+  std::unique_ptr<DumpData> data_;
+  std::thread thread_;
+};
 
 static string CreateFilepath(string prefix, string ext) {
   return GetLogDir() + GetSep() + "x-" + prefix + "-" + to_string(GetPid()) +
@@ -355,8 +355,24 @@ static string CreateFilepath(string prefix, string ext) {
   func;                 \
   if (err.Fail()) return result;
 
-template <DumpAction action, bool profiling, typename T>
-static json DoDumpAction(json command, string prefix, string ext, T* data,
+constexpr DumpAction GetStopAction(DumpAction action) {
+  switch (action) {
+    case START_CPU_PROFILING: {
+      return STOP_CPU_PROFILING;
+    }
+    case START_SAMPLING_HEAP_PROFILING: {
+      return STOP_SAMPLING_HEAP_PROFILING;
+    }
+    case START_GC_PROFILING: {
+      return STOP_GC_PROFILING;
+    }
+    default:
+      abort();
+  }
+}
+
+template <DumpAction action, bool profiling>
+static json DoDumpAction(json command, string prefix, string ext,
                          XpfError& err) {
   json result;
 
@@ -433,12 +449,13 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
   if (err.Fail()) return result;
 
   // set action callback data
+  std::unique_ptr<DumpData> data = std::make_unique<DumpData>();
   data->traceid = traceid;
   data->thread_id = thread_id;
   data->action = action;
 
-  // send data
-  NotifyJsThread(env_data, data);
+  // send (copied) data
+  NotifyJsThread(env_data, std::make_unique<DumpData>(*data));
 
   if (!profiling) return result;
 
@@ -446,10 +463,9 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
   json options = command["options"];
   int profiling_time = GetJsonValue<int>(options, "profiling_time", err);
   if (err.Success()) {
-    data->run_once = false;
+    data->action = GetStopAction(action);
     data->profiling_time = profiling_time;
-    uv_thread_create(env_data->uv_profiling_callback_thread(),
-                     ProfilingWatchDog, (void*)data);
+    ProfilingWatchdog::Run(std::move(data));
   } else {
     err = XpfError::Succeed();
   }
@@ -457,46 +473,40 @@ static json DoDumpAction(json command, string prefix, string ext, T* data,
   return result;
 }
 
-#define V(func, data_type, action, profiling, prefix, ext)                     \
-  COMMAND_CALLBACK(func) {                                                     \
-    data_type* data = new data_type;                                           \
-    XpfError err;                                                              \
-    json result = DoDumpAction<action, profiling, data_type>(command, #prefix, \
-                                                             #ext, data, err); \
-    if (err.Fail()) {                                                          \
-      error(format("%s", err.GetErrMessage()));                                \
-      delete data;                                                             \
-      return;                                                                  \
-    }                                                                          \
-    success(result);                                                           \
+#define V(func, action, profiling, prefix, ext)                       \
+  COMMAND_CALLBACK(func) {                                            \
+    XpfError err;                                                     \
+    json result =                                                     \
+        DoDumpAction<action, profiling>(command, #prefix, #ext, err); \
+    if (err.Fail()) {                                                 \
+      error(format("%s", err.GetErrMessage()));                       \
+      return;                                                         \
+    }                                                                 \
+    success(result);                                                  \
   }
 
 // cpu profiling
-V(StartCpuProfiling, CpuProfilerDumpData, START_CPU_PROFILING, true, cpuprofile,
-  cpuprofile)
-V(StopCpuProfiling, CpuProfilerDumpData, STOP_CPU_PROFILING, false, cpuprofile,
-  cpuprofile)
+V(StartCpuProfiling, START_CPU_PROFILING, true, cpuprofile, cpuprofile)
+V(StopCpuProfiling, STOP_CPU_PROFILING, false, cpuprofile, cpuprofile)
 
 // sampling heap profiling
-V(StartSamplingHeapProfiling, SamplingHeapProfilerDumpData,
-  START_SAMPLING_HEAP_PROFILING, true, heapprofile, heapprofile)
-V(StopSamplingHeapProfiling, SamplingHeapProfilerDumpData,
-  STOP_SAMPLING_HEAP_PROFILING, false, heapprofile, heapprofile)
+V(StartSamplingHeapProfiling, START_SAMPLING_HEAP_PROFILING, true, heapprofile,
+  heapprofile)
+V(StopSamplingHeapProfiling, STOP_SAMPLING_HEAP_PROFILING, false, heapprofile,
+  heapprofile)
 
 // gc profiling
-V(StartGcProfiling, GcProfilerDumpData, START_GC_PROFILING, true, gcprofile,
-  gcprofile)
-V(StopGcProfiling, GcProfilerDumpData, STOP_GC_PROFILING, false, gcprofile,
-  gcprofile)
+V(StartGcProfiling, START_GC_PROFILING, true, gcprofile, gcprofile)
+V(StopGcProfiling, STOP_GC_PROFILING, false, gcprofile, gcprofile)
 
 // heapdump
-V(Heapdump, HeapdumpDumpData, HEAPDUMP, false, heapdump, heapsnapshot)
+V(Heapdump, HEAPDUMP, false, heapdump, heapsnapshot)
 
 // dynamic report
-V(GetNodeReport, NodeReportDumpData, NODE_REPORT, false, diagreport, diag)
+V(GetNodeReport, NODE_REPORT, false, diagreport, diag)
 
 // generate coredump
-V(GenerateCoredump, CoreDumpData, COREDUMP, false, coredump, core)
+V(GenerateCoredump, COREDUMP, false, coredump, core)
 
 #undef V
 
