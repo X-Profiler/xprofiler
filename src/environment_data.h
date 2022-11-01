@@ -22,8 +22,6 @@ enum class InterruptKind {
   kIdle,
 };
 
-using InterruptCallback = std::function<void(EnvironmentData*, InterruptKind)>;
-
 class EnvironmentData {
  public:
   static EnvironmentData* GetCurrent(v8::Isolate* isolate);
@@ -40,7 +38,8 @@ class EnvironmentData {
 
   void SendCollectStatistics();
 
-  void RequestInterrupt(InterruptCallback interrupt);
+  template <typename Fn>
+  void RequestInterrupt(Fn&& callback);
   void AddGCEpilogueCallback(Nan::GCEpilogueCallback callback,
                              v8::GCType gc_type_filter = v8::kGCTypeAll);
   void RemoveGCEpilogueCallback(Nan::GCEpilogueCallback callback);
@@ -77,6 +76,29 @@ class EnvironmentData {
   std::string coredump_filepath = "";
 
  private:
+  class InterruptCallback {
+   public:
+    inline InterruptCallback() {}
+
+    virtual ~InterruptCallback() = default;
+    virtual void Call(EnvironmentData* env_data, InterruptKind kind) = 0;
+
+   private:
+    std::unique_ptr<InterruptCallback> next_;
+    friend class EnvironmentData;
+  };
+
+  template <typename Fn>
+  class InterruptCallbackImpl final : public InterruptCallback {
+   public:
+    InterruptCallbackImpl(Fn&& callback);
+    void Call(EnvironmentData* env_data, InterruptKind kind) override;
+
+   private:
+    Fn callback_;
+    friend class EnvironmentData;
+  };
+
   static void AtExit(void* arg);
   template <uv_async_t EnvironmentData::*field>
   static void CloseCallback(uv_handle_t* handle);
@@ -100,7 +122,7 @@ class EnvironmentData {
   std::string node_version_ = "";
 
   Mutex interrupt_mutex_;
-  std::list<InterruptCallback> interrupt_requests_;
+  std::unique_ptr<InterruptCallback> interrupt_requests_;
   uv_async_t interrupt_async_;
   std::list<Nan::GCEpilogueCallback> gc_epilogue_callbacks_;
   std::list<Nan::GCPrologueCallback> gc_prologue_callbacks_;
@@ -117,5 +139,7 @@ class EnvironmentData {
 };
 
 }  // namespace xprofiler
+
+#include "environment_data-inl.h"
 
 #endif /* XPROFILER_SRC_ENVIRONMENT_DATA_H */

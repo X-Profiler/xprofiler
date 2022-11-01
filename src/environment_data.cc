@@ -101,15 +101,6 @@ void EnvironmentData::SendCollectStatistics() {
   uv_async_send(&statistics_async_);
 }
 
-void EnvironmentData::RequestInterrupt(InterruptCallback interrupt) {
-  {
-    Mutex::ScopedLock lock(interrupt_mutex_);
-    interrupt_requests_.push_back(interrupt);
-  }
-  isolate_->RequestInterrupt(InterruptBusyCallback, this);
-  uv_async_send(&interrupt_async_);
-}
-
 void EnvironmentData::AddGCEpilogueCallback(Nan::GCEpilogueCallback callback,
                                             v8::GCType gc_type_filter) {
   gc_epilogue_callbacks_.push_back(callback);
@@ -146,14 +137,15 @@ uint64_t EnvironmentData::GetUptime() const {
 // static
 void EnvironmentData::InterruptBusyCallback(v8::Isolate* isolate, void* data) {
   EnvironmentData* env_data = static_cast<EnvironmentData*>(data);
-  std::list<InterruptCallback> requests;
+  std::unique_ptr<InterruptCallback> requests;
   {
     Mutex::ScopedLock lock(env_data->interrupt_mutex_);
     requests.swap(env_data->interrupt_requests_);
   }
 
-  for (auto it : requests) {
-    it(env_data, InterruptKind::kBusy);
+  while (requests != nullptr) {
+    requests->Call(env_data, InterruptKind::kBusy);
+    requests = std::move(requests->next_);
   }
 }
 
@@ -161,14 +153,15 @@ void EnvironmentData::InterruptBusyCallback(v8::Isolate* isolate, void* data) {
 void EnvironmentData::InterruptIdleCallback(uv_async_t* handle) {
   EnvironmentData* env_data =
       ContainerOf(&EnvironmentData::interrupt_async_, handle);
-  std::list<InterruptCallback> requests;
+  std::unique_ptr<InterruptCallback> requests;
   {
     Mutex::ScopedLock lock(env_data->interrupt_mutex_);
     requests.swap(env_data->interrupt_requests_);
   }
 
-  for (auto it : requests) {
-    it(env_data, InterruptKind::kIdle);
+  while (requests != nullptr) {
+    requests->Call(env_data, InterruptKind::kBusy);
+    requests = std::move(requests->next_);
   }
 }
 

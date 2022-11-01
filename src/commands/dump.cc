@@ -238,11 +238,11 @@ void HandleAction(v8::Isolate* isolate, std::unique_ptr<DumpData> data,
 
 template <DumpAction action>
 std::unique_ptr<DumpData> CreateFinishDumpData(EnvironmentData* env_data) {
-  std::unique_ptr<DumpData> = std::make_unique<DumpData>();
+  std::unique_ptr<DumpData> data = std::make_unique<DumpData>();
   data->traceid = "finish";
   data->thread_id = env_data->thread_id();
   data->action = action;
-  return std::move(data);
+  return data;
 }
 
 void FinishSampling(Isolate* isolate, const char* reason) {
