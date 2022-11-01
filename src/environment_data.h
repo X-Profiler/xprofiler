@@ -68,9 +68,6 @@ class EnvironmentData {
   std::unique_ptr<CpuProfiler> cpu_profiler;
 
   // dump action
-  inline uv_thread_t* uv_profiling_callback_thread() {
-    return &uv_profiling_callback_thread_;
-  };
   inline ActionMap* action_map() { return &action_map_; }
   std::string cpuprofile_filepath = "";
   std::string sampling_heapprofile_filepath = "";
@@ -94,7 +91,6 @@ class EnvironmentData {
   v8::Isolate* isolate_;
   uv_loop_t* loop_;
   uv_async_t statistics_async_;
-  uv_thread_t uv_profiling_callback_thread_;
 
   bool is_main_thread_ = false;
   /* We don't have a native method to get the uint64_t thread id.
