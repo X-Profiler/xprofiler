@@ -19,7 +19,6 @@ enum DumpAction {
   STOP_GC_PROFILING,
   NODE_REPORT,
   COREDUMP,
-  NOOP,
 };
 
 using ActionMap = std::unordered_map<DumpAction, bool>;
