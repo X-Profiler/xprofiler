@@ -169,11 +169,11 @@ void HandleAction(v8::Isolate* isolate, std::unique_ptr<DumpData> data,
   // start run action
   switch (action) {
     case START_CPU_PROFILING: {
-      CpuProfiler::StartProfiling(isolate, data->title);
+      CpuProfiler::StartProfiling(isolate, "xprofiler");
       break;
     }
     case STOP_CPU_PROFILING: {
-      CpuProfiler::StopProfiling(isolate, data->title,
+      CpuProfiler::StopProfiling(isolate, "xprofiler",
                                  env_data->cpuprofile_filepath);
       AfterDumpFile(isolate, env_data->cpuprofile_filepath, notify_type,
                     unique_key);

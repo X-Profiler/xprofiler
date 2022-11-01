@@ -32,8 +32,6 @@ struct DumpData {
   ThreadId thread_id;
   int profiling_time;
   bool run_once = true;
-  // Dump file title. Only used in CpuProfiler.
-  std::string title;
 };
 
 void FinishSampling(v8::Isolate* isolate, const char* reason);
