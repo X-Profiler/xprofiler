@@ -30,7 +30,6 @@ struct DumpData {
   DumpAction action;
   ThreadId thread_id;
   int profiling_time;
-  bool run_once = true;
 };
 
 void FinishSampling(v8::Isolate* isolate, const char* reason);

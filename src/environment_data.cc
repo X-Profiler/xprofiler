@@ -160,7 +160,7 @@ void EnvironmentData::InterruptIdleCallback(uv_async_t* handle) {
   }
 
   while (requests != nullptr) {
-    requests->Call(env_data, InterruptKind::kBusy);
+    requests->Call(env_data, InterruptKind::kIdle);
     requests = std::move(requests->next_);
   }
 }
