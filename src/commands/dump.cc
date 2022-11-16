@@ -42,8 +42,8 @@ const DependentMap dependent_map = {
     {STOP_SAMPLING_HEAP_PROFILING, START_SAMPLING_HEAP_PROFILING},
     {STOP_GC_PROFILING, START_GC_PROFILING}};
 
-string Action2String(DumpAction action) {
-  string name = "";
+constexpr const char* Action2String(DumpAction action) {
+  const char* name = "";
   switch (action) {
     case START_CPU_PROFILING:
       name = "start_cpu_profiling";
@@ -81,7 +81,7 @@ string Action2String(DumpAction action) {
 
 void ActionRunning(ActionMap* action_map, DumpAction action, XpfError& err) {
   if (action_map->find(action) != action_map->end()) {
-    err = XpfError::Failure("%s is running.", Action2String(action).c_str());
+    err = XpfError::Failure("%s is running.", Action2String(action));
   }
 }
 
@@ -93,7 +93,7 @@ void ConflictActionRunning(ActionMap* action_map, DumpAction action,
       if (err.Fail()) {
         err = XpfError::Failure(
             "%s conflict action %s is running, please wait for done.",
-            Action2String(action).c_str(), Action2String(confilct).c_str());
+            Action2String(action), Action2String(confilct));
         break;
       }
     }
@@ -107,8 +107,8 @@ void DependentActionRunning(ActionMap* action_map, DumpAction action,
     ActionRunning(action_map, dependent_action, err);
     if (err.Success())
       err = XpfError::Failure("%s dependent action %s is not running.",
-                              Action2String(action).c_str(),
-                              Action2String(dependent_action).c_str());
+                              Action2String(action),
+                              Action2String(dependent_action));
     else
       err = XpfError::Succeed();
   }
