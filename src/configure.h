@@ -17,10 +17,14 @@ inline bool GetCheckThrow();
 inline bool GetEnableFatalErrorHook();
 inline bool GetEnableFatalErrorReport();
 inline bool GetEnableFatalErrorCoredump();
+inline bool GetEnableHttpProfiling();
 
 inline void SetLogLevel(LOG_LEVEL value);
 inline void SetLogType(LOG_TYPE value);
 inline void SetEnableLogUvHandles(bool value);
+inline void SetEnableFatalErrorReport(bool value);
+inline void SetEnableFatalErrorCoredump(bool value);
+inline void SetEnableHttpProfiling(bool value);
 
 class ConfigStore {
   // TODO(legendecas): accessors.
@@ -37,6 +41,7 @@ class ConfigStore {
   bool enable_fatal_error_hook = true;
   bool enable_fatal_error_report = true;
   bool enable_fatal_error_coredump = false;
+  bool enable_http_profiling = false;
 };
 
 }  // namespace xprofiler

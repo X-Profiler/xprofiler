@@ -95,5 +95,13 @@
       "boolean"
     ],
     "format": "boolean"
+  },
+  {
+    "name": "enable_http_profiling",
+    "env": "XPROFILER_ENABLE_HTTP_PROFILING",
+    "rules": [
+      "boolean"
+    ],
+    "format": "boolean"
   }
 ]

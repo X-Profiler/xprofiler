@@ -130,6 +130,12 @@ const configure = {
     envValue: 'YES',
     userValue: true
   },
+  enable_http_profiling: {
+    defaultValue: false,
+    envKey: 'XPROFILER_ENABLE_HTTP_PROFILING',
+    envValue: 'YES',
+    userValue: true
+  },
 };
 
 module.exports = getTestKeys(configure);

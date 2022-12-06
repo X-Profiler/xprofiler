@@ -73,9 +73,18 @@ require('xprofiler')();
 
 * **log_dir**: 内核输出日志和性能文件的目录，默认为 `os.tmpdir()`
 * **log_interval**: 内核对性能日志采样的时间间隔，默认为 `60s`
-* **enable_log_uv_handles**: 是否要采集 libuv 句柄的详细分类信息，比如 tcp 句柄数量，timers 数量，文件句柄数量等，默认为 `true`
+* **log_level**: 输出日志信息级别，0 info，1 error，2 debug，默认只输出 info 和 error 日志，默认为 `1`
+* **log_type**: 日志输出位置，0 文件，1 控制台，默认为 `0`
 * **log_format_alinode**: 是否以 Node.js 性能平台（原 AliNode）的格式输出性能分析日志，默认为 `false`
-* **log_level**: 输出日志信息级别，0 info，1 error，2 debug，默认为 `1`，即只输出 info 和 error 日志
+* **patch_http**: 是否对原生 http 模块进行 patch，输出 http 请求相关信息，默认 `true`
+* **patch_http_timeout**: 默认 http 请求超时时间，单位秒，作为 http 请求统计，默认 `30`
+* **check_throw**: `xprofiler` 启动时检测错误时是否需要 throw，默认 `true`
+* **enable_log_uv_handles**: 是否要采集 libuv 句柄的详细分类信息，比如 tcp 句柄数量，timers 数量，文件句柄数量等，默认为 `true`
+* **enable_fatal_error_hook**: 是否需要在 V8 出现 FatalError 时配置钩子，默认 `true`
+* **enable_fatal_error_report**: 是否需要在 V8 出现 FataLError 时导出 Report 文件，默认 `true`
+* **enable_fatal_error_coredump**: 是否需要在 V8 出现 FataLError 时 Coredump，默认 `false`
+* **enable_http_profiling**: 是否需要 CPU 采样时进行 HTTP Profiling。默认 `false`
+
 
 您可以通过环境变量或者在 JavaScript 代码中引入插件时传入配置的方式来使用这些配置，具体如下所示：
 
@@ -83,9 +92,18 @@ require('xprofiler')();
 
 * **XPROFILER_LOG_DIR**: 其值为 String，覆盖 `log_dir`
 * **XPROFILER_LOG_INTERVAL**: 其值为 Number，覆盖 `log_interval`
-* **XPROFILER_ENABLE_LOG_UV_HANDLES**: 其值为 YES/NO，覆盖 `enable_log_uv_handles`
-* **XPROFILER_LOG_FORMAT_ALINODE**: 其值为 YES/NO，覆盖 `log_format_alinode`
 * **XPROFILER_LOG_LEVEL**: 其值为 String，覆盖 `log_level`
+* **XPROFILER_LOG_TYPE**: 其值为 String，覆盖 `log_type`
+* **XPROFILER_LOG_FORMAT_ALINODE**: 其值为 YES/NO，覆盖 `log_format_alinode`
+* **XPROFILER_PATCH_HTTP**: 其值为 YES/NO，覆盖 `patch_http`
+* **XPROFILER_PATCH_HTTP_TIMEOUT**: 其值为 String，覆盖 `patch_http_timeout`
+* **XPROFILER_CHECK_THROW**: 其值为 YES/NO `check_throw`
+* **XPROFILER_ENABLE_LOG_UV_HANDLES**: 其值为 YES/NO，覆盖 `enable_log_uv_handles`
+* **XPROFILER_ENABLE_FATAL_ERROR_HOOK**: 其值为 YES/NO，覆盖 `enable_fatal_error_hook`
+* **XPROFILER_ENABLE_FATAL_ERROR_REPORT**: 其值为 YES/NO，覆盖 `enable_fatal_error_report`
+* **XPROFILER_ENABLE_FATAL_ERROR_COREDUMP**: 其值为 YES/NO，覆盖 `enable_fatal_error_coredump`
+* **XPROFILER_ENABLE_HTTP_PROFILING**: 其值为 YES/NO，覆盖 `enable_http_profiling`
+
 
 #### 2. 引入插件时传入配置
 
@@ -97,6 +115,7 @@ xprofiler.start({
   enable_log_uv_handles: false, // 不输出 uv 句柄分类详情
   log_format_alinode: true, // 以 alinode 的格式输出日志
   log_level: 0 // 只输出 info 日志
+  // 其它提供的可选配置
 });
 ```
 
@@ -108,9 +127,17 @@ xprofiler.start({
 const defaultConfig = {
   log_dir: os.tmpdir(),
   log_interval: 60, // seconds
-  enable_log_uv_handles: true,
+  log_level: 1,
+  log_type: 0,
   log_format_alinode: false,
-  log_level: 1
+  patch_http: true,
+  patch_http_timeout: 30, // seconds，
+  check_throw: true,
+  enable_log_uv_handles: true,
+  enable_fatal_error_hook: true,
+  enable_fatal_error_report: true,
+  enable_fatal_error_coredump: false,
+  enable_http_profiling: false,
 };
 
 const xprofilerConfig = Object.assign({}, defaultConfig, envConfig, userConfig);

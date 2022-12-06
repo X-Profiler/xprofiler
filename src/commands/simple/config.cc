@@ -36,6 +36,7 @@ COMMAND_CALLBACK(GetXprofilerConfig) {
   data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
   data["enable_fatal_error_report"] = GetEnableFatalErrorReport();
   data["enable_fatal_error_coredump"] = GetEnableFatalErrorCoredump();
+  data["enable_http_profiling"] = GetEnableHttpProfiling();
   success(data);
 }
 
@@ -47,6 +48,10 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
   HANDLE_CONFIG_SETTING(LOG_LEVEL, log_level, LogLevel)
   HANDLE_CONFIG_SETTING(LOG_TYPE, log_type, LogType)
   HANDLE_CONFIG_SETTING(bool, enable_log_uv_handles, EnableLogUvHandles)
+  HANDLE_CONFIG_SETTING(bool, enable_fatal_error_report, EnableFatalErrorReport)
+  HANDLE_CONFIG_SETTING(bool, enable_fatal_error_coredump,
+                        EnableFatalErrorCoredump)
+  HANDLE_CONFIG_SETTING(bool, enable_http_profiling, EnableHttpProfiling)
 
   if (!setted)
     error(format("not support setting config %s", options.dump().c_str()));

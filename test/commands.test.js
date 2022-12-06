@@ -41,7 +41,7 @@ function convertOptions(options) {
   let extra = '';
   for (const [key, value] of Object.entries(options)) {
     if (key.startsWith('enable_')) {
-      extra += ` --${key.replace('enable_', 'disable_')}`;
+      extra += value ? ` --${key}` : ` --${key.replace('enable_', 'disable_')}`;
     } else {
       extra += ` --${key} ${value}`;
     }

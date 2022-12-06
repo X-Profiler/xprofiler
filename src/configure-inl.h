@@ -37,6 +37,10 @@ bool GetEnableFatalErrorCoredump() {
   return ProcessData::Get()->config_store()->enable_fatal_error_coredump;
 }
 
+bool GetEnableHttpProfiling() {
+  return ProcessData::Get()->config_store()->enable_http_profiling;
+}
+
 bool GetPatchHttp() { return ProcessData::Get()->config_store()->patch_http; }
 
 uint32_t GetPatchHttpTimeout() {
@@ -57,6 +61,17 @@ void SetEnableLogUvHandles(bool value) {
   ProcessData::Get()->config_store()->enable_log_uv_handles = value;
 }
 
+void SetEnableFatalErrorReport(bool value) {
+  ProcessData::Get()->config_store()->enable_fatal_error_report = value;
+}
+
+void SetEnableFatalErrorCoredump(bool value) {
+  ProcessData::Get()->config_store()->enable_fatal_error_coredump = value;
+}
+
+void SetEnableHttpProfiling(bool value) {
+  ProcessData::Get()->config_store()->enable_http_profiling = value;
+}
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_CONFIGURE_INL_H */

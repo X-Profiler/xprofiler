@@ -57,7 +57,7 @@ using v8::Value;
   Set(config, OneByteString(isolate, #key), \
       New<type>(ProcessData::Get()->config_store()->key).ToLocalChecked());
 
-#define CONFIG_NATIVE_NUMBER(key, type)     \
+#define CONFIG_NATIVE_VALUE(key, type)      \
   Set(config, OneByteString(isolate, #key), \
       New<type>(ProcessData::Get()->config_store()->key));
 
@@ -81,6 +81,7 @@ void Configure(const FunctionCallbackInfo<Value>& info) {
   CONVERT_BOOL(enable_fatal_error_hook)
   CONVERT_BOOL(enable_fatal_error_report)
   CONVERT_BOOL(enable_fatal_error_coredump)
+  CONVERT_BOOL(enable_http_profiling)
 
   info.GetReturnValue().Set(New<Boolean>(true));
 }
@@ -90,17 +91,18 @@ void GetConfig(const FunctionCallbackInfo<Value>& info) {
   Local<Object> config = New<Object>();
 
   CONFIG_LOCAL_STRING(log_dir, String)
-  CONFIG_NATIVE_NUMBER(log_interval, Number)
-  CONFIG_NATIVE_NUMBER(log_level, Number)
-  CONFIG_NATIVE_NUMBER(log_type, Number)
-  CONFIG_NATIVE_NUMBER(enable_log_uv_handles, Boolean)
-  CONFIG_NATIVE_NUMBER(log_format_alinode, Boolean)
-  CONFIG_NATIVE_NUMBER(patch_http, Boolean)
-  CONFIG_NATIVE_NUMBER(patch_http_timeout, Number)
-  CONFIG_NATIVE_NUMBER(check_throw, Boolean)
-  CONFIG_NATIVE_NUMBER(enable_fatal_error_hook, Boolean)
-  CONFIG_NATIVE_NUMBER(enable_fatal_error_report, Boolean)
-  CONFIG_NATIVE_NUMBER(enable_fatal_error_coredump, Boolean)
+  CONFIG_NATIVE_VALUE(log_interval, Number)
+  CONFIG_NATIVE_VALUE(log_level, Number)
+  CONFIG_NATIVE_VALUE(log_type, Number)
+  CONFIG_NATIVE_VALUE(enable_log_uv_handles, Boolean)
+  CONFIG_NATIVE_VALUE(log_format_alinode, Boolean)
+  CONFIG_NATIVE_VALUE(patch_http, Boolean)
+  CONFIG_NATIVE_VALUE(patch_http_timeout, Number)
+  CONFIG_NATIVE_VALUE(check_throw, Boolean)
+  CONFIG_NATIVE_VALUE(enable_fatal_error_hook, Boolean)
+  CONFIG_NATIVE_VALUE(enable_fatal_error_report, Boolean)
+  CONFIG_NATIVE_VALUE(enable_fatal_error_coredump, Boolean)
+  CONFIG_NATIVE_VALUE(enable_http_profiling, Boolean)
 
   info.GetReturnValue().Set(config);
 }
