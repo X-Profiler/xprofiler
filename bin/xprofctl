@@ -3,9 +3,9 @@
 'use strict';
 
 const yargs = require('yargs');
-const xctljosn = require('./xprofctl.json');
 const xctl = require('../lib/xctl');
 const utils = require('../lib/utils');
+const configuration = require('../configuration')();
 
 const profilingYargs = yargs => yargs
   .group(['t'], '采样配置:')
@@ -36,37 +36,41 @@ const args = yargs
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
   .command('set_config', '设置 xprofiler 配置',
-    yargs => yargs
-      .group([
-        'log_type', 'log_level',
-        'enable_log_uv_handles', 'disable_log_uv_handles',
-        'enable_fatal_error_report', 'disable_fatal_error_report',
-        'enable_fatal_error_coredump', 'disable_fatal_error_coredump',
-        'enable_http_profiling', 'disable_http_profiling'
-      ],
-        '配置项:')
-      .choices('log_type', [0, 1])
-      .choices('log_level', [0, 1, 2])
-      .describe('log_type', '日志输出未知: 文件, 控制台')
-      .describe('log_level', '日志级别: info, error, debug')
-      .describe('enable_log_uv_handles', '开启 libuv 句柄详情采集')
-      .describe('disable_log_uv_handles', '关闭 libuv 句柄详情采集')
-      .describe('enable_fatal_error_report', '开启 FatalError 时自动 Report')
-      .describe('disable_fatal_error_report', '关闭 FatalError 时自动 Report')
-      .describe('enable_fatal_error_coredump', '开启 FatalError 时自动 Coredump')
-      .describe('disable_fatal_error_coredump', '关闭 FatalError 时自动 Coredump')
-      .describe('enable_http_profiling', '在 CPU 采样期间开启 HTTP Profiling')
-      .describe('disable_http_profiling', '在 CPU 采样期间关闭 HTTP Profiling')
-      .boolean('enable_log_uv_handles')
-      .boolean('disable_log_uv_handles')
-      .boolean('enable_fatal_error_report')
-      .boolean('disable_fatal_error_report')
-      .boolean('enable_fatal_error_coredump')
-      .boolean('disable_fatal_error_coredump')
-      .boolean('enable_http_profiling')
-      .boolean('disable_http_profiling')
-      .hide('v')
-      .hide('h'))
+    yargs => {
+      const child = yargs
+        .group(
+          configuration
+            .reduce(
+              (group, next) =>
+                next.configurable
+                  ? group.concat(
+                    utils.pair(next.name, next.format).is
+                      ? utils.pair(next.name, next.format).pair
+                      : next.name)
+                  : group
+              , []),
+          '配置项:')
+        .hide('v')
+        .hide('h');
+
+      // add configurable options
+      for (const config of configuration) {
+        if (config.choices) {
+          child.choices(config.name, config.choices);
+        }
+        if (config.describe) {
+          const { is, pair } = utils.pair(config.name, config.format);
+          if (is) {
+            child.describe(pair[0], config.describe(is));
+            child.describe(pair[1], config.describe(!is))
+          } else {
+            child.describe(config.name, config.describe);
+          }
+        }
+      }
+
+      return child;
+    })
   // pid
   .describe('p', '进程 pid')
   .alias('p', 'pid')
@@ -89,15 +93,12 @@ const args = yargs
 const action = args['_'][0];
 const pid = args['pid'];
 const thread_id = args['worker_thread_id'] || 0;
+utils.cleanArgs(args);
 
 // send message
-const options = utils.getXctOptions(action, args, xctljosn);
-if (!options.ok) {
-  console.error(options.message);
-  return;
-}
+utils.formatArgs(args);
 
-xctl(pid, thread_id, action, options.data)
+xctl(pid, thread_id, action, args)
   .then(data => {
     if (data.ok) {
       data = data.data;
@@ -118,7 +119,7 @@ xctl(pid, thread_id, action, options.data)
           console.log(`X-Profiler 配置(pid ${pid})成功:\n${utils.printConfig(data)}`);
           break;
         case 'start_cpu_profiling': {
-          const profiling_time = options.data.profiling_time;
+          const profiling_time = args.profiling_time;
           if (profiling_time) {
             console.log(`CPU profiling 文件路径: ${data.filepath}`);
             console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 cpu profiling 结果.`);
@@ -135,7 +136,7 @@ xctl(pid, thread_id, action, options.data)
           console.log(`生成 heapsnapshot 视堆序列化耗费需要数秒至数分钟.`);
           break;
         case 'start_heap_profiling': {
-          const profiling_time = options.data.profiling_time;
+          const profiling_time = args.profiling_time;
           if (profiling_time) {
             console.log(`Heap profiling 文件路径: ${data.filepath}`);
             console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 heap profiling 结果.`);
@@ -148,7 +149,7 @@ xctl(pid, thread_id, action, options.data)
           console.log(`Heap profiling 文件路径: ${data.filepath}`);
           break;
         case 'start_gc_profiling': {
-          const profiling_time = options.data.profiling_time;
+          const profiling_time = args.profiling_time;
           if (profiling_time) {
             console.log(`GC profiling 文件路径: ${data.filepath}`);
             console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 gc profiling 结果.`);

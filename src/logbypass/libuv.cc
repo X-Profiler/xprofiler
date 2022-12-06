@@ -65,8 +65,7 @@ void CollectLibuvHandleStatistics(EnvironmentData* env_data) {
   uv_loop_t* loop = node::GetCurrentEventLoop(env_data->isolate());
   UvHandleStatistics* uv_handle_statistics = env_data->uv_handle_statistics();
 
-  bool enable_log_uv_handles = GetEnableLogUvHandles();
-  if (enable_log_uv_handles) {
+  if (GetEnableLogUvHandles()) {
     uv_handle_statistics->reset();
     uv_walk(loop, LibuvWalkHandle, uv_handle_statistics);
   }
@@ -75,14 +74,13 @@ void CollectLibuvHandleStatistics(EnvironmentData* env_data) {
 
 void WriteLibuvHandleInfoToLog(EnvironmentData* env_data,
                                bool log_format_alinode) {
-  bool enable_log_uv_handles = GetEnableLogUvHandles();
   UvHandleStatistics* uv_handle_statistics = env_data->uv_handle_statistics();
 
   if (log_format_alinode) {
     Info("timer", "total_timer: %d, active_handles: %d",
          uv_handle_statistics->active_timer_handles,
          uv_handle_statistics->active_handles);
-  } else if (enable_log_uv_handles) {
+  } else if (GetEnableLogUvHandles()) {
     InfoT("uv", env_data->thread_id(),
           "active_handles: %ld, "
           "active_file_handles: %d, "

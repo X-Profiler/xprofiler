@@ -283,14 +283,6 @@ exports = module.exports = function (logdir) {
     },
     {
       cmd: 'set_config',
-      errored: true,
-      xctlRules: [],
-      xprofctlRules() {
-        return [/^set_config 缺少必须参数，执行 xprofctl set_config 查看正确用法$/];
-      }
-    },
-    {
-      cmd: 'set_config',
       options: { enable_log_uv_handles: 1 },
       errored: true,
       xctlRules: [{ key: 'message', rule: /^<enable_log_uv_handles> type error: \[json.exception.type_error.302\] type must be boolean, but is number$/ }], // eslint-disable-line

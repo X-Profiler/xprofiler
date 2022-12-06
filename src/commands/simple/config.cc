@@ -8,31 +8,31 @@ namespace xprofiler {
 using nlohmann::json;
 using std::exception;
 
-#define HANDLE_CONFIG_SETTING(ret, key, func)      \
-  if (options.find(#key) != options.end()) {       \
-    ret value;                                     \
-    XpfError err;                                  \
-    value = GetJsonValue<ret>(options, #key, err); \
-    if (err.Fail()) {                              \
-      error(format("%s", err.GetErrMessage()));    \
-      return;                                      \
-    }                                              \
-    Set##func(value);                              \
-    setted = true;                                 \
-    data[#key] = Get##func();                      \
+#define HANDLE_CONFIG_SETTING(type, key)                                    \
+  if (options.find(#key) != options.end()) {                                \
+    type value;                                                             \
+    XpfError err;                                                           \
+    value = GetJsonValue<type>(options, #key, err);                         \
+    if (err.Fail()) {                                                       \
+      error(format("%s", err.GetErrMessage()));                             \
+      return;                                                               \
+    }                                                                       \
+    ProcessData::Get()->config_store()->SetConfig<type>(#key, value);       \
+    setted = true;                                                          \
+    data[#key] = ProcessData::Get()->config_store()->GetConfig<type>(#key); \
   }
 
 COMMAND_CALLBACK(GetXprofilerConfig) {
   json data;
   data["log_dir"] = GetLogDir();
   data["log_interval"] = GetLogInterval();
-  data["enable_log_uv_handles"] = GetEnableLogUvHandles();
-  data["log_format_alinode"] = GetFormatAsAlinode();
   data["log_level"] = GetLogLevel();
   data["log_type"] = GetLogType();
+  data["log_format_alinode"] = GetFormatAsAlinode();
   data["patch_http"] = GetPatchHttp();
   data["patch_http_timeout"] = GetPatchHttpTimeout();
   data["check_throw"] = GetCheckThrow();
+  data["enable_log_uv_handles"] = GetEnableLogUvHandles();
   data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
   data["enable_fatal_error_report"] = GetEnableFatalErrorReport();
   data["enable_fatal_error_coredump"] = GetEnableFatalErrorCoredump();
@@ -45,13 +45,12 @@ COMMAND_CALLBACK(SetXprofilerConfig) {
   bool setted = false;
   json data;
 
-  HANDLE_CONFIG_SETTING(LOG_LEVEL, log_level, LogLevel)
-  HANDLE_CONFIG_SETTING(LOG_TYPE, log_type, LogType)
-  HANDLE_CONFIG_SETTING(bool, enable_log_uv_handles, EnableLogUvHandles)
-  HANDLE_CONFIG_SETTING(bool, enable_fatal_error_report, EnableFatalErrorReport)
-  HANDLE_CONFIG_SETTING(bool, enable_fatal_error_coredump,
-                        EnableFatalErrorCoredump)
-  HANDLE_CONFIG_SETTING(bool, enable_http_profiling, EnableHttpProfiling)
+  HANDLE_CONFIG_SETTING(LOG_LEVEL, log_level)
+  HANDLE_CONFIG_SETTING(LOG_TYPE, log_type)
+  HANDLE_CONFIG_SETTING(bool, enable_log_uv_handles)
+  HANDLE_CONFIG_SETTING(bool, enable_fatal_error_report)
+  HANDLE_CONFIG_SETTING(bool, enable_fatal_error_coredump)
+  HANDLE_CONFIG_SETTING(bool, enable_http_profiling)
 
   if (!setted)
     error(format("not support setting config %s", options.dump().c_str()));
