@@ -1,42 +1,55 @@
 #ifndef XPROFILER_SRC_CONFIGURE_H
 #define XPROFILER_SRC_CONFIGURE_H
 
+#include <unordered_map>
+
+#include "library/json.hpp"
 #include "logger.h"
 
 namespace xprofiler {
 
-inline std::string GetLogDir();
-inline uint32_t GetLogInterval();
-inline LOG_LEVEL GetLogLevel();
-inline LOG_TYPE GetLogType();
-inline bool GetFormatAsAlinode();
-inline bool GetEnableLogUvHandles();
-inline bool GetPatchHttp();
-inline uint32_t GetPatchHttpTimeout();
-inline bool GetCheckThrow();
-inline bool GetEnableFatalErrorHook();
-inline bool GetEnableFatalErrorReport();
-inline bool GetEnableFatalErrorCoredump();
+struct Description {
+  std::string type;
+  bool configurable;
+};
 
-inline void SetLogLevel(LOG_LEVEL value);
-inline void SetLogType(LOG_TYPE value);
-inline void SetEnableLogUvHandles(bool value);
+using ConfigDescription = std::unordered_map<std::string, Description*>;
+
+template <typename T>
+T GetConfig(std::string key);
 
 class ConfigStore {
   // TODO(legendecas): accessors.
  public:
-  std::string log_dir = "/tmp";
-  uint32_t log_interval = 60;
-  LOG_LEVEL log_level = LOG_ERROR;
-  LOG_TYPE log_type = LOG_TO_FILE;
-  bool enable_log_uv_handles = true;
-  bool log_format_alinode = false;
-  bool patch_http = true;
-  uint32_t patch_http_timeout = 30;
-  bool check_throw = true;
-  bool enable_fatal_error_hook = true;
-  bool enable_fatal_error_report = true;
-  bool enable_fatal_error_coredump = false;
+  template <typename T>
+  T GetConfig(std::string key) {
+    return static_cast<T>(config_[key]);
+  }
+
+  template <typename T>
+  void SetConfig(std::string key, T value) {
+    config_[key] = value;
+  }
+
+  void DescribeConfig(std::string key, std::string type, bool configurable) {
+    Description* desc = new Description;
+    desc->type = type;
+    desc->configurable = configurable;
+    desc_.insert(std::make_pair(key, desc));
+  }
+
+  void TraverseConfig(
+      std::function<void(std::string&, std::string&, bool)> callback) {
+    for (auto it = desc_.begin(); it != desc_.end(); ++it) {
+      std::string key = it->first;
+      Description* desc = it->second;
+      callback(key, desc->type, desc->configurable);
+    }
+  }
+
+ private:
+  nlohmann::json config_;
+  ConfigDescription desc_;
 };
 
 }  // namespace xprofiler

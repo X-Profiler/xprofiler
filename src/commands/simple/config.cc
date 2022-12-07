@@ -8,47 +8,50 @@ namespace xprofiler {
 using nlohmann::json;
 using std::exception;
 
-#define HANDLE_CONFIG_SETTING(ret, key, func)      \
-  if (options.find(#key) != options.end()) {       \
-    ret value;                                     \
-    XpfError err;                                  \
-    value = GetJsonValue<ret>(options, #key, err); \
-    if (err.Fail()) {                              \
-      error(format("%s", err.GetErrMessage()));    \
-      return;                                      \
-    }                                              \
-    Set##func(value);                              \
-    setted = true;                                 \
-    data[#key] = Get##func();                      \
+#define HANDLE_CONFIG_SETTING(key, type)                                  \
+  if (options.find(key) != options.end()) {                               \
+    type value;                                                           \
+    XpfError err;                                                         \
+    value = GetJsonValue<type>(options, key, err);                        \
+    if (err.Fail()) {                                                     \
+      error_message = format("%s", err.GetErrMessage());                  \
+      return;                                                             \
+    }                                                                     \
+    ProcessData::Get()->config_store()->SetConfig<type>(key, value);      \
+    setted = true;                                                        \
+    data[key] = ProcessData::Get()->config_store()->GetConfig<type>(key); \
   }
 
 COMMAND_CALLBACK(GetXprofilerConfig) {
   json data;
-  data["log_dir"] = GetLogDir();
-  data["log_interval"] = GetLogInterval();
-  data["enable_log_uv_handles"] = GetEnableLogUvHandles();
-  data["log_format_alinode"] = GetFormatAsAlinode();
-  data["log_level"] = GetLogLevel();
-  data["log_type"] = GetLogType();
-  data["patch_http"] = GetPatchHttp();
-  data["patch_http_timeout"] = GetPatchHttpTimeout();
-  data["check_throw"] = GetCheckThrow();
-  data["enable_fatal_error_hook"] = GetEnableFatalErrorHook();
-  data["enable_fatal_error_report"] = GetEnableFatalErrorReport();
-  data["enable_fatal_error_coredump"] = GetEnableFatalErrorCoredump();
+
+  ProcessData::Get()->config_store()->TraverseConfig(
+      [&data](std::string key, std::string type, bool configurable) {
+        if (type == "string") data[key] = GetConfig<std::string>(key);
+        if (type == "number") data[key] = GetConfig<uint32_t>(key);
+        if (type == "boolean") data[key] = GetConfig<bool>(key);
+      });
+
   success(data);
 }
 
 COMMAND_CALLBACK(SetXprofilerConfig) {
   json options = command["options"];
-  bool setted = false;
   json data;
+  std::string error_message = "";
+  bool setted = false;
 
-  HANDLE_CONFIG_SETTING(LOG_LEVEL, log_level, LogLevel)
-  HANDLE_CONFIG_SETTING(LOG_TYPE, log_type, LogType)
-  HANDLE_CONFIG_SETTING(bool, enable_log_uv_handles, EnableLogUvHandles)
+  ProcessData::Get()->config_store()->TraverseConfig(
+      [&](std::string key, std::string type, bool configurable) {
+        if (!configurable) return;
+        if (type == "string") HANDLE_CONFIG_SETTING(key, std::string)
+        if (type == "number") HANDLE_CONFIG_SETTING(key, uint32_t)
+        if (type == "boolean") HANDLE_CONFIG_SETTING(key, bool)
+      });
 
-  if (!setted)
+  if (error_message != "")
+    error(error_message);
+  else if (!setted)
     error(format("not support setting config %s", options.dump().c_str()));
   else
     success(data);

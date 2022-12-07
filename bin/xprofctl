@@ -3,9 +3,9 @@
 'use strict';
 
 const yargs = require('yargs');
-const xctljosn = require('./xprofctl.json');
 const xctl = require('../lib/xctl');
 const utils = require('../lib/utils');
+const configuration = require('../configuration')();
 
 const profilingYargs = yargs => yargs
   .group(['t'], '采样配置:')
@@ -36,23 +36,41 @@ const args = yargs
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
   .command('set_config', '设置 xprofiler 配置',
-    yargs => yargs
-      .group(['enable_log_uv_handles', 'disable_log_uv_handles', 'log_level',
-        'log_type', 'enable_fatal_error_report', 'enable_fatal_error_coredump'], '配置项:')
-      .describe('enable_log_uv_handles', '开启 libuv 句柄详情采集')
-      .describe('disable_log_uv_handles', '关闭 libuv 句柄详情采集')
-      .describe('log_level', '日志级别: info, error, debug')
-      .describe('log_type', '日志输出未知: 文件, 控制台')
-      .describe('enable_fatal_error_report', 'Fatal Error 发生时自动生成 Report 报告')
-      .describe('enable_fatal_error_coredump', 'Fatal Error 发生时自动生成 Coredump 文件')
-      .boolean('enable_log_uv_handles')
-      .boolean('disable_log_uv_handles')
-      .boolean('enable_fatal_error_report')
-      .boolean('enable_fatal_error_coredump')
-      .choices('log_level', [0, 1, 2])
-      .choices('log_type', [0, 1])
-      .hide('v')
-      .hide('h'))
+    yargs => {
+      const child = yargs
+        .group(
+          configuration
+            .reduce(
+              (group, next) =>
+                next.configurable
+                  ? group.concat(
+                    utils.pair(next.name, next.format).is
+                      ? utils.pair(next.name, next.format).pair
+                      : next.name)
+                  : group
+              , []),
+          '配置项:')
+        .hide('v')
+        .hide('h');
+
+      // add configurable options
+      for (const config of configuration) {
+        if (config.choices) {
+          child.choices(config.name, config.choices);
+        }
+        if (config.describe) {
+          const { is, pair } = utils.pair(config.name, config.format);
+          if (is) {
+            child.describe(pair[0], config.describe(is));
+            child.describe(pair[1], config.describe(!is));
+          } else {
+            child.describe(config.name, config.describe);
+          }
+        }
+      }
+
+      return child;
+    })
   // pid
   .describe('p', '进程 pid')
   .alias('p', 'pid')
@@ -75,87 +93,84 @@ const args = yargs
 const action = args['_'][0];
 const pid = args['pid'];
 const thread_id = args['worker_thread_id'] || 0;
+utils.cleanArgs(args);
 
 // send message
-const options = utils.getXctOptions(action, args, xctljosn);
-if (!options.ok) {
-  console.error(options.message);
-  return;
-}
+utils.formatArgs(args);
 
-xctl(pid, thread_id, action, options.data)
+xctl(pid, thread_id, action, args)
   .then(data => {
     if (data.ok) {
       data = data.data;
       switch (action) {
-      case 'check_version':
-        console.log(`X-Profiler 插件版本号(pid ${pid}): v${data.version}`);
-        break;
-      case 'list_environments':
-        console.log(`X-Profiler 环境列表(pid ${pid}):`);
-        for (const env of data.environments.sort((o, n) => Number(o.thread_id) > Number(n.thread_id) ? 1 : -1)) {
-          console.log(`  - 线程(tid ${env.thread_id}): ${env.is_main_thread ? '主线程' : 'Worker 线程'}已启动 ${env.uptime} 秒`);
+        case 'check_version':
+          console.log(`X-Profiler 插件版本号(pid ${pid}): v${data.version}`);
+          break;
+        case 'list_environments':
+          console.log(`X-Profiler 环境列表(pid ${pid}):`);
+          for (const env of data.environments.sort((o, n) => Number(o.thread_id) > Number(n.thread_id) ? 1 : -1)) {
+            console.log(`  - 线程(tid ${env.thread_id}): ${env.is_main_thread ? '主线程' : 'Worker 线程'}已启动 ${env.uptime} 秒`);
+          }
+          break;
+        case 'get_config':
+          console.log(`X-Profiler 当前配置(pid ${pid}):\n${utils.printConfig(data)}`);
+          break;
+        case 'set_config':
+          console.log(`X-Profiler 配置(pid ${pid})成功:\n${utils.printConfig(data)}`);
+          break;
+        case 'start_cpu_profiling': {
+          const profiling_time = args.profiling_time;
+          if (profiling_time) {
+            console.log(`CPU profiling 文件路径: ${data.filepath}`);
+            console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 cpu profiling 结果.`);
+          } else {
+            console.log(`进程 (pid ${pid}) 开始进行 CPU 采样.`);
+          }
+          break;
         }
-        break;
-      case 'get_config':
-        console.log(`X-Profiler 当前配置(pid ${pid}):\n${utils.printConfig(data)}`);
-        break;
-      case 'set_config':
-        console.log(`X-Profiler 配置(pid ${pid})成功:\n${utils.printConfig(data)}`);
-        break;
-      case 'start_cpu_profiling': {
-        const profiling_time = options.data.profiling_time;
-        if (profiling_time) {
+        case 'stop_cpu_profiling':
           console.log(`CPU profiling 文件路径: ${data.filepath}`);
-          console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 cpu profiling 结果.`);
-        } else {
-          console.log(`进程 (pid ${pid}) 开始进行 CPU 采样.`);
+          break;
+        case 'heapdump':
+          console.log(`Heapdump 文件路径: ${data.filepath}`);
+          console.log(`生成 heapsnapshot 视堆序列化耗费需要数秒至数分钟.`);
+          break;
+        case 'start_heap_profiling': {
+          const profiling_time = args.profiling_time;
+          if (profiling_time) {
+            console.log(`Heap profiling 文件路径: ${data.filepath}`);
+            console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 heap profiling 结果.`);
+          } else {
+            console.log(`进程 (pid ${pid}) 开始进行 Heap 采样.`);
+          }
+          break;
         }
-        break;
-      }
-      case 'stop_cpu_profiling':
-        console.log(`CPU profiling 文件路径: ${data.filepath}`);
-        break;
-      case 'heapdump':
-        console.log(`Heapdump 文件路径: ${data.filepath}`);
-        console.log(`生成 heapsnapshot 视堆序列化耗费需要数秒至数分钟.`);
-        break;
-      case 'start_heap_profiling': {
-        const profiling_time = options.data.profiling_time;
-        if (profiling_time) {
+        case 'stop_heap_profiling':
           console.log(`Heap profiling 文件路径: ${data.filepath}`);
-          console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 heap profiling 结果.`);
-        } else {
-          console.log(`进程 (pid ${pid}) 开始进行 Heap 采样.`);
+          break;
+        case 'start_gc_profiling': {
+          const profiling_time = args.profiling_time;
+          if (profiling_time) {
+            console.log(`GC profiling 文件路径: ${data.filepath}`);
+            console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 gc profiling 结果.`);
+          } else {
+            console.log(`进程 (pid ${pid}) 开始进行 gc 采样.`);
+          }
+          break;
         }
-        break;
-      }
-      case 'stop_heap_profiling':
-        console.log(`Heap profiling 文件路径: ${data.filepath}`);
-        break;
-      case 'start_gc_profiling': {
-        const profiling_time = options.data.profiling_time;
-        if (profiling_time) {
+        case 'stop_gc_profiling':
           console.log(`GC profiling 文件路径: ${data.filepath}`);
-          console.log(`请等待 ${profiling_time / 1000} 秒后读取此次 gc profiling 结果.`);
-        } else {
-          console.log(`进程 (pid ${pid}) 开始进行 gc 采样.`);
-        }
-        break;
-      }
-      case 'stop_gc_profiling':
-        console.log(`GC profiling 文件路径: ${data.filepath}`);
-        break;
-      case 'diag_report':
-        console.log(`诊断报告文件路径: ${data.filepath}`);
-        console.log(`生成诊断报告可能需要数秒至数十秒.`);
-        break;
-      case 'generate_coredump':
-        console.log(`Coredump 文件路径: ${data.filepath}`);
-        console.log(`生成 Coredump 可能需要数秒至数十秒.`);
-        break;
-      default:
-        console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);
+          break;
+        case 'diag_report':
+          console.log(`诊断报告文件路径: ${data.filepath}`);
+          console.log(`生成诊断报告可能需要数秒至数十秒.`);
+          break;
+        case 'generate_coredump':
+          console.log(`Coredump 文件路径: ${data.filepath}`);
+          console.log(`生成 Coredump 可能需要数秒至数十秒.`);
+          break;
+        default:
+          console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);
       }
     } else {
       console.error(`执行命令失败: ${data.message || JSON.stringify(data)}`);

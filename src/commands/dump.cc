@@ -346,9 +346,9 @@ class ProfilingWatchdog {
 };
 
 static string CreateFilepath(string prefix, string ext) {
-  return GetLogDir() + GetSep() + "x-" + prefix + "-" + to_string(GetPid()) +
-         "-" + ConvertTime("%Y%m%d") + "-" + to_string(GetNextDiagFileId()) +
-         "." + ext;
+  return GetConfig<string>("log_dir") + GetSep() + "x-" + prefix + "-" +
+         to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
+         to_string(GetNextDiagFileId()) + "." + ext;
 }
 
 #define CHECK_ERR(func) \

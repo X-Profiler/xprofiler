@@ -5,7 +5,6 @@ const utils = require('./lib/utils');
 const clean = require('./lib/clean');
 const { patch } = require('./patch');
 const configure = require('./lib/configure');
-const configList = require('./xprofiler.json');
 const moment = require('moment');
 const pkg = require('./package.json');
 const workerThreads = require('./lib/worker_threads');
@@ -103,11 +102,11 @@ exports.start = start;
 
 exports.setConfig = function (config) {
   // set config
-  const finalConfig = configure(configList, config);
+  const { flattern, origin } = configure(config);
   configured = true;
-  xprofiler.configure(finalConfig);
+  xprofiler.configure(flattern);
 
-  return finalConfig;
+  return origin;
 };
 
 exports.getXprofilerConfig = function () {

@@ -5,58 +5,10 @@
 #include "process_data.h"
 
 namespace xprofiler {
-std::string GetLogDir() { return ProcessData::Get()->config_store()->log_dir; }
-
-uint32_t GetLogInterval() {
-  return ProcessData::Get()->config_store()->log_interval;
+template <typename T>
+T GetConfig(std::string key) {
+  return ProcessData::Get()->config_store()->GetConfig<T>(key);
 }
-
-LOG_LEVEL GetLogLevel() {
-  return ProcessData::Get()->config_store()->log_level;
-}
-
-LOG_TYPE GetLogType() { return ProcessData::Get()->config_store()->log_type; }
-
-bool GetFormatAsAlinode() {
-  return ProcessData::Get()->config_store()->log_format_alinode;
-}
-
-bool GetEnableLogUvHandles() {
-  return ProcessData::Get()->config_store()->enable_log_uv_handles;
-}
-
-bool GetEnableFatalErrorHook() {
-  return ProcessData::Get()->config_store()->enable_fatal_error_hook;
-}
-
-bool GetEnableFatalErrorReport() {
-  return ProcessData::Get()->config_store()->enable_fatal_error_report;
-}
-
-bool GetEnableFatalErrorCoredump() {
-  return ProcessData::Get()->config_store()->enable_fatal_error_coredump;
-}
-
-bool GetPatchHttp() { return ProcessData::Get()->config_store()->patch_http; }
-
-uint32_t GetPatchHttpTimeout() {
-  return ProcessData::Get()->config_store()->patch_http_timeout;
-}
-
-bool GetCheckThrow() { return ProcessData::Get()->config_store()->check_throw; }
-
-void SetLogLevel(LOG_LEVEL value) {
-  ProcessData::Get()->config_store()->log_level = value;
-}
-
-void SetLogType(LOG_TYPE value) {
-  ProcessData::Get()->config_store()->log_type = value;
-}
-
-void SetEnableLogUvHandles(bool value) {
-  ProcessData::Get()->config_store()->enable_log_uv_handles = value;
-}
-
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_CONFIGURE_INL_H */

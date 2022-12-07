@@ -46,7 +46,7 @@ void CheckSocketPath(const FunctionCallbackInfo<Value>& info) {
 
 void CreateIpcServer(void (*parsecmd)(char*)) {
   HANDLE named_pipe = NULL;
-  string lp_name_string = "\\\\.\\pipe\\" + GetLogDir() +
+  string lp_name_string = "\\\\.\\pipe\\" + GetConfig<std::string>("log_dir") +
                           "\\xprofiler-named-pipe-" + std::to_string(getpid());
   wstring lp_name_ws = String2LPCWSTR(lp_name_string);
   LPCWSTR lp_name = lp_name_ws.c_str();
@@ -130,8 +130,8 @@ void CreateIpcServer(void (*parsecmd)(char*)) {
 
 void CreateIpcClient(char* message) {
   HANDLE named_pipe_client = NULL;
-  string lp_name_string =
-      "\\\\.\\pipe\\" + GetLogDir() + "\\" + XPROFILER_IPC_PATH;
+  string lp_name_string = "\\\\.\\pipe\\" + GetConfig<std::string>("log_dir") +
+                          "\\" + XPROFILER_IPC_PATH;
   wstring lp_name_ws = String2LPCWSTR(lp_name_string);
   LPCWSTR lp_name = lp_name_ws.c_str();
 
