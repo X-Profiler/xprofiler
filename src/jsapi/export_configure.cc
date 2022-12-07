@@ -21,15 +21,15 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-#define SET_LOCAL_VALUE(key, v8_type, native_type)                      \
+#define SET_LOCAL_VALUE(key, v8_type, native_type)                          \
   Set(config, OneByteString(isolate, #key),                                 \
       New<v8_type>(                                                         \
           ProcessData::Get()->config_store()->GetConfig<native_type>(#key)) \
           .ToLocalChecked());
 
 #define SET_NATIVE_VALUE(key, v8_type, native_type) \
-  Set(config, OneByteString(isolate, #key),            \
-      New<v8_type>(                                    \
+  Set(config, OneByteString(isolate, #key),         \
+      New<v8_type>(                                 \
           ProcessData::Get()->config_store()->GetConfig<native_type>(#key)));
 
 void Configure(const FunctionCallbackInfo<Value>& info) {

@@ -62,7 +62,7 @@ const args = yargs
           const { is, pair } = utils.pair(config.name, config.format);
           if (is) {
             child.describe(pair[0], config.describe(is));
-            child.describe(pair[1], config.describe(!is))
+            child.describe(pair[1], config.describe(!is));
           } else {
             child.describe(config.name, config.describe);
           }
