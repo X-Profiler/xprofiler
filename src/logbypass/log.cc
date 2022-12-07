@@ -21,8 +21,9 @@ void LogByPass::ThreadEntry(uv_loop_t* loop) {
   CHECK_EQ(0, uv_timer_init(loop, &log_interval_));
 
   CHECK_EQ(0, uv_timer_start(&cpu_interval_, OnCpuInterval, 1000, 1000));
-  CHECK_EQ(0, uv_timer_start(&log_interval_, OnLogInterval,
-                             GetLogInterval() * 1000, false));
+  CHECK_EQ(0,
+           uv_timer_start(&log_interval_, OnLogInterval,
+                          GetConfig<uint32_t>("log_interval") * 1000, false));
 }
 
 void LogByPass::ThreadAtExit() {
@@ -48,8 +49,9 @@ void LogByPass::OnLogInterval(uv_timer_t* handle) {
   }
   that->next_log_ = false;
   that->CollectStatistics();
-  CHECK_EQ(0, uv_timer_start(&that->log_interval_, OnLogInterval,
-                             GetLogInterval() * 1000, false));
+  CHECK_EQ(0,
+           uv_timer_start(&that->log_interval_, OnLogInterval,
+                          GetConfig<uint32_t>("log_interval") * 1000, false));
 }
 
 void LogByPass::SendCollectStatistics() {
@@ -64,7 +66,7 @@ void LogByPass::SendCollectStatistics() {
 void LogByPass::CollectStatistics() {
   EnvironmentRegistry* registry = ProcessData::Get()->environment_registry();
   EnvironmentRegistry::NoExitScope scope(registry);
-  bool log_format_alinode = GetFormatAsAlinode();
+  bool log_format_alinode = GetConfig<bool>("log_format_alinode");
 
   // write cpu info
   WriteCpuUsageInPeriod(log_format_alinode);
@@ -92,7 +94,8 @@ void LogByPass::Write(EnvironmentData* env_data, bool log_format_alinode) {
   WriteLibuvHandleInfoToLog(env_data, log_format_alinode);
 
   // write http status
-  WriteHttpStatus(env_data, log_format_alinode, GetPatchHttpTimeout());
+  WriteHttpStatus(env_data, log_format_alinode,
+                  GetConfig<uint32_t>("patch_http_timeout"));
 }
 
 void StartLogThread(EnvironmentData* env_data) {

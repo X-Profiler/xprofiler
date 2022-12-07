@@ -9,7 +9,7 @@ using v8::Value;
 
 void SetHooks(const FunctionCallbackInfo<Value>& info) {
   // set fatal error hook
-  if (GetEnableFatalErrorHook()) {
+  if (GetConfig<bool>("enable_fatal_error_hook")) {
     SetFatalErrorHandler(info.GetIsolate());
   }
 }

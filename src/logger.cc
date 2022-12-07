@@ -27,9 +27,9 @@ static void WriteToFile(const LOG_LEVEL output_level, const char* log) {
   strftime(time_string_day, sizeof(time_string_day), "%Y%m%d", ptm);
 
   // get filepath and write to file
-  string log_dir = GetLogDir();
+  string log_dir = GetConfig<string>("log_dir");
   string filepath = log_dir + GetSep();
-  bool log_format_alinode = GetFormatAsAlinode();
+  bool log_format_alinode = GetConfig<bool>("log_format_alinode");
   string file_prefix = "xprofiler-";
   if (log_format_alinode) {
     file_prefix = "node-";
@@ -57,13 +57,13 @@ static void WriteToFile(const LOG_LEVEL output_level, const char* log) {
 
 void Log(const LOG_LEVEL output_level, const char* type, ThreadId thread_id,
          const char* message) {
-  LOG_LEVEL level = GetLogLevel();
+  LOG_LEVEL level = GetConfig<LOG_LEVEL>("log_level");
   if (level < output_level) {
     return;
   }
 
   // check if alinode
-  bool log_format_alinode = GetFormatAsAlinode();
+  bool log_format_alinode = GetConfig<bool>("log_format_alinode");
 
   // time of day
   char time_string_ms[64];
@@ -112,7 +112,7 @@ void Log(const LOG_LEVEL output_level, const char* type, ThreadId thread_id,
   }
 
   // get log type
-  switch (GetLogType()) {
+  switch (GetConfig<LOG_TYPE>("log_type")) {
     // tty
     case LOG_TYPE::LOG_TO_TTY:
       printf("%s", tmp_log);

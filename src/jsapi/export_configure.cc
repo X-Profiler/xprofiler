@@ -21,16 +21,27 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-#define SET_LOCAL_VALUE(key, v8_type, native_type)                          \
-  Set(config, OneByteString(isolate, #key),                                 \
-      New<v8_type>(                                                         \
-          ProcessData::Get()->config_store()->GetConfig<native_type>(#key)) \
+#define GET_LOCAL_VALUE(key, v8_type)                                         \
+  Local<v8_type> key =                                                        \
+      To<v8_type>(Get(config, OneByteString(isolate, #key)).ToLocalChecked()) \
+          .ToLocalChecked();
+
+#define GET_NATIVE_VALUE(key, native_type)                            \
+  native_type key =                                                   \
+      To<native_type>(                                                \
+          Get(config, OneByteString(isolate, #key)).ToLocalChecked()) \
+          .ToChecked();
+
+#define SET_LOCAL_VALUE(key, v8_type, native_type)                         \
+  Set(config, OneByteString(isolate, key.c_str()),                         \
+      New<v8_type>(                                                        \
+          ProcessData::Get()->config_store()->GetConfig<native_type>(key)) \
           .ToLocalChecked());
 
 #define SET_NATIVE_VALUE(key, v8_type, native_type) \
-  Set(config, OneByteString(isolate, #key),         \
+  Set(config, OneByteString(isolate, key.c_str()),  \
       New<v8_type>(                                 \
-          ProcessData::Get()->config_store()->GetConfig<native_type>(#key)));
+          ProcessData::Get()->config_store()->GetConfig<native_type>(key)));
 
 void Configure(const FunctionCallbackInfo<Value>& info) {
   Isolate* isolate = info.GetIsolate();
@@ -44,23 +55,18 @@ void Configure(const FunctionCallbackInfo<Value>& info) {
     Local<Object> config =
         To<Object>(Get(configuration, i).ToLocalChecked()).ToLocalChecked();
 
-    Local<String> format =
-        To<String>(
-            Get(config, OneByteString(isolate, "format")).ToLocalChecked())
-            .ToLocalChecked();
-
-    Local<String> name =
-        To<String>(Get(config, OneByteString(isolate, "name")).ToLocalChecked())
-            .ToLocalChecked();
+    GET_LOCAL_VALUE(name, String)
+    GET_LOCAL_VALUE(format, String)
+    GET_LOCAL_VALUE(configurable, Boolean)
 
     Utf8String name_s(name);
+    Utf8String format_s(format);
+    ProcessData::Get()->config_store()->DescribeConfig(
+        *name_s, *format_s, To<bool>(configurable).ToChecked());
 
     // type string
     if (format->StrictEquals(OneByteString(isolate, "string"))) {
-      Local<String> value =
-          To<String>(
-              Get(config, OneByteString(isolate, "value")).ToLocalChecked())
-              .ToLocalChecked();
+      GET_LOCAL_VALUE(value, String)
       Utf8String value_s(value);
       ProcessData::Get()->config_store()->SetConfig<std::string>(*name_s,
                                                                  *value_s);
@@ -68,19 +74,13 @@ void Configure(const FunctionCallbackInfo<Value>& info) {
 
     // type uint32
     if (format->StrictEquals(OneByteString(isolate, "number"))) {
-      uint32_t value =
-          To<uint32_t>(
-              Get(config, OneByteString(isolate, "value")).ToLocalChecked())
-              .ToChecked();
+      GET_NATIVE_VALUE(value, uint32_t)
       ProcessData::Get()->config_store()->SetConfig<uint32_t>(*name_s, value);
     }
 
     // type bool
     if (format->StrictEquals(OneByteString(isolate, "boolean"))) {
-      bool value =
-          To<bool>(
-              Get(config, OneByteString(isolate, "value")).ToLocalChecked())
-              .ToChecked();
+      GET_NATIVE_VALUE(value, bool)
       ProcessData::Get()->config_store()->SetConfig<bool>(*name_s, value);
     }
   }
@@ -92,19 +92,12 @@ void GetConfig(const FunctionCallbackInfo<Value>& info) {
   Isolate* isolate = info.GetIsolate();
   Local<Object> config = New<Object>();
 
-  SET_LOCAL_VALUE(log_dir, String, string)
-  SET_NATIVE_VALUE(log_interval, Number, uint32_t)
-  SET_NATIVE_VALUE(log_level, Number, LOG_LEVEL)
-  SET_NATIVE_VALUE(log_type, Number, LOG_TYPE)
-  SET_NATIVE_VALUE(log_format_alinode, Boolean, bool)
-  SET_NATIVE_VALUE(patch_http, Boolean, bool)
-  SET_NATIVE_VALUE(patch_http_timeout, Number, uint32_t)
-  SET_NATIVE_VALUE(check_throw, Boolean, bool)
-  SET_NATIVE_VALUE(enable_log_uv_handles, Boolean, bool)
-  SET_NATIVE_VALUE(enable_fatal_error_hook, Boolean, bool)
-  SET_NATIVE_VALUE(enable_fatal_error_report, Boolean, bool)
-  SET_NATIVE_VALUE(enable_fatal_error_coredump, Boolean, bool)
-  SET_NATIVE_VALUE(enable_http_profiling, Boolean, bool)
+  ProcessData::Get()->config_store()->TraverseConfig(
+      [isolate, &config](string& key, string& type, bool configurable) {
+        if (type == "string") SET_LOCAL_VALUE(key, String, string)
+        if (type == "number") SET_NATIVE_VALUE(key, Number, uint32_t)
+        if (type == "boolean") SET_NATIVE_VALUE(key, Boolean, bool)
+      });
 
   info.GetReturnValue().Set(config);
 }

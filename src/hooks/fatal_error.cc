@@ -34,9 +34,11 @@ void DumpBeforeAbort(const char* location, const char* message) {
   FinishSampling(isolate, "fatal_error");
 #endif
 
+  std::string log_dir = GetConfig<std::string>("log_dir");
+
   // generate report before abort
-  if (GetEnableFatalErrorReport()) {
-    string filepath = GetLogDir() + GetSep() + "x-fatal-error-" +
+  if (GetConfig<bool>("enable_fatal_error_report")) {
+    string filepath = log_dir + GetSep() + "x-fatal-error-" +
                       to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
                       to_string(GetNextDiagFileId()) + ".diag";
 
@@ -46,8 +48,8 @@ void DumpBeforeAbort(const char* location, const char* message) {
   }
 
   // generator core file before abort
-  if (GetEnableFatalErrorCoredump()) {
-    string filepath = GetLogDir() + GetSep() + "x-fatal-error-" +
+  if (GetConfig<bool>("enable_fatal_error_coredump")) {
+    string filepath = log_dir + GetSep() + "x-fatal-error-" +
                       to_string(GetPid()) + "-" + ConvertTime("%Y%m%d") + "-" +
                       to_string(GetNextDiagFileId()) + ".core";
     InfoT(module_type, thread_id, "dump core to %s.", filepath.c_str());

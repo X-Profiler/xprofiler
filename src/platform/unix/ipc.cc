@@ -29,8 +29,8 @@ static const char module_type[] = "ipc";
   close(new_client_fd);
 
 static string GetSocketPath() {
-  string filename =
-      GetLogDir() + "/xprofiler-uds-path-" + std::to_string(getpid()) + ".sock";
+  string filename = GetConfig<string>("log_dir") + "/xprofiler-uds-path-" +
+                    std::to_string(getpid()) + ".sock";
   return filename;
 }
 
@@ -138,7 +138,8 @@ void CreateIpcClient(char* message) {
 
   // set client addr
   client_addr.sun_family = AF_UNIX;
-  std::string filename = GetLogDir() + "/" + XPROFILER_IPC_PATH;
+  std::string filename =
+      GetConfig<std::string>("log_dir") + "/" + XPROFILER_IPC_PATH;
   if (filename.length() > sizeof(client_addr.sun_path) - 1) {
     Error(module_type,
           "the length of <%s> is larger than sizeof(client_addr.sun_path) - 1 "
