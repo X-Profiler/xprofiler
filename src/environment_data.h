@@ -58,6 +58,9 @@ class EnvironmentData {
 
   inline GcStatistics* gc_statistics() { return &gc_statistics_; }
   inline HttpStatistics* http_statistics() { return &http_statistics_; }
+  inline HttpProfilingDetail* http_profiling_detail() {
+    return &http_profiling_detail_;
+  }
   inline MemoryStatistics* memory_statistics() { return &memory_statistics_; }
   inline UvHandleStatistics* uv_handle_statistics() {
     return &uv_handle_statistics_;
@@ -130,6 +133,7 @@ class EnvironmentData {
   GcStatistics gc_statistics_;
   MemoryStatistics memory_statistics_;
   HttpStatistics http_statistics_;
+  HttpProfilingDetail http_profiling_detail_;
   UvHandleStatistics uv_handle_statistics_;
 
   uint32_t closed_handle_count_ = 0;

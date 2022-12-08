@@ -2,8 +2,49 @@
 
 #include "environment_data.h"
 #include "logger.h"
+#include "util-inl.h"
+#include "xpf_v8.h"
+
+#ifdef _WIN32
+#include <time.h>
+#endif
 
 namespace xprofiler {
+
+#define SET_CONFIG(key, v8_type, value)                      \
+  Nan::Set(config, OneByteString(env_data->isolate(), #key), \
+           Nan::New<v8_type>(value));
+
+static void HttpDetailProfilingState(EnvironmentData* env_data, bool state) {
+  HttpStatistics* http_statistics = env_data->http_statistics();
+  if (!http_statistics->config_initialized) {
+    return;
+  }
+
+  HandleScope scope(env_data->isolate());
+  v8::Local<v8::Object> config = Nan::New(http_statistics->config);
+
+  time_t tt = time(NULL) * 1000;
+
+  if (state) {
+    SET_CONFIG(start_time, v8::Number, tt)
+    env_data->http_profiling_detail()->start_time = tt;
+  } else {
+    SET_CONFIG(start_time, v8::Number, 0)
+    env_data->http_profiling_detail()->end_time = tt;
+  }
+
+  SET_CONFIG(http_detail_profiling, v8::Boolean, state)
+}
+
+void EnableHttpDetailProfiling(EnvironmentData* env_data) {
+  HttpDetailProfilingState(env_data, true);
+}
+
+void DisableHttpDetailProfiling(EnvironmentData* env_data) {
+  HttpDetailProfilingState(env_data, false);
+}
+
 void WriteHttpStatus(EnvironmentData* env_data, bool log_format_alinode,
                      uint32_t http_patch_timeout) {
   HttpStatistics* http_statistics = env_data->http_statistics();

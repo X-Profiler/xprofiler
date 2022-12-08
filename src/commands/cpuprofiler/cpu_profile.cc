@@ -1,5 +1,6 @@
 #include "cpu_profile.h"
 
+#include "configure-inl.h"
 #include "cpu_profile_node.h"
 #include "environment_data.h"
 #include "library/writer.h"
@@ -61,6 +62,22 @@ void CpuProfile::Serialize(v8::Isolate* isolate, CpuProfilePtr node,
     writer.json_element(delta);
   }
   writer.json_arrayend();
+
+  // http profiling detail
+  if (GetConfig<bool>("enable_http_profiling")) {
+    writer.json_arraystart("httpDetail");
+    HttpProfilingDetail* http_profiling_detail =
+        env_data->http_profiling_detail();
+    for (size_t i = 0; i < http_profiling_detail->samples.size(); i++) {
+      std::string detail = http_profiling_detail->samples.at(i);
+      writer.json_element(http_profiling_detail->samples.at(i));
+    }
+    http_profiling_detail->clear();
+    writer.json_arrayend();
+  } else {
+    writer.json_arraystart("httpDetail");
+    writer.json_arrayend();
+  }
 
   // write to file
   writer.json_end();
