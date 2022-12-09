@@ -307,7 +307,7 @@ exports = module.exports = function (logdir) {
     {
       cmd: 'start_cpu_profiling',
       options: { profiling_time: 1000 },
-      env: { XPROFILER_ENABLE_HTTP_PROFILING: 'YES' },
+      env: { XPROFILER_ENABLE_HTTP_PROFILING: 'YES', XPROFILER_PATCH_HTTP_TIMEOUT: '0.5' },
       profileRules: cpuprofile,
       profileCheck(profile) {
         return profile.httpDetail.length !== 0;
