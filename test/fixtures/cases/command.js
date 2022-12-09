@@ -90,7 +90,8 @@ const cpuprofile = {
   startTime: REGEXP_NUMBER,
   endTime: REGEXP_NUMBER,
   samples: [REGEXP_NUMBER],
-  timeDeltas: [REGEXP_NUMBER]
+  timeDeltas: [REGEXP_NUMBER],
+  httpDetail: [/(\d+),(\S+),(GET|POST),(1|0),(\d+),(\d+)/]
 };
 
 const heapsnapshot = {
@@ -292,6 +293,25 @@ exports = module.exports = function (logdir) {
       cmd: 'start_cpu_profiling',
       options: { profiling_time: 1000 },
       profileRules: cpuprofile,
+      profileCheck(profile) {
+        return profile.httpDetail.length === 0;
+      },
+      xctlRules(data) {
+        return [{
+          key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +
+            `x-cpuprofile-${data.pid}-${moment().format('YYYYMMDD')}-(\\d+).cpuprofile`)
+        }];
+      },
+      xprofctlRules() { return []; }
+    },
+    {
+      cmd: 'start_cpu_profiling',
+      options: { profiling_time: 1000 },
+      env: { XPROFILER_ENABLE_HTTP_PROFILING: 'YES', XPROFILER_PATCH_HTTP_TIMEOUT: '0.5' },
+      profileRules: cpuprofile,
+      profileCheck(profile) {
+        return profile.httpDetail.length !== 0;
+      },
       xctlRules(data) {
         return [{
           key: 'data.filepath', rule: new RegExp(escape(data.logdir + sep) +

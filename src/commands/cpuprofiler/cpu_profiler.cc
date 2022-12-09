@@ -1,7 +1,9 @@
 #include "cpu_profiler.h"
 
+#include "configure-inl.h"
 #include "cpu_profile.h"
 #include "environment_data.h"
+#include "logbypass/http.h"
 #include "xpf_v8.h"
 
 namespace xprofiler {
@@ -21,6 +23,9 @@ void CpuProfiler::StartProfiling(v8::Isolate* isolate, std::string t) {
         std::unique_ptr<CpuProfiler>(new CpuProfiler(isolate));
   }
   env_data->cpu_profiler->StartProfiling(t);
+  if (GetConfig<bool>("enable_http_profiling")) {
+    EnableHttpDetailProfiling(env_data);
+  }
 }
 
 void CpuProfiler::StopProfiling(v8::Isolate* isolate, std::string t,
@@ -33,6 +38,7 @@ void CpuProfiler::StopProfiling(v8::Isolate* isolate, std::string t,
   if (env_data->cpu_profiler->started_profiles_count() == 0) {
     env_data->cpu_profiler.reset();
   }
+  DisableHttpDetailProfiling(env_data);
 }
 
 CpuProfiler::CpuProfiler(v8::Isolate* isolate) : isolate_(isolate) {

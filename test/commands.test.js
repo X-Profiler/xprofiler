@@ -51,12 +51,16 @@ function convertOptions(options) {
 
 describe('commands', () => {
   for (let i = 0; i < testConfig.length; i++) {
-    const { cmd, options = {}, profileRules, errored = false, xctlRules, xprofctlRules, platform } = testConfig[i];
+    const { cmd, options = {}, profileRules, profileCheck,
+      errored = false, xctlRules, xprofctlRules, platform, env = {} } = testConfig[i];
     for (let j = 0; j < testFiles.length; j++) {
       const { jspath, desc, threadId = 0 } = testFiles[j];
       const ospt = platform || currentPlatform;
       const title =
-        `[${ospt}] execute [${cmd}] on thread(${threadId}) with options: ${JSON.stringify(options)} ${desc}`;
+        `[${ospt}] execute [${cmd}] on thread(${threadId}) with `
+        + `options: ${JSON.stringify(options)}, `
+        + `env: ${JSON.stringify(env)} `
+        + desc;
       describe(title, function () {
         const commandExpiredTime = 5000;
         let resByXctl = '';
@@ -73,7 +77,7 @@ describe('commands', () => {
               XPROFILER_UNIT_TEST_TMP_HOMEDIR: tmphome,
               XPROFILER_LOG_LEVEL: 2,
               XPROFILER_LOG_TYPE: 1
-            })
+            }, env)
           });
           pid = p.pid;
 
@@ -153,6 +157,11 @@ describe('commands', () => {
               // check dump file
               if (profileRules && typeof profileRules === 'object') {
                 const profile = JSON.parse(fs.readFileSync(resByXctl.data.filepath, 'utf8'));
+                if (typeof profileCheck === 'function' && jspath.includes('normal')) {
+                  it(`profile content check should be ok`, function () {
+                    expect(profileCheck(profile)).to.be.ok();
+                  });
+                }
                 checkProfile(profileRules, profile);
               }
 

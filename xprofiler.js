@@ -88,11 +88,13 @@ function start(config = {}) {
   // patch modules
   patch(finalConfig, {
     // http status
+    setHttpConfig: xprofiler.setHttpConfig,
     addLiveRequest: xprofiler.addLiveRequest,
     addCloseRequest: xprofiler.addCloseRequest,
     addSentRequest: xprofiler.addSentRequest,
     addRequestTimeout: xprofiler.addRequestTimeout,
-    addHttpStatusCode: xprofiler.addHttpStatusCode
+    addHttpStatusCode: xprofiler.addHttpStatusCode,
+    addHttpProfilingDetail: xprofiler.addHttpProfilingDetail,
   });
 }
 
@@ -102,11 +104,11 @@ exports.start = start;
 
 exports.setConfig = function (config) {
   // set config
-  const { flattern, origin } = configure(config);
+  const { flattern } = configure(config);
   configured = true;
   xprofiler.configure(flattern);
 
-  return origin;
+  return exports.getXprofilerConfig();
 };
 
 exports.getXprofilerConfig = function () {

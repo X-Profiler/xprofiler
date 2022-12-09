@@ -54,11 +54,13 @@ NAN_MODULE_INIT(Initialize) {
   CREATE_JS_BINDING(debug, JsDebug);
 
   // http status
+  CREATE_JS_BINDING(setHttpConfig, SetHttpConfig);
   CREATE_JS_BINDING(addLiveRequest, AddLiveRequest);
   CREATE_JS_BINDING(addCloseRequest, AddCloseRequest);
   CREATE_JS_BINDING(addSentRequest, AddSentRequest);
   CREATE_JS_BINDING(addRequestTimeout, AddRequestTimeout);
   CREATE_JS_BINDING(addHttpStatusCode, AddHttpStatusCode);
+  CREATE_JS_BINDING(addHttpProfilingDetail, AddHttpProfilingDetail);
 }
 
 NODE_MODULE_CONTEXT_AWARE(xprofiler, Initialize)

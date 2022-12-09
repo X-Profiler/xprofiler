@@ -12,9 +12,14 @@ describe(`patch http.createServer(cb)`, function () {
   const requestTimes = 5;
   let triggerTimes = 0;
 
+  let httpConfig = {};
   let liveRequest = 0;
   let closeRequest = 0;
   let sentRequest = 0;
+
+  function setHttpConfig(config) {
+    httpConfig = config;
+  }
 
   function addLiveRequest() {
     liveRequest++;
@@ -59,7 +64,7 @@ describe(`patch http.createServer(cb)`, function () {
 
   before(async function () {
     mm(http, 'createServer', mockCreateServer);
-    patchHttp({ addLiveRequest, addCloseRequest, addSentRequest, addHttpStatusCode });
+    patchHttp({ setHttpConfig, addLiveRequest, addCloseRequest, addSentRequest, addHttpStatusCode });
     await http.createServer(function (request, response) {
       triggerTimes++;
       response.statusCode = 200;
@@ -88,6 +93,14 @@ describe(`patch http.createServer(cb)`, function () {
 
   it('patch should be ok', function () {
     expect(http.createServer).not.to.be(mockCreateServer);
+  });
+
+  it('http config.http_detail_profiling should be false', function () {
+    expect(httpConfig.http_detail_profiling).to.be(false);
+  });
+
+  it('http config.start_time should be 0', function () {
+    expect(httpConfig.start_time).to.be(0);
   });
 
   it(`request handler should trigger ${requestTimes} * 2 times`, function () {

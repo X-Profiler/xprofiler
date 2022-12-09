@@ -33,9 +33,12 @@ const server = http.createServer(function (req, res) {
 server.listen(8445, () => console.log('http server listen at 8445...'));
 server.unref();
 
+let logHttpRequestErrorOnce = false;
+
 function sendRequest(abort) {
   const req = http.request('http://localhost:8445');
-  req.on('error', err => console.error('normal process', err.message));
+  req.on('error', err => !logHttpRequestErrorOnce && (logHttpRequestErrorOnce = true)
+    && console.error('normal process', err.message));
   req.end();
 
   if (abort) {
@@ -53,7 +56,7 @@ const interval = setInterval(() => {
     sendRequest();
   }
   times++;
-}, 150);
+}, 10);
 interval.unref();
 
 setTimeout(() => {

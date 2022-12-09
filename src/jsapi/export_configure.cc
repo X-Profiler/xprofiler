@@ -2,6 +2,7 @@
 
 #include "process_data.h"
 #include "util-inl.h"
+#include "xpf_v8.h"
 
 namespace xprofiler {
 using Nan::FunctionCallbackInfo;
@@ -45,6 +46,8 @@ using v8::Value;
 
 void Configure(const FunctionCallbackInfo<Value>& info) {
   Isolate* isolate = info.GetIsolate();
+  HandleScope scope(isolate);
+
   if (!info[0]->IsArray()) {
     ThrowTypeError(New<String>("config must be array!").ToLocalChecked());
     return;
