@@ -136,6 +136,12 @@ const configure = {
     envValue: 'YES',
     userValue: true
   },
+  enable_auto_incr_heap_limit: {
+    defaultValue: false,
+    envKey: 'XPROFILER_ENABLE_AUTO_INCR_HEAP_LIMIT',
+    envValue: 'YES',
+    userValue: true
+  },
 };
 
 module.exports = getTestKeys(configure);

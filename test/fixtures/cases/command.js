@@ -234,10 +234,12 @@ exports = module.exports = function (logdir) {
         { key: 'data.enable_fatal_error_report', rule: { label: 'true', test: value => value === true } },
         { key: 'data.enable_fatal_error_coredump', rule: { label: 'false', test: value => value === false } },
         { key: 'data.enable_http_profiling', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.enable_auto_incr_heap_limit', rule: { label: 'false', test: value => value === false } },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 当前配置\\(pid ${data.pid}\\):\n`
           + '  - check_throw: false\n'
+          + '  - enable_auto_incr_heap_limit: false\n'
           + '  - enable_fatal_error_coredump: false\n'
           + '  - enable_fatal_error_hook: true\n'
           + '  - enable_fatal_error_report: true\n'
@@ -262,6 +264,7 @@ exports = module.exports = function (logdir) {
         enable_fatal_error_report: false,
         enable_fatal_error_coredump: true,
         enable_http_profiling: true,
+        enable_auto_incr_heap_limit: true,
       },
       xctlRules: [
         { key: 'data.log_level', rule: /^2$/ },
@@ -270,9 +273,11 @@ exports = module.exports = function (logdir) {
         { key: 'data.enable_fatal_error_report', rule: { label: 'false', test: value => value === false } },
         { key: 'data.enable_fatal_error_coredump', rule: { label: 'true', test: value => value === true } },
         { key: 'data.enable_http_profiling', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.enable_auto_incr_heap_limit', rule: { label: 'true', test: value => value === true } },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 配置\\(pid ${data.pid}\\)成功:\n`
+          + '  - enable_auto_incr_heap_limit: true\n'
           + '  - enable_fatal_error_coredump: true\n'
           + '  - enable_fatal_error_report: false\n'
           + '  - enable_http_profiling: true\n'

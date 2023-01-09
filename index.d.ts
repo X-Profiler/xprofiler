@@ -14,6 +14,7 @@ export interface XprofilerConfig {
   enable_fatal_error_report?: boolean;
   enable_fatal_error_coredump?: boolean;
   enable_http_profiling?: boolean;
+  enable_auto_incr_heap_limit?: boolean;
 }
 
 /**
