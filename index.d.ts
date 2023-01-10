@@ -10,6 +10,7 @@ export interface XprofilerConfig {
   patch_http?: boolean;
   patch_http_timeout?: number;
   check_throw?: boolean;
+  auto_incr_heap_limit_size?: number;
   enable_fatal_error_hook?: boolean;
   enable_fatal_error_report?: boolean;
   enable_fatal_error_coredump?: boolean;

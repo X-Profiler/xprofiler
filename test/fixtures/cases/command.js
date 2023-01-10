@@ -230,6 +230,7 @@ exports = module.exports = function (logdir) {
         { key: 'data.patch_http', rule: { label: 'true', test: value => value === true } },
         { key: 'data.patch_http_timeout', rule: /^30$/ },
         { key: 'data.check_throw', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.auto_incr_heap_limit_size', rule: /^256$/ },
         { key: 'data.enable_fatal_error_hook', rule: { label: 'true', test: value => value === true } },
         { key: 'data.enable_fatal_error_report', rule: { label: 'true', test: value => value === true } },
         { key: 'data.enable_fatal_error_coredump', rule: { label: 'false', test: value => value === false } },
@@ -238,6 +239,7 @@ exports = module.exports = function (logdir) {
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 当前配置\\(pid ${data.pid}\\):\n`
+          + '  - auto_incr_heap_limit_size: 256\n'
           + '  - check_throw: false\n'
           + '  - enable_auto_incr_heap_limit: false\n'
           + '  - enable_fatal_error_coredump: false\n'

@@ -53,6 +53,11 @@ module.exports = () => {
     },
 
     {
+      ...xprofctl(false),
+      ...config('auto_incr_heap_limit_size', 'XPROFILER_AUTO_INCR_HEAP_LIMIT_SIZE', 'number', 256), // MB
+    },
+
+    {
       ...xprofctl(true, enable => `${enable ? '开启' : '关闭'} libuv 句柄详情采集`),
       ...config('enable_log_uv_handles', 'XPROFILER_ENABLE_LOG_UV_HANDLES', 'boolean', true),
     },

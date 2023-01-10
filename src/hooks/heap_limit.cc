@@ -1,5 +1,6 @@
 #include "heap_limit.h"
 
+#include "configure-inl.h"
 #include "environment_data.h"
 #include "logger.h"
 
@@ -14,13 +15,17 @@ size_t NearHeapLimitCallback(void* data, size_t current_heap_limit,
   //     current_heap_limit +
   //     std::min(max_limit, initial_heap_limit * heapdump_factor);
 
-  size_t increased_heap = current_heap_limit + 512 * 1024 * 1024;
+  int auto_incr_heap_limit_size = GetConfig<int>("auto_incr_heap_limit_size");
+  size_t increased_heap =
+      current_heap_limit + auto_incr_heap_limit_size * 1024 * 1024;
 
   ThreadId thread_id = *static_cast<ThreadId*>(data);
   InfoT(module_type, thread_id,
-        "current_heap_limit is %d, initial_heap_limit is %d, increased_heap is "
+        "current_heap_limit is %d, initial_heap_limit is %d, "
+        "auto_incr_heap_limit_size is %d, increased_heap is "
         "%d.",
-        current_heap_limit, initial_heap_limit, increased_heap);
+        current_heap_limit, initial_heap_limit, auto_incr_heap_limit_size,
+        increased_heap);
 
   return increased_heap;
 }
