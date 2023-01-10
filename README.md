@@ -79,7 +79,7 @@ require('xprofiler')();
 * **patch_http**: 是否对原生 http 模块进行 patch，输出 http 请求相关信息，默认 `true`
 * **patch_http_timeout**: 默认 http 请求超时时间，单位秒，作为 http 请求统计，默认 `30`
 * **check_throw**: `xprofiler` 启动时检测错误时是否需要 throw，默认 `true`
-* **auto_incr_heap_limit_size**: `enable_auto_incr_heap_limit` 开启后，每次自动增加的堆上限大小，默认为 `512` (MB)
+* **auto_incr_heap_limit_size**: `enable_auto_incr_heap_limit` 开启后，每次自动增加的堆上限大小，默认为 `256` (MB)
 * **enable_log_uv_handles**: 是否要采集 libuv 句柄的详细分类信息，比如 tcp 句柄数量，timers 数量，文件句柄数量等，默认为 `true`
 * **enable_fatal_error_hook**: 是否需要在 V8 出现 FatalError 时配置钩子，默认 `true`
 * **enable_fatal_error_report**: 是否需要在 V8 出现 FataLError 时导出 Report 文件，默认 `true`

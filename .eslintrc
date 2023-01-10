@@ -25,7 +25,7 @@
     "no-implied-eval": 2,
     "no-labels": 2,
     "no-with": 2,
-    "no-loop-func": 1,
+    "no-loop-func": 0,
     "no-native-reassign": 2,
     "no-redeclare": [2, {"builtinGlobals": true}],
     "no-delete-var": 2,

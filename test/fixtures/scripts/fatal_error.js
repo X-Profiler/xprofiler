@@ -16,6 +16,6 @@ process.send({ type: utils.clientConst.xprofilerDone });
 const array = [];
 
 setInterval(() => {
-  array.push(new Array(10e6).fill('*'));
-  console.log('now rss:', process.memoryUsage().rss / 1024 / 1024 + ' Mb');
+  array.push(new Array(0.5 * 10e6).fill('*'));
+  console.log('now rss:', process.memoryUsage().rss / 1024 / 1024 + ' MB');
 }, Number(process.env.XPROFILER_FATAL_ERROR_INTERVAL) || 1);
