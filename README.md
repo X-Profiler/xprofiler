@@ -79,11 +79,13 @@ require('xprofiler')();
 * **patch_http**: 是否对原生 http 模块进行 patch，输出 http 请求相关信息，默认 `true`
 * **patch_http_timeout**: 默认 http 请求超时时间，单位秒，作为 http 请求统计，默认 `30`
 * **check_throw**: `xprofiler` 启动时检测错误时是否需要 throw，默认 `true`
+* **auto_incr_heap_limit_size**: `enable_auto_incr_heap_limit` 开启后，每次自动增加的堆上限大小，默认为 `256` (MB)
 * **enable_log_uv_handles**: 是否要采集 libuv 句柄的详细分类信息，比如 tcp 句柄数量，timers 数量，文件句柄数量等，默认为 `true`
 * **enable_fatal_error_hook**: 是否需要在 V8 出现 FatalError 时配置钩子，默认 `true`
 * **enable_fatal_error_report**: 是否需要在 V8 出现 FataLError 时导出 Report 文件，默认 `true`
 * **enable_fatal_error_coredump**: 是否需要在 V8 出现 FataLError 时 Coredump，默认 `false`
 * **enable_http_profiling**: 是否需要 CPU 采样时进行 HTTP Profiling。默认 `false`
+* **enable_auto_incr_heap_limit**: 是否需要在 Node.js 进程达到堆上限时自动增加堆上限防止 OOM，默认 `false`
 
 
 您可以通过环境变量或者在 JavaScript 代码中引入插件时传入配置的方式来使用这些配置，具体如下所示：
@@ -97,12 +99,14 @@ require('xprofiler')();
 * **XPROFILER_LOG_FORMAT_ALINODE**: 其值为 YES/NO，覆盖 `log_format_alinode`
 * **XPROFILER_PATCH_HTTP**: 其值为 YES/NO，覆盖 `patch_http`
 * **XPROFILER_PATCH_HTTP_TIMEOUT**: 其值为 String，覆盖 `patch_http_timeout`
-* **XPROFILER_CHECK_THROW**: 其值为 YES/NO `check_throw`
+* **XPROFILER_CHECK_THROW**: 其值为 YES/NO 覆盖 `check_throw`
+* **XPROFILER_AUTO_INCR_HEAP_LIMIT_SIZE**: 其值为 String 覆盖 `auto_incr_heap_limit_size`
 * **XPROFILER_ENABLE_LOG_UV_HANDLES**: 其值为 YES/NO，覆盖 `enable_log_uv_handles`
 * **XPROFILER_ENABLE_FATAL_ERROR_HOOK**: 其值为 YES/NO，覆盖 `enable_fatal_error_hook`
 * **XPROFILER_ENABLE_FATAL_ERROR_REPORT**: 其值为 YES/NO，覆盖 `enable_fatal_error_report`
 * **XPROFILER_ENABLE_FATAL_ERROR_COREDUMP**: 其值为 YES/NO，覆盖 `enable_fatal_error_coredump`
 * **XPROFILER_ENABLE_HTTP_PROFILING**: 其值为 YES/NO，覆盖 `enable_http_profiling`
+* **XPROFILER_ENABLE_AUTO_INCR_HEAP_LIMIT**: 其值为 YES/NO 覆盖 `enable_auto_incr_heap_limit`
 
 
 #### 2. 引入插件时传入配置
@@ -133,11 +137,13 @@ const defaultConfig = {
   patch_http: true,
   patch_http_timeout: 30, // seconds，
   check_throw: true,
+  auto_incr_heap_limit_size: 128 // MB,
   enable_log_uv_handles: true,
   enable_fatal_error_hook: true,
   enable_fatal_error_report: true,
   enable_fatal_error_coredump: false,
   enable_http_profiling: false,
+  enable_auto_incr_heap_limit: false,
 };
 
 const xprofilerConfig = Object.assign({}, defaultConfig, envConfig, userConfig);

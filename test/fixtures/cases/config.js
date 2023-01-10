@@ -112,6 +112,12 @@ const configure = {
     envValue: 'NO',
     userValue: false
   },
+  auto_incr_heap_limit_size: {
+    defaultValue: 256,
+    envKey: 'XPROFILER_AUTO_INCR_HEAP_LIMIT_SIZE',
+    envValue: 1024,
+    userValue: 2048,
+  },
   enable_fatal_error_hook: {
     defaultValue: true,
     envKey: 'XPROFILER_ENABLE_FATAL_ERROR_HOOK',
@@ -133,6 +139,12 @@ const configure = {
   enable_http_profiling: {
     defaultValue: false,
     envKey: 'XPROFILER_ENABLE_HTTP_PROFILING',
+    envValue: 'YES',
+    userValue: true
+  },
+  enable_auto_incr_heap_limit: {
+    defaultValue: false,
+    envKey: 'XPROFILER_ENABLE_AUTO_INCR_HEAP_LIMIT',
     envValue: 'YES',
     userValue: true
   },
