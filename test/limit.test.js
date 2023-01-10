@@ -57,7 +57,7 @@ for (const cse of cases) {
     });
 
     for (let i = 1; i < 3; i++) {
-      it(`${cse.subTitle} with ${i} times heap increase factor`, function () {
+      (cse.skip ? it.skip : it)(`${cse.subTitle} with ${i} times heap increase factor`, function () {
         const increaseLog = `current_heap_limit is ${(initialHeapLimit + (i - 1) * autoIncreaseHeapLimitSize) * MB}, `
           + `initial_heap_limit is ${initialHeapLimit * MB}, `
           + `auto_incr_heap_limit_size is ${autoIncreaseHeapLimitSize}, `
