@@ -44,6 +44,7 @@
                 "src/commands/report/system_statistics.cc",
                 "src/commands/coredumper/coredumper.cc",
                 "src/hooks/fatal_error.cc",
+                "src/hooks/heap_limit.cc",
                 "src/jsapi/export_environment.cc",
                 "src/jsapi/export_configure.cc",
                 "src/jsapi/export_logger.cc",
