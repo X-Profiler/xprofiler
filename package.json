@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -66,10 +66,10 @@
     "autod": "^3.1.2",
     "clang-format": "^1.8.0",
     "codecov": "^3.8.3",
-    "eslint": "^8.29.0",
+    "eslint": "^8.31.0",
     "expect.js": "^0.3.1",
     "mm": "^3.2.1",
-    "mocha": "^10.1.0",
+    "mocha": "^10.2.0",
     "nyc": "^15.1.0"
   },
   "xctlIpcPath": {
