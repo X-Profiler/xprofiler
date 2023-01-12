@@ -19,8 +19,8 @@ size_t NearHeapLimitCallback(void* data, size_t current_heap_limit,
   size_t increased_heap =
       current_heap_limit + auto_incr_heap_limit_size * 1024 * 1024;
 
-  ThreadId thread_id = *static_cast<ThreadId*>(data);
-  InfoT(module_type, thread_id,
+  EnvironmentData* env_data = static_cast<EnvironmentData*>(data);
+  InfoT(module_type, env_data->thread_id(),
         "current_heap_limit is %d, initial_heap_limit is %d, "
         "auto_incr_heap_limit_size is %d, increased_heap is "
         "%d.",
@@ -32,10 +32,10 @@ size_t NearHeapLimitCallback(void* data, size_t current_heap_limit,
 
 void AutoIncreaseHeapLimit(v8::Isolate* isolate) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
-  ThreadId thread_id = env_data->thread_id();
 
-  InfoT(module_type, thread_id, "auto increase heap limit hook.");
+  InfoT(module_type, env_data->thread_id(), "auto increase heap limit hook.");
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback,
-                                    static_cast<void*>(&thread_id));
+                                    static_cast<void*>(env_data));
+  isolate->AutomaticallyRestoreInitialHeapLimit();
 }
 }  // namespace xprofiler
