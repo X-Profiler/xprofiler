@@ -21,9 +21,8 @@ size_t NearHeapLimitCallback(void* data, size_t current_heap_limit,
 
   EnvironmentData* env_data = static_cast<EnvironmentData*>(data);
   InfoT(module_type, env_data->thread_id(),
-        "current_heap_limit is %d, initial_heap_limit is %d, "
-        "auto_incr_heap_limit_size is %d, increased_heap is "
-        "%d.",
+        "current_heap_limit: %d, initial_heap_limit: %d, "
+        "auto_incr_heap_limit_size: %d, increased_heap: %d",
         current_heap_limit, initial_heap_limit, auto_incr_heap_limit_size,
         increased_heap);
 

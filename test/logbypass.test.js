@@ -7,6 +7,7 @@ const moment = require('moment');
 const pack = require('../package.json');
 const utils = require('./fixtures/utils');
 const getTestCases = require('./fixtures/cases/logbypass');
+const { parseLog } = getTestCases;
 
 const logdirBlocking = utils.createLogDir('log_bypass_blocking');
 const logdirNonBlocking = utils.createLogDir('log_bypass_non_blocking');
@@ -40,38 +41,6 @@ const casesForHttp = getTestCases('performance log correctly  XPROFILER_PATCH_HT
 
 // compose cases
 cases = cases.concat(casesForLibuv).concat(casesForHttp);
-
-function parseLog(component, content, patt, alinode) {
-  console.log(`parse log ${component}: ${JSON.stringify(content)}`);
-  const reg = /([^\s]*): (\d+(\.\d{0,2})?)/g;
-  let matched;
-  const res = { prefix: {}, detail: {} };
-  while ((matched = patt.exec(content)) !== null) {
-    if (!matched || matched[2] !== component) {
-      continue;
-    }
-
-    // set prefix;
-    res.prefix.level = matched[1];
-    res.prefix.component = matched[2];
-    res.prefix.pid = Number(matched[3]);
-    let detail;
-    if (alinode) {
-      detail = matched[4];
-    } else {
-      res.prefix.tid = Number(matched[4]);
-      res.prefix.version = matched[5];
-      detail = matched[6];
-    }
-
-    // set detail
-    let pair;
-    while ((pair = reg.exec(detail)) !== null) {
-      res.detail[pair[1]] = pair[2];
-    }
-  }
-  return res;
-}
 
 for (const testCase of cases) {
   for (const target of testCase.targets) {
