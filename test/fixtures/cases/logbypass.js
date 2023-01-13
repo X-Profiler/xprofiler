@@ -6,6 +6,38 @@ const utils = require('../utils');
 const blocking = path.join(__dirname, '../scripts/process_blocking.js');
 const nonBlocking = path.join(__dirname, '../scripts/process_normal.js');
 
+function parseLog(component, content, patt, alinode) {
+  console.log(`parse log ${component}: ${JSON.stringify(content)}`);
+  const reg = /([^\s]*): (\d+(\.\d{0,2})?)/g;
+  let matched;
+  const res = { prefix: {}, detail: {} };
+  while ((matched = patt.exec(content)) !== null) {
+    if (!matched || matched[2] !== component) {
+      continue;
+    }
+
+    // set prefix;
+    res.prefix.level = matched[1];
+    res.prefix.component = matched[2];
+    res.prefix.pid = Number(matched[3]);
+    let detail;
+    if (alinode) {
+      detail = matched[4];
+    } else {
+      res.prefix.tid = Number(matched[4]);
+      res.prefix.version = matched[5];
+      detail = matched[6];
+    }
+
+    // set detail
+    let pair;
+    while ((pair = reg.exec(detail)) !== null) {
+      res.detail[pair[1]] = pair[2];
+    }
+  }
+  return res;
+}
+
 function setRules(list, alinode, { alinodeRule, xprofilerRule }) {
   const rules = {};
   for (const r of list) {
@@ -177,3 +209,5 @@ function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, struc
 exports = module.exports = getTestCases;
 
 exports.getUvRules = getUvRules;
+
+exports.parseLog = parseLog;
