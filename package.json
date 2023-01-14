@@ -1,6 +1,6 @@
 {
   "name": "xprofiler",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
@@ -25,8 +25,8 @@
     "lint": "npm run format && eslint --fix  *.js \"test/**/*.js\" lib/*.js patch/*.js bin/xprofctl scripts/**/*.js",
     "test": "mocha -t 0 -R spec test/*.test.js test/patch/*.test.js",
     "test-single": "mocha -t 0 -R spec",
-    "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js test/patch/*.test.js --timeout 0",
-    "cov-single": "nyc --reporter=html --reporter=text --reporter=lcov mocha --timeout 0 -R spec",
+    "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js test/patch/*.test.js --timeout 60000",
+    "cov-single": "nyc --reporter=html --reporter=text --reporter=lcov mocha --timeout 60000 -R spec",
     "codecov": "codecov || echo 'warning: ignoring codecov failure'",
     "ci": "npm run lint && npm run build && npm run cov && npm run codecov",
     "dep": "npm run build && npm run cov",

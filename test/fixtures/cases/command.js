@@ -399,6 +399,7 @@ exports = module.exports = function (logdir) {
     },
     {
       platform: 'linux',
+      arch: 'x64',
       cmd: 'generate_coredump',
       profileRules: checkCoreDump,
       xctlRules(data) {

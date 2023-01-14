@@ -24,6 +24,7 @@ exports = module.exports = function () {
     },
     {
       platform: 'linux',
+      arch: 'x64',
       title: 'fatal error hook is valid',
       subTitle: 'x-fatal-error.core is created when fatal error occured.',
       jspath: exitFatalErrorScriptPath,

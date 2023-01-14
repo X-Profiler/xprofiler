@@ -152,7 +152,11 @@ exports.filterTestCaseByPlatform = function filterTestCaseByPlatform(list) {
     return list;
   }
 
-  return list.filter(item => !item.platform || item.platform === os.platform());
+  return list.filter(item => {
+    const matchedOs = !item.platform || item.platform === os.platform();
+    const matchedArch = !item.arch || item.arch === os.arch();
+    return matchedOs && matchedArch;
+  });
 };
 
 exports.clientConst = {
