@@ -29,7 +29,7 @@ void DumpBeforeAbort(const char* location, const char* message) {
   EnvironmentData* env_data = EnvironmentData::GetCurrent(isolate);
   ThreadId thread_id = env_data->thread_id();
 
-#ifndef _WIN32
+#if (defined(__APPLE__) || (defined(__linux__) && defined(__x86_64__)))
   // finish sampling
   FinishSampling(isolate, "fatal_error");
 #endif
