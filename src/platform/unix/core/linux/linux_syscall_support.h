@@ -70,7 +70,8 @@
  * Do not access these symbols from outside this file. They are not part
  * of the supported API.
  */
-#pragma once
+#ifndef SYS_LINUX_SYSCALL_SUPPORT_H
+#define SYS_LINUX_SYSCALL_SUPPORT_H
 
 /* We currently only support x86-32, x86-64, ARM, MIPS, and PPC on Linux.
  * Porting to other related platforms should not be difficult.
@@ -2775,4 +2776,5 @@ LSS_INLINE int LSS_NAME(readahead)(int fd, loff_t off, int len) {
 }
 #endif
 
+#endif
 #endif
