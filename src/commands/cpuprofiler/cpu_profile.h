@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILE_H
-#define XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILE_H
+#pragma once
 
 #include "nan.h"
 #include "util.h"
@@ -16,4 +15,3 @@ class CpuProfile {
 };
 
 }  // namespace xprofiler
-#endif /* XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILE_H */

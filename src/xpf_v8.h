@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_XPF_V8_H
-#define XPROFILER_SRC_XPF_V8_H
+#pragma once
 
 #include "nan.h"
 #include "util.h"
@@ -36,5 +35,3 @@ inline v8::Isolate* TryGetCurrentIsolate() {
 }
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_XPF_V8_H */

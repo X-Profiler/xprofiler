@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILER_H
-#define XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILER_H
+#pragma once
 
 #include "node.h"
 #include "util.h"
@@ -33,5 +32,3 @@ class CpuProfiler final {
   CpuProfilerPtr cpu_profiler_ = nullptr;
 };
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILER_H */

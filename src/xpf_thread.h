@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_XPF_THREAD_H
-#define XPROFILER_SRC_XPF_THREAD_H
+#pragma once
 
 #include "util.h"
 #include "uv.h"
@@ -39,5 +38,3 @@ class XpfThread {
 };
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_XPF_THREAD_H */

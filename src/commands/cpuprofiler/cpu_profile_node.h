@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILE_NODE_H
-#define XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILE_NODE_H
+#pragma once
 
 #include "library/writer.h"
 #include "nan.h"
@@ -13,4 +12,3 @@ class CpuProfileNode {
 };
 
 }  // namespace xprofiler
-#endif /* XPROFILER_SRC_COMMANDS_CPUPROFILER_CPU_PROFILE_NODE_H */

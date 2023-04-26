@@ -31,8 +31,7 @@
  * Author: Markus Gutschke
  */
 
-#ifndef _THREAD_LISTER_H
-#define _THREAD_LISTER_H
+#pragma once
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -76,5 +75,3 @@ int ResumeAllProcessThreads(int num_threads, pid_t* thread_pids);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* _THREAD_LISTER_H */

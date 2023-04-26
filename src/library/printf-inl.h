@@ -1,5 +1,5 @@
-#ifndef XPROFILER_SRC_LIBRARY_PRINT_INL_H
-#define XPROFILER_SRC_LIBRARY_PRINT_INL_H
+#pragma once
+
 #include "printf.h"
 #include "util.h"
 
@@ -113,4 +113,3 @@ std::string SPrintF(  // NOLINT(runtime/string)
   return SPrintFImpl(format, std::forward<Args>(args)...);
 }
 }  // namespace xprofiler
-#endif

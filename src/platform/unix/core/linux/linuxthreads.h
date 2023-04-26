@@ -31,8 +31,7 @@
  * Author: Markus Gutschke
  */
 
-#ifndef _LINUXTHREADS_H
-#define _LINUXTHREADS_H
+#pragma once
 
 /* Include thread_lister.h to get the interface that we implement for linux.
  */
@@ -50,5 +49,3 @@
 #define THREADS "Linux /proc"
 
 #endif
-
-#endif /* _LINUXTHREADS_H */

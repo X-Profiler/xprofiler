@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_JSAPI_HTTP_H
-#define XPROFILER_SRC_JSAPI_HTTP_H
+#pragma once
 
 #include "nan.h"
 #include "xpf_mutex-inl.h"
@@ -13,5 +12,3 @@ void AddRequestTimeout(const Nan::FunctionCallbackInfo<v8::Value>& info);
 void AddHttpStatusCode(const Nan::FunctionCallbackInfo<v8::Value>& info);
 void AddHttpProfilingDetail(const Nan::FunctionCallbackInfo<v8::Value>& info);
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LOGBYPASS_HTTP_H */

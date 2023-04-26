@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_PROCESS_DATA_H
-#define XPROFILER_SRC_PROCESS_DATA_H
+#pragma once
 
 #include "configure.h"
 #include "environment_data.h"
@@ -42,5 +41,3 @@ class ProcessData {
 };
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_PROCESS_DATA_H */

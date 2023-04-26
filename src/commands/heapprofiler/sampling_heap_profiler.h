@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_HEAPPROFILER_SAMPLING_HEAP_PROFILER_H
-#define XPROFILER_SRC_COMMANDS_HEAPPROFILER_SAMPLING_HEAP_PROFILER_H
+#pragma once
 
 #include "nan.h"
 #include "v8-profiler.h"
@@ -13,4 +12,3 @@ class SamplingHeapProfiler final {
 };
 
 }  // namespace xprofiler
-#endif /* XPROFILER_SRC_COMMANDS_HEAPPROFILER_SAMPLING_HEAP_PROFILER_H */

@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_ENVIRONMENT_DATA_H
-#define XPROFILER_SRC_ENVIRONMENT_DATA_H
+#pragma once
 
 #include <functional>
 #include <list>
@@ -145,5 +144,3 @@ class EnvironmentData {
 }  // namespace xprofiler
 
 #include "environment_data-inl.h"
-
-#endif /* XPROFILER_SRC_ENVIRONMENT_DATA_H */

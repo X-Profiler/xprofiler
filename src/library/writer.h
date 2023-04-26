@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LIBRARY_WRITER_H
-#define XPROFILER_SRC_LIBRARY_WRITER_H
+#pragma once
 
 #include <fstream>
 #include <limits>
@@ -119,5 +118,3 @@ class JSONWriter {
   int state_ = kObjectStart;
 };
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LIBRARY_WRITER_H */

@@ -32,8 +32,7 @@
  *
  * Code to extract a core dump snapshot of the current process.
  */
-#ifndef _COREDUMP_H
-#define _COREDUMP_H
+#pragma once
 
 #include <stddef.h>
 
@@ -261,4 +260,3 @@ int SetCoreDumpCallback(struct CoreDumpParameters* params, int (*fn)(void*),
 #ifdef __cplusplus
 }
 #endif
-#endif /* _COREDUMP_H */

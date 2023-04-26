@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_CONFIGURE_H
-#define XPROFILER_SRC_CONFIGURE_H
+#pragma once
 
 #include <unordered_map>
 
@@ -53,5 +52,3 @@ class ConfigStore {
 };
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_CONFIGURE_H */

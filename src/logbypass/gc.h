@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LOGBYPASS_GC_H
-#define XPROFILER_SRC_LOGBYPASS_GC_H
+#pragma once
 
 #include "nan.h"
 #include "xpf_mutex-inl.h"
@@ -41,5 +40,3 @@ void WriteGcStatusToLog(EnvironmentData* env_data, bool log_format_alinode);
 uint32_t TotalGcTimes();
 uint32_t TotalGcDuration();
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LOGBYPASS_GC_H */

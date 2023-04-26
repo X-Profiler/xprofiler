@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LIBRARY_UTILS_H
-#define XPROFILER_SRC_LIBRARY_UTILS_H
+#pragma once
 
 #include "error.h"
 #include "json.hpp"
@@ -31,5 +30,3 @@ T GetJsonValue(nlohmann::json data, std::string key, XpfError& err) {
   return result;
 }
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LIBRARY_UTILS_H */

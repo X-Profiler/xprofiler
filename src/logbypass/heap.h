@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LOGBYPASS_HEAP_H
-#define XPROFILER_SRC_LOGBYPASS_HEAP_H
+#pragma once
 
 #include "nan.h"
 #include "v8.h"
@@ -57,5 +56,3 @@ struct MemoryStatistics {
 void CollectMemoryStatistics(EnvironmentData* env_data);
 void WriteMemoryInfoToLog(EnvironmentData* env_data, bool log_format_alinode);
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LOGBYPASS_HEAP_H */

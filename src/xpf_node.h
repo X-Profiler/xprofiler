@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_XPF_NODE_H
-#define XPROFILER_SRC_XPF_NODE_H
+#pragma once
 
 #include "nan.h"
 
@@ -16,5 +15,3 @@ inline void AtExit(v8::Isolate* isolate, void (*cb)(void* arg), void* arg) {
 }
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_XPF_NODE_H */

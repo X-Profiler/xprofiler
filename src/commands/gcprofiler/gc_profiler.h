@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_GCPROFILER_GC_PROFILER_H
-#define XPROFILER_SRC_COMMANDS_GCPROFILER_GC_PROFILER_H
+#pragma once
 
 #include <string>
 
@@ -32,5 +31,3 @@ class GcProfiler {
 };
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_COMMANDS_GCPROFILER_GC_PROFILER_H */

@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LIBRARY_COMMON_H
-#define XPROFILER_SRC_LIBRARY_COMMON_H
+#pragma once
 
 #include <string>
 
@@ -22,5 +21,3 @@ std::string GetGlobalNodeVersion(v8::Isolate* isolate);
 using ThreadId = double;
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LIBRARY_COMMON_H */

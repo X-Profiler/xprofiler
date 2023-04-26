@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_HEAPDUMP_HEAP_PROFILER_H
-#define XPROFILER_SRC_COMMANDS_HEAPDUMP_HEAP_PROFILER_H
+#pragma once
 
 #include "nan.h"
 #include "util.h"
@@ -16,5 +15,3 @@ class HeapProfiler {
   static void TakeSnapshot(v8::Isolate* isolate, std::string filename);
 };
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_COMMANDS_HEAPDUMP_HEAP_PROFILER_H */

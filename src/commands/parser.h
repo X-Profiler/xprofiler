@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_PARSER_H
-#define XPROFILER_SRC_COMMANDS_PARSER_H
+#pragma once
 
 #include <functional>
 #include <string>
@@ -16,5 +15,3 @@ void ParseCmd(char* command);
           std::function<void(std::string)> error)
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_COMMANDS_PARSER_H */

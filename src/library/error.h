@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LIBRARY_ERROR_H
-#define XPROFILER_SRC_LIBRARY_ERROR_H
+#pragma once
 
 #include <string>
 
@@ -22,5 +21,3 @@ class XpfError {
   static const size_t kMaxMessageLength = 256;
 };
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LIBRARY_ERROR_H */

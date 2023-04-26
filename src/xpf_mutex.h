@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_XPF_MUTEX_H
-#define XPROFILER_SRC_XPF_MUTEX_H
+#pragma once
 
 #include "nan.h"
 
@@ -52,5 +51,3 @@ class ConditionVariable {
 };
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_XPF_MUTEX_H */

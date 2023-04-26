@@ -1,5 +1,4 @@
-#ifndef SRC_ENVIRONMENT_DATA_INL_H_
-#define SRC_ENVIRONMENT_DATA_INL_H_
+#pragma once
 
 #include "environment_data.h"
 
@@ -29,5 +28,3 @@ void EnvironmentData::InterruptCallbackImpl<Fn>::Call(EnvironmentData* env_data,
 }
 
 }  // namespace xprofiler
-
-#endif  // SRC_ENVIRONMENT_DATA_INL_H_

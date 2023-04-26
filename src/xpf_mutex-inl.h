@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_XPF_MUTEX_INL_H
-#define XPROFILER_SRC_XPF_MUTEX_INL_H
+#pragma once
 
 #include "util.h"
 #include "xpf_mutex.h"
@@ -35,5 +34,3 @@ void ConditionVariable::Wait(const ScopedLock& scoped_lock) {
 }
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_XPF_MUTEX_INL_H */

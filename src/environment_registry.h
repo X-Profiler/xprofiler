@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_ENVIRONMENT_REGISTRY_H
-#define XPROFILER_SRC_ENVIRONMENT_REGISTRY_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -64,5 +63,3 @@ class EnvironmentRegistry {
 };
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_ENVIRONMENT_REGISTRY_H */

@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_UTIL_H
-#define XPROFILER_SRC_UTIL_H
+#pragma once
 
 #include <v8.h>
 
@@ -138,5 +137,3 @@ inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
                                            const char* data, int length = -1);
 
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_UTIL_H */

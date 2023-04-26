@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LOGGER_H
-#define XPROFILER_SRC_LOGGER_H
+#pragma once
 
 #include "library/common.h"
 #include "library/printf-inl.h"
@@ -37,5 +36,3 @@ NATIVE_LOGGERS(DEFINE_LOGGER);
 NATIVE_LOGGERS(DEFINE_LOGGER);
 #undef DEFINE_LOGGER
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LOGGER_H */

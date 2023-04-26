@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_REPORT_NODE_REPORT_H
-#define XPROFILER_SRC_COMMANDS_REPORT_NODE_REPORT_H
+#pragma once
 
 #include <string>
 
@@ -28,5 +27,3 @@ class NodeReport final {
   v8::Isolate* isolate_;
 };
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_COMMANDS_REPORT_NODE_REPORT_H */

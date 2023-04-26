@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LOGBYPASS_LOG_H
-#define XPROFILER_SRC_LOGBYPASS_LOG_H
+#pragma once
 
 #include "nan.h"
 #include "xpf_thread.h"
@@ -30,5 +29,3 @@ class LogByPass final : public XpfThread {
 
 void StartLogThread(EnvironmentData* env_data);
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LOGBYPASS_LOG_H */

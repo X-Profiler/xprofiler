@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_COREDUMPER_H
-#define XPROFILER_SRC_COMMANDS_COREDUMPER_H
+#pragma once
 
 #include <string>
 
@@ -9,5 +8,3 @@ class Coredumper {
   static void WriteCoredump(std::string filename);
 };
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_COMMANDS_COREDUMPER_H */

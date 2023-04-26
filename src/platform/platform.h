@@ -1,5 +1,5 @@
-#ifndef XPROFILER_SRC_PLATFORM_PLATFORM_H
-#define XPROFILER_SRC_PLATFORM_PLATFORM_H
+#pragma once
+
 #include <string>
 
 #include "library/writer.h"
@@ -29,5 +29,3 @@ void PrintLoadedLibraries(JSONWriter* writer);
 // coredumper
 void WriteCore(std::string filename);
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_PLATFORM_PLATFORM_H */

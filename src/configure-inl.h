@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_CONFIGURE_INL_H
-#define XPROFILER_SRC_CONFIGURE_INL_H
+#pragma once
 
 #include "configure.h"
 #include "process_data.h"
@@ -15,5 +14,3 @@ T GetConfig(std::string key) {
   return result;
 }
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_CONFIGURE_INL_H */

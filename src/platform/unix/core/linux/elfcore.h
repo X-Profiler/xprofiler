@@ -31,8 +31,8 @@
  * Author: Markus Gutschke, Carl Crous
  */
 
-#ifndef _ELFCORE_H
-#define _ELFCORE_H
+#pragma once
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -397,4 +397,3 @@ int InternalGetCoreDump(void *frame, int num_threads, pid_t *thread_pids,
 #ifdef __cplusplus
 }
 #endif
-#endif /* _ELFCORE_H */

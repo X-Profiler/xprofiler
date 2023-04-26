@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LOGBYPASS_HTTP_H
-#define XPROFILER_SRC_LOGBYPASS_HTTP_H
+#pragma once
 
 #include "xpf_mutex-inl.h"
 
@@ -46,5 +45,3 @@ void DisableHttpDetailProfiling(EnvironmentData* env_data);
 void WriteHttpStatus(EnvironmentData* env_data, bool log_format_alinode,
                      uint32_t http_patch_timeout);
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LOGBYPASS_HTTP_H */

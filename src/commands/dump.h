@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_COMMANDS_DUMP_H
-#define XPROFILER_SRC_COMMANDS_DUMP_H
+#pragma once
 
 #include <unordered_map>
 #include <vector>
@@ -44,5 +43,3 @@ COMMAND_CALLBACK(StopGcProfiling);
 COMMAND_CALLBACK(GetNodeReport);
 COMMAND_CALLBACK(GenerateCoredump);
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_COMMANDS_DUMP_H */

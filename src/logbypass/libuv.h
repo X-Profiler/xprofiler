@@ -1,5 +1,4 @@
-#ifndef XPROFILER_SRC_LOGBYPASS_LIBUV_H
-#define XPROFILER_SRC_LOGBYPASS_LIBUV_H
+#pragma once
 
 #include <stdint.h>
 
@@ -39,5 +38,3 @@ void CollectLibuvHandleStatistics(EnvironmentData* env_data);
 void WriteLibuvHandleInfoToLog(EnvironmentData* env_data,
                                bool log_format_alinode);
 }  // namespace xprofiler
-
-#endif /* XPROFILER_SRC_LOGBYPASS_LIBUV_H */
