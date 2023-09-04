@@ -106,7 +106,9 @@ exports.setConfig = function (config) {
   // set config
   const { flattern } = configure(config);
   configured = true;
-  xprofiler.configure(flattern);
+  if (workerThreads.isMainThread) {
+    xprofiler.configure(flattern);
+  }
 
   return exports.getXprofilerConfig();
 };
