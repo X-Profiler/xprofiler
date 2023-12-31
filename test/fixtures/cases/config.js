@@ -148,6 +148,18 @@ const configure = {
     envValue: 'YES',
     userValue: true
   },
+  enable_avoid_rss_leak: {
+    defaultValue: false,
+    envKey: 'XPROFILER_ENABLE_AVOID_RSS_LEAK',
+    envValue: 'YES',
+    userValue: true
+  },
+  m_mmap_threshold: {
+    defaultValue: 128,
+    envKey: 'XPROFILER_M_MMAP_THRESHOLD',
+    envValue: 2024,
+    userValue: 4048,
+  }
 };
 
 module.exports = getTestKeys(configure);

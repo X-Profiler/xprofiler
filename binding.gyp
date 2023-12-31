@@ -48,6 +48,7 @@
                 "src/jsapi/export_environment.cc",
                 "src/jsapi/export_configure.cc",
                 "src/jsapi/export_logger.cc",
+                "src/jsapi/export_mallopt.cc",
                 "src/jsapi/export_hooks.cc",
                 "src/jsapi/export_http.cc",
                 "src/jsapi/export_thread_logbypass.cc",

@@ -3,7 +3,7 @@
 #include "jsapi/export_hooks.h"
 #include "jsapi/export_http.h"
 #include "jsapi/export_logger.h"
-#include "jsapi/export_malloc.h"
+#include "jsapi/export_mallopt.h"
 #include "jsapi/export_thread_listener.h"
 #include "jsapi/export_thread_logbypass.h"
 #include "jsapi/export_utils.h"
