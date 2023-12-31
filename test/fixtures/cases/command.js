@@ -236,12 +236,15 @@ exports = module.exports = function (logdir) {
         { key: 'data.enable_fatal_error_coredump', rule: { label: 'false', test: value => value === false } },
         { key: 'data.enable_http_profiling', rule: { label: 'false', test: value => value === false } },
         { key: 'data.enable_auto_incr_heap_limit', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.enable_avoid_rss_leak', rule: { label: 'false', test: value => value === false } },
+        { key: 'data.m_mmap_threshold', rule: /^128$/ },
       ],
       xprofctlRules(data) {
         return [new RegExp(`^X-Profiler 当前配置\\(pid ${data.pid}\\):\n`
           + '  - auto_incr_heap_limit_size: 256\n'
           + '  - check_throw: false\n'
           + '  - enable_auto_incr_heap_limit: false\n'
+          + '  - enable_avoid_rss_leak: false\n'
           + '  - enable_fatal_error_coredump: false\n'
           + '  - enable_fatal_error_hook: true\n'
           + '  - enable_fatal_error_report: true\n'
@@ -252,6 +255,7 @@ exports = module.exports = function (logdir) {
           + '  - log_interval: 60\n'
           + '  - log_level: 2\n'
           + '  - log_type: 1\n'
+          + '  - m_mmap_threshold: 128\n'
           + '  - patch_http: true\n'
           + '  - patch_http_timeout: 30')
         ];

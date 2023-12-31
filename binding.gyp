@@ -48,6 +48,7 @@
                 "src/jsapi/export_environment.cc",
                 "src/jsapi/export_configure.cc",
                 "src/jsapi/export_logger.cc",
+                "src/jsapi/export_mallopt.cc",
                 "src/jsapi/export_hooks.cc",
                 "src/jsapi/export_http.cc",
                 "src/jsapi/export_thread_logbypass.cc",
@@ -78,7 +79,8 @@
                         "src/platform/unix/core/linux/coredumper.cc",
                         "src/platform/unix/core/linux/elfcore.cc",
                         "src/platform/unix/core/linux/linuxthreads.cc",
-                        "src/platform/unix/core/linux/thread_lister.cc"
+                        "src/platform/unix/core/linux/thread_lister.cc",
+                        "src/platform/unix/mallopt/linux.cc",
                     ]
                 }],
                 ["OS == 'mac'", {
@@ -100,6 +102,7 @@
                         "src/platform/unix/ipc.cc",
                         "src/platform/unix/report.cc",
                         "src/platform/unix/core/darwin.cc",
+                        "src/platform/unix/mallopt/darwin.cc",
                     ]
                 }],
                 ["OS == 'win'", {
@@ -120,7 +123,8 @@
                         "src/platform/win/utils_win.cc",
                         "src/platform/win/ipc_win.cc",
                         "src/platform/win/report_win.cc",
-                        "src/platform/win/core_win.cc"
+                        "src/platform/win/core_win.cc",
+                        "src/platform/win/mallopt_win.cc",
                     ]
                 }],
             ],

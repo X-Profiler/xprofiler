@@ -55,20 +55,20 @@
   },
   "homepage": "https://github.com/X-Profiler/xprofiler#readme",
   "dependencies": {
-    "@xprofiler/node-pre-gyp": "^1.0.10",
-    "moment": "^2.29.4",
-    "nan": "^2.17.0",
-    "uuid": "^9.0.0",
-    "yargs": "^17.7.1"
+    "@xprofiler/node-pre-gyp": "^1.0.11",
+    "moment": "^2.30.1",
+    "nan": "^2.18.0",
+    "uuid": "^9.0.1",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@istanbuljs/schema": "^0.1.3",
     "autod": "^3.1.2",
     "clang-format": "^1.8.0",
     "codecov": "^3.8.3",
-    "eslint": "^8.38.0",
+    "eslint": "^8.56.0",
     "expect.js": "^0.3.1",
-    "mm": "^3.2.2",
+    "mm": "^3.4.0",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0"
   },
