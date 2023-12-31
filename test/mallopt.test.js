@@ -11,7 +11,6 @@ const logdir = utils.createLogDir('logdir_mallopt');
 const rssPath = path.join(__dirname, 'fixtures/scripts/rss.js');
 
 (os.platform() === 'linux' ? describe : describe.skip)('avoid rss leak by mallopt', function () {
-  let pid;
   let rssMap;
   let exitInfo = { code: null, signal: null };
   before(async function () {
@@ -23,7 +22,6 @@ const rssPath = path.join(__dirname, 'fixtures/scripts/rss.js');
         XPROFILER_ENABLE_AVOID_RSS_LEAK: 'YES',
       })
     });
-    pid = p.pid;
     p.on('message', msg => rssMap = msg);
     exitInfo = await utils.getChildProcessExitInfo(p);
   });
@@ -38,7 +36,7 @@ const rssPath = path.join(__dirname, 'fixtures/scripts/rss.js');
   });
 
   it('should avoid rss leak', function () {
-    console.log(`process rss map: ${JSON.stringify(rssMap)}`)
+    console.log(`process rss map: ${JSON.stringify(rssMap)}`);
     const threshold = 200;
     const list = Object.keys(rssMap).map(key => ({
       key,

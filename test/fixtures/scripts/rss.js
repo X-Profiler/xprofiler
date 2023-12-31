@@ -37,7 +37,7 @@ function tick() {
   if (i < 10000 && rss < 2 * 1024) {
     setImmediate(tick);
   } else {
-    process.send(rssMap)
+    process.send(rssMap);
   }
 }
 
