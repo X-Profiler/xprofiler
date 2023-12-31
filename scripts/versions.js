@@ -16,7 +16,8 @@ if (os.platform() === 'darwin' && os.arch() === 'arm64') {
 }
 
 exports.os8u = [
-  'node-v18.17.1',
+  'node-v18.19.0',
   'node-v19.9.0',
-  'node-v20.6.0',
+  'node-v20.10.0',
+  'node-v21.5.0',
 ];
