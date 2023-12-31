@@ -88,7 +88,7 @@ module.exports = () => {
     },
 
     {
-      ...xprofctl(true, enable => `${enable ? '启用' : '禁用'} 减缓 RSS 泄露能力`),
+      ...xprofctl(false),
       ...config('enable_avoid_rss_leak', 'XPROFILER_ENABLE_AVOID_RSS_LEAK', 'boolean', false),
     },
 

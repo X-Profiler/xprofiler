@@ -76,6 +76,8 @@ function start(config = {}) {
     if (!singleModuleMode) {
       // start commands listener thread if needed
       exports.runCommandsListener();
+      // init mallopt
+      exports.initMallopt();
     }
   }
 
