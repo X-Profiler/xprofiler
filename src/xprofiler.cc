@@ -6,6 +6,7 @@
 #include "jsapi/export_thread_listener.h"
 #include "jsapi/export_thread_logbypass.h"
 #include "jsapi/export_utils.h"
+#include "jsapi/export_malloc.h"
 #include "library/common.h"
 #include "nan.h"
 #include "process_data.h"
@@ -36,6 +37,9 @@ NAN_MODULE_INIT(Initialize) {
 
   // set hooks
   CREATE_JS_BINDING(setHooks, SetHooks);
+
+  // mallopt
+  CREATE_JS_BINDING(initMallopt, InitMallopt);
 
   // utils
   CREATE_JS_BINDING(checkSocketPath, CheckSocketPath);

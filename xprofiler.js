@@ -22,7 +22,8 @@ xprofiler.setup({
 const runOnceStatus = {
   bypassLogThreadStarted: false,
   commandsListenerThreadStarted: false,
-  hooksSetted: false
+  hooksSetted: false,
+  malloptInited: false,
 };
 
 let configured = false;
@@ -128,3 +129,5 @@ exports.runLogBypass = runOnce.bind(null, 'bypassLogThreadStarted', xprofiler.ru
 exports.runCommandsListener = runOnce.bind(null, 'commandsListenerThreadStarted', xprofiler.runCommandsListener);
 
 exports.setHooks = runOnce.bind(null, 'hooksSetted', xprofiler.setHooks);
+
+exports.initMallopt = runOnce.bind(null, 'malloptInited', xprofiler.initMallopt);
