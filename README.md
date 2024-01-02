@@ -43,10 +43,10 @@ xprofiler 插件支持三大主流操作系统：
 执行如下命令安装插件
 
 ```bash
-npm i xprofiler --save --xprofiler_binary_host_mirror=https://npm.taobao.org/mirrors/xprofiler
+npm i xprofiler --save --xprofiler_binary_host_mirror=https://npmmirror.com/mirrors/xprofiler
 ```
 
-如果淘宝镜像暂时没同步的话，也可以执行阿里云镜像：
+如果 npmmirror 镜像暂时没同步的话，也可以执行阿里云镜像：
 
 ```bash
 npm i xprofiler --save --xprofiler_binary_host_mirror=http://devtoolx.com/xprofiler
