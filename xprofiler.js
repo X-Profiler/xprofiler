@@ -10,7 +10,7 @@ const pkg = require('./package.json');
 const workerThreads = require('./lib/worker_threads');
 
 // xprofiler.node
-const binary = require('@xprofiler/node-pre-gyp');
+const binary = require('@mapbox/node-pre-gyp');
 const bindingPath = binary.find(path.resolve(path.join(__dirname, './package.json')));
 const xprofiler = require(bindingPath);
 xprofiler.setup({
