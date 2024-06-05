@@ -30,6 +30,7 @@ xprofiler 插件支持三大主流操作系统：
 - v19.x
 - v20.x
 - v21.x
+- v22.x
 
 更低的版本因为在此项目创建时已经不在官方 LTS 计划中，故正常情况下不再支持。
 
@@ -52,7 +53,7 @@ npm i xprofiler --save --xprofiler_binary_host_mirror=https://npmmirror.com/mirr
 npm i xprofiler --save --xprofiler_binary_host_mirror=http://devtoolx.com/xprofiler
 ```
 
-> 这里使用了 `@xprofiler/node-pre-gyp` 帮助开发者无需进行本地编译即可使用此插件，默认插件位于 [Github Release](https://github.com/X-Profiler/xprofiler/releases) 页面，国内访问可能较慢，你也可以自行镜像到其它位置加速安装。
+> 这里使用了 `@mapbox/node-pre-gyp` 帮助开发者无需进行本地编译即可使用此插件，默认插件位于 [Github Release](https://github.com/X-Profiler/xprofiler/releases) 页面，国内访问可能较慢，你也可以自行镜像到其它位置加速安装。
 
 ### 嵌入项目
 
