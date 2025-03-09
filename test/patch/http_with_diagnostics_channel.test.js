@@ -40,7 +40,13 @@ describe(`patch with diagnostics_channel`, function () {
   }
 
   before(async function () {
-    subscribeHttpServerRequestStart({ setHttpConfig, addLiveRequest, addCloseRequest, addSentRequest, addHttpStatusCode });
+    subscribeHttpServerRequestStart({
+      setHttpConfig,
+      addLiveRequest,
+      addCloseRequest,
+      addSentRequest,
+      addHttpStatusCode,
+    });
     const server = http.createServer(function (request, response) {
       triggerTimes++;
       response.statusCode = 200;

@@ -17,7 +17,7 @@ describe('utils.test.js', function () {
 
     it('should work default is home', () => {
       mm(os, 'homedir', () => {
-        return '/home/xxx'
+        return '/home/xxx';
       });
       const p = utils.getXprofilerPath();
       assert.equal(p, '/home/xxx/.xprofiler');

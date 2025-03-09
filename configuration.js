@@ -44,7 +44,11 @@ module.exports = () => {
 
     {
       ...xprofctl(false),
-      ...config('patch_http_with_diagnostics_channel', 'XPROFILER_PATCH_HTTP_WITH_DIAGNOSTICS_CHANNEL', 'boolean', false),
+      ...config('patch_http_with_diagnostics_channel',
+        'XPROFILER_PATCH_HTTP_WITH_DIAGNOSTICS_CHANNEL',
+        'boolean',
+        false,
+      ),
     },
 
     {
