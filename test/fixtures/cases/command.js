@@ -258,8 +258,8 @@ exports = module.exports = function (logdir) {
           + '  - log_type: 1\n'
           + '  - m_mmap_threshold: 128\n'
           + '  - patch_http: true\n'
-          + '  - patch_http_with_diagnostics_channel: false\n'
-          + '  - patch_http_timeout: 30')
+          + '  - patch_http_timeout: 30\n'
+          + '  - patch_http_with_diagnostics_channel: false')
         ];
       }
     },
