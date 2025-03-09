@@ -44,6 +44,11 @@ module.exports = () => {
 
     {
       ...xprofctl(false),
+      ...config('patch_http_with_diagnostics_channel', 'XPROFILER_PATCH_HTTP_WITH_DIAGNOSTICS_CHANNEL', 'boolean', false),
+    },
+
+    {
+      ...xprofctl(false),
       ...config('patch_http_timeout', 'XPROFILER_PATCH_HTTP_TIMEOUT', 'number', 30), // seconds
     },
 

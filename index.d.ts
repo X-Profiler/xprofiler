@@ -8,6 +8,7 @@ export interface XprofilerConfig {
   log_format_alinode?: boolean;
   enable_log_uv_handles?: boolean;
   patch_http?: boolean;
+  patch_http_with_diagnostics_channel?: boolean;
   patch_http_timeout?: number;
   check_throw?: boolean;
   auto_incr_heap_limit_size?: number;

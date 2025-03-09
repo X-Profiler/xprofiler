@@ -80,6 +80,7 @@ require('xprofiler')();
 * **log_type**: 日志输出位置，0 文件，1 控制台，默认为 `0`
 * **log_format_alinode**: 是否以 Node.js 性能平台（原 AliNode）的格式输出性能分析日志，默认为 `false`
 * **patch_http**: 是否对原生 http 模块进行 patch，输出 http 请求相关信息，默认 `true`
+* **patch_http_with_diagnostics_channel**: 是否对通过 diagnostics_channel 模块进行 patch，输出 http 请求相关信息，在 esm 下需要开启，默认 `false`
 * **patch_http_timeout**: 默认 http 请求超时时间，单位秒，作为 http 请求统计，默认 `30`
 * **check_throw**: `xprofiler` 启动时检测错误时是否需要 throw，默认 `true`
 * **auto_incr_heap_limit_size**: `enable_auto_incr_heap_limit` 开启后，每次自动增加的堆上限大小，默认为 `256` (MB)
@@ -101,6 +102,7 @@ require('xprofiler')();
 * **XPROFILER_LOG_TYPE**: 其值为 String，覆盖 `log_type`
 * **XPROFILER_LOG_FORMAT_ALINODE**: 其值为 YES/NO，覆盖 `log_format_alinode`
 * **XPROFILER_PATCH_HTTP**: 其值为 YES/NO，覆盖 `patch_http`
+* **XPROFILER_PATCH_HTTP_WITH_DIAGNOSTICS_CHANNEL**: 其值为 YES/NO，覆盖 `patch_http_with_diagnostics_channel`
 * **XPROFILER_PATCH_HTTP_TIMEOUT**: 其值为 String，覆盖 `patch_http_timeout`
 * **XPROFILER_CHECK_THROW**: 其值为 YES/NO 覆盖 `check_throw`
 * **XPROFILER_AUTO_INCR_HEAP_LIMIT_SIZE**: 其值为 String 覆盖 `auto_incr_heap_limit_size`
@@ -138,6 +140,7 @@ const defaultConfig = {
   log_type: 0,
   log_format_alinode: false,
   patch_http: true,
+  patch_http_with_diagnostics_channel: false,
   patch_http_timeout: 30, // seconds，
   check_throw: true,
   auto_incr_heap_limit_size: 128 // MB,

@@ -100,6 +100,12 @@ const configure = {
     envValue: 'NO',
     userValue: false
   },
+  patch_http_with_diagnostics_channel: {
+    defaultValue: false,
+    envKey: 'XPROFILER_PATCH_HTTP_WITH_DIAGNOSTICS_CHANNEL',
+    envValue: 'YES',
+    userValue: true
+  },
   patch_http_timeout: {
     defaultValue: 30,
     envKey: 'XPROFILER_PATCH_HTTP_TIMEOUT',

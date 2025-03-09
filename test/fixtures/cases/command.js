@@ -228,6 +228,7 @@ exports = module.exports = function (logdir) {
         { key: 'data.log_level', rule: /^2$/ },
         { key: 'data.log_type', rule: /^1$/ },
         { key: 'data.patch_http', rule: { label: 'true', test: value => value === true } },
+        { key: 'data.patch_http_with_diagnostics_channel', rule: { label: 'false', test: value => value === false } },
         { key: 'data.patch_http_timeout', rule: /^30$/ },
         { key: 'data.check_throw', rule: { label: 'false', test: value => value === false } },
         { key: 'data.auto_incr_heap_limit_size', rule: /^256$/ },
@@ -257,6 +258,7 @@ exports = module.exports = function (logdir) {
           + '  - log_type: 1\n'
           + '  - m_mmap_threshold: 128\n'
           + '  - patch_http: true\n'
+          + '  - patch_http_with_diagnostics_channel: false\n'
           + '  - patch_http_timeout: 30')
         ];
       }
