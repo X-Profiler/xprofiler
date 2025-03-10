@@ -14,6 +14,10 @@ function getRequestDetail(req, res, start, sent) {
 
 let _onHttpServerRequestStart;
 function subscribeHttpServerRequestStart(options) {
+  if (_onHttpServerRequestStart) {
+    return;
+  }
+
   const { setHttpConfig, addLiveRequest, addCloseRequest, addSentRequest,
     addRequestTimeout, addHttpStatusCode, addHttpProfilingDetail, patch_http_timeout } = options;
 
@@ -63,6 +67,7 @@ function unsubscribeHttpServerRequestStart() {
 
   const diagnosticsChannel = require('diagnostics_channel');
   diagnosticsChannel.unsubscribe('http.server.request.start', _onHttpServerRequestStart);
+  _onHttpServerRequestStart = null;
 }
 
 module.exports = { subscribeHttpServerRequestStart, unsubscribeHttpServerRequestStart };
