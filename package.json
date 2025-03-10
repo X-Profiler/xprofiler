@@ -1,6 +1,9 @@
 {
   "name": "xprofiler",
   "version": "2.6.1",
+  "engines": {
+    "node": ">=18.19.0"
+  },
   "description": "node.js addon to output runtime logs",
   "bin": {
     "xprofctl": "bin/xprofctl"
