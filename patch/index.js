@@ -1,10 +1,11 @@
 'use strict';
 
-const { patchHttp } = require('./http');
+const { subscribeHttpServerRequestStart } = require('./http');
 
 function patch(config, methods) {
   if (config.patch_http) {
-    patchHttp({ ...methods, patch_http_timeout: config.patch_http_timeout });
+    const options = { ...methods, patch_http_timeout: config.patch_http_timeout };
+    subscribeHttpServerRequestStart(options);
   }
 }
 

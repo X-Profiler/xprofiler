@@ -125,7 +125,7 @@ string GetOsVersion() {
   LPSERVER_INFO_101 os_info = NULL;
   NET_API_STATUS nStatus = NetServerGetInfo(NULL, level, (LPBYTE*)&os_info);
   if (nStatus == NERR_Success) {
-    LPSTR os_name = "Windows";
+    std::string os_name = "Windows";
     const DWORD major = os_info->sv101_version_major & MAJOR_VERSION_MASK;
     const DWORD type = os_info->sv101_type;
     const bool isServer = (type & SV_TYPE_DOMAIN_CTRL) ||
@@ -165,7 +165,7 @@ string GetOsVersion() {
       default:
         os_name = (isServer ? "Windows Server" : "Windows Client");
     }
-    data << os_name;
+    data << os_name.c_str();
 
     // Convert and print the machine name and comment fields (these are LPWSTR
     // types)

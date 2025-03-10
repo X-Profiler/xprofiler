@@ -5,8 +5,6 @@ on:
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ '**' ]
-  schedule:
-    - cron: '0 2 * * *'
 jobs:
   Runner:
     runs-on: ${{ matrix.ci-type.os }}
@@ -18,7 +16,7 @@ jobs:
           {os: "macos-latest", arch: "x64"},
           {os: "ubuntu-latest", arch: "x64"},
         ]
-        node-version: [ 12, 14, 16, 18, 20, 21, 22 ]
+        node-version: [ 18, 20, 22 ]
     steps:
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -33,7 +31,7 @@ jobs:
       if: ${{ matrix.ci-type.os == 'windows-latest' }}
 
     - name: Setup Node.js
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
 
@@ -42,6 +40,11 @@ jobs:
 
     - name: Continuous Integration
       run: npm run ci
+
+    - name: Code Coverage
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     # - name: Package Binary
     #   run: npm run pack

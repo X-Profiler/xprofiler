@@ -1,9 +1,5 @@
 'use strict';
 
-const shimmer = require('./shimmer');
-const http = require('http');
-const https = require('https');
-
 const httpConfig = {
   http_detail_profiling: false,
   start_time: 0,
@@ -16,13 +12,13 @@ function getRequestDetail(req, res, start, sent) {
   return `${offset},${url},${req.method},${sent},${res.statusCode},${rt}`;
 }
 
-function requestListenerWrapper(original, methods) {
+function subscribeHttpServerRequestStart(options) {
   const { setHttpConfig, addLiveRequest, addCloseRequest, addSentRequest,
-    addRequestTimeout, addHttpStatusCode, addHttpProfilingDetail, patch_http_timeout } = methods;
+    addRequestTimeout, addHttpStatusCode, addHttpProfilingDetail, patch_http_timeout } = options;
 
   setHttpConfig(httpConfig);
 
-  return function (req, res) {
+  function onHttpServerRequestStart({ request, response }) {
     addLiveRequest();
 
     const start = Date.now();
@@ -30,55 +26,32 @@ function requestListenerWrapper(original, methods) {
     const timer = setTimeout(() => {
       addRequestTimeout();
       if (httpConfig.http_detail_profiling) {
-        const detail = getRequestDetail(req, res, start, 0);
+        const detail = getRequestDetail(request, response, start, 0);
         addHttpProfilingDetail(detail);
       }
     }, patch_http_timeout * 1000);
     timer.unref();
 
-    res.on('finish', () => {
-      addHttpStatusCode(res.statusCode);
+    response.on('finish', () => {
+      addHttpStatusCode(response.statusCode);
       addSentRequest(Date.now() - start);
       clearTimeout(timer);
       if (httpConfig.http_detail_profiling) {
-        const detail = getRequestDetail(req, res, start, 1);
+        const detail = getRequestDetail(request, response, start, 1);
         addHttpProfilingDetail(detail);
       }
     });
 
-    res.on('close', () => {
+    response.on('close', () => {
       addCloseRequest();
       clearTimeout(timer);
     });
+  }
 
-    // call origin function
-    const returned = original.apply(this, arguments);
-    return returned;
-  };
+  // https://nodejs.org/docs/latest/api/diagnostics_channel.html#http
+  // use diagnostics_channel
+  const diagnosticsChannel = require('diagnostics_channel');
+  diagnosticsChannel.subscribe('http.server.request.start', onHttpServerRequestStart);
 }
 
-function serverWrapper(methods, original) {
-  return function (opts, requestListener) {
-    const args = Array.from(arguments);
-    let returned;
-
-    if (typeof opts === 'function') {
-      args.splice(0, 1, requestListenerWrapper(opts, methods));
-    } else if (typeof requestListener === 'function') {
-      args.splice(1, 1, requestListenerWrapper(requestListener, methods));
-    }
-
-    returned = original.apply(this, args);
-
-    return returned;
-  };
-}
-
-function patchHttp(methods) {
-  // patch http server
-  shimmer.wrap(http, 'createServer', serverWrapper.bind(this, methods));
-  // patch https server
-  shimmer.wrap(https, 'createServer', serverWrapper.bind(this, methods));
-}
-
-module.exports = { patchHttp };
+module.exports = { subscribeHttpServerRequestStart };

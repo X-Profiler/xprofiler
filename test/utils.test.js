@@ -12,15 +12,23 @@ describe('utils.test.js', function () {
     it('should work with XPROFILER_PREFIX', () => {
       mm(process.env, 'XPROFILER_PREFIX', '/tmp');
       const p = utils.getXprofilerPath();
-      assert.equal(p, '/tmp/.xprofiler');
+      if (os.platform() === 'win32') {
+        assert.equal(p, '\\tmp\\.xprofiler');
+      } else {
+        assert.equal(p, '/tmp/.xprofiler');
+      }
     });
 
     it('should work default is home', () => {
       mm(os, 'homedir', () => {
-        return '/home/xxx'
+        return '/home/xxx';
       });
       const p = utils.getXprofilerPath();
-      assert.equal(p, '/home/xxx/.xprofiler');
+      if (os.platform() === 'win32') {
+        assert.equal(p, '\\home\\xxx\\.xprofiler');
+      } else {
+        assert.equal(p, '/home/xxx/.xprofiler');
+      }
     });
   });
 });
