@@ -2,11 +2,11 @@
 
 const http = require('http');
 const expect = require('expect.js');
-const { subscribeHttpServerRequestStart, unsubscribeHttpServerRequestStart } = require('../../patch/http');
+const { subscribeHttpServerRequestStart } = require('../../patch/http');
 
 const status = {};
 
-describe(`monitor http server request with diagnostics_channel`, function () {
+describe.only(`monitor http server request with diagnostics_channel`, function () {
   const requestTimes = 5;
   let triggerTimes = 0;
 
@@ -61,10 +61,6 @@ describe(`monitor http server request with diagnostics_channel`, function () {
       });
     }
     server.close();
-  });
-
-  after(function () {
-    unsubscribeHttpServerRequestStart();
   });
 
   it('http config.http_detail_profiling should be false', function () {
