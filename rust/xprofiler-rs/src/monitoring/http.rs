@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
-use super::Monitor;
+use super::{Monitor, MonitoringResult, MonitoringError};
 
 /// HTTP method enumeration
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -353,13 +353,13 @@ impl Default for HttpMonitor {
 impl Monitor for HttpMonitor {
     type Stats = HttpStats;
     
-    fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn start(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = true;
         self.start_time = Some(Instant::now());
         Ok(())
     }
     
-    fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn stop(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = false;
         Ok(())
     }
@@ -368,15 +368,24 @@ impl Monitor for HttpMonitor {
         self.is_monitoring
     }
     
-    fn get_stats(&self) -> Self::Stats {
-        self.get_http_stats()
+    fn get_stats(&self) -> MonitoringResult<Self::Stats> {
+        Ok(self.get_http_stats())
     }
     
-    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn reset(&mut self) -> MonitoringResult<()> {
         self.transactions.clear();
         self.pending_requests.clear();
         self.start_time = None;
         Ok(())
+    }
+    
+    fn update(&mut self) -> MonitoringResult<()> {
+        // HTTP monitoring doesn't need periodic updates
+        Ok(())
+    }
+    
+    fn module_name(&self) -> &'static str {
+        "http"
     }
 }
 
@@ -384,15 +393,23 @@ impl Monitor for HttpMonitor {
 static HTTP_MONITOR: Mutex<Option<HttpMonitor>> = Mutex::new(None);
 
 /// Initialize global HTTP monitor
-pub fn init_http_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = HTTP_MONITOR.lock().unwrap();
+pub fn init_http_monitor() -> MonitoringResult<()> {
+    let mut monitor = HTTP_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "HTTP monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     *monitor = Some(HttpMonitor::new());
     Ok(())
 }
 
 /// Record an HTTP request
-pub fn record_http_request(request_id: String, method: String, url: String, headers_size: u64, body_size: u64, user_agent: Option<String>, remote_ip: Option<String>) {
-    let mut monitor = HTTP_MONITOR.lock().unwrap();
+pub fn record_http_request(request_id: String, method: String, url: String, headers_size: u64, body_size: u64, user_agent: Option<String>, remote_ip: Option<String>) -> MonitoringResult<()> {
+    let mut monitor = HTTP_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "HTTP monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut http_monitor) = monitor.as_mut() {
         let request = HttpRequest {
             method,
@@ -405,11 +422,16 @@ pub fn record_http_request(request_id: String, method: String, url: String, head
         };
         http_monitor.record_request(request_id, request);
     }
+    Ok(())
 }
 
 /// Record an HTTP response
-pub fn record_http_response(request_id: String, status_code: u16, headers_size: u64, body_size: u64, response_time: Duration) {
-    let mut monitor = HTTP_MONITOR.lock().unwrap();
+pub fn record_http_response(request_id: String, status_code: u16, headers_size: u64, body_size: u64, response_time: Duration) -> MonitoringResult<()> {
+    let mut monitor = HTTP_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "HTTP monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut http_monitor) = monitor.as_mut() {
         let response = HttpResponse {
             status_code,
@@ -420,12 +442,21 @@ pub fn record_http_response(request_id: String, status_code: u16, headers_size: 
         };
         http_monitor.record_response(request_id, response);
     }
+    Ok(())
 }
 
 /// Get HTTP statistics
-pub fn get_http_stats() -> Option<HttpStats> {
-    let monitor = HTTP_MONITOR.lock().unwrap();
-    monitor.as_ref().map(|m| m.get_http_stats())
+pub fn get_http_stats() -> MonitoringResult<HttpStats> {
+    let monitor = HTTP_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "HTTP monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
+    monitor.as_ref()
+        .map(|m| m.get_http_stats())
+        .ok_or_else(|| MonitoringError::NotInitialized {
+            module: "HTTP monitor".to_string(),
+        })
 }
 
 /// Format HTTP statistics for logging
@@ -438,8 +469,12 @@ pub fn format_http_stats() -> String {
 }
 
 /// Start HTTP monitoring
-pub fn start_http_monitoring() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = HTTP_MONITOR.lock().unwrap();
+pub fn start_http_monitoring() -> MonitoringResult<()> {
+    let mut monitor = HTTP_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "HTTP monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut http_monitor) = monitor.as_mut() {
         http_monitor.start()?;
     }
@@ -447,8 +482,12 @@ pub fn start_http_monitoring() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Stop HTTP monitoring
-pub fn stop_http_monitoring() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = HTTP_MONITOR.lock().unwrap();
+pub fn stop_http_monitoring() -> MonitoringResult<()> {
+    let mut monitor = HTTP_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "HTTP monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut http_monitor) = monitor.as_mut() {
         http_monitor.stop()?;
     }
@@ -456,13 +495,13 @@ pub fn stop_http_monitoring() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Record an HTTP request (alias for record_http_request)
-pub fn record_request(request_id: String, method: String, url: String, headers_size: u64, body_size: u64, user_agent: Option<String>, remote_ip: Option<String>) {
-    record_http_request(request_id, method, url, headers_size, body_size, user_agent, remote_ip);
+pub fn record_request(request_id: String, method: String, url: String, headers_size: u64, body_size: u64, user_agent: Option<String>, remote_ip: Option<String>) -> MonitoringResult<()> {
+    record_http_request(request_id, method, url, headers_size, body_size, user_agent, remote_ip)
 }
 
 /// Record an HTTP response (alias for record_http_response)
-pub fn record_response(request_id: String, status_code: u16, headers_size: u64, body_size: u64, response_time: Duration) {
-    record_http_response(request_id, status_code, headers_size, body_size, response_time);
+pub fn record_response(request_id: String, status_code: u16, headers_size: u64, body_size: u64, response_time: Duration) -> MonitoringResult<()> {
+    record_http_response(request_id, status_code, headers_size, body_size, response_time)
 }
 
 #[cfg(test)]

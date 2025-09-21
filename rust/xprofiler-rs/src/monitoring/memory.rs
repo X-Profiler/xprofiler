@@ -8,7 +8,8 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use once_cell::sync::Lazy;
-use super::{Monitor, TimePeriod};
+use super::{Monitor, TimePeriod, MonitoringResult, MonitoringError};
+use super::error::IntoMonitoringError;
 
 /// Memory usage statistics
 #[derive(Debug, Clone)]
@@ -76,12 +77,16 @@ impl MemoryMonitor {
     }
     
     /// Update memory usage and add to history
-    pub fn update(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn update(&mut self) -> MonitoringResult<()> {
         let process_memory = self.get_process_memory()?;
         
         // Update current RSS
         {
-            let mut current_rss = self.current_rss.lock().map_err(|_| "Failed to lock current_rss")?;
+            let mut current_rss = self.current_rss.lock()
+                .map_err(|_| MonitoringError::LockFailed {
+            resource: "current_rss".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
             *current_rss = process_memory.rss;
         }
         
@@ -90,7 +95,11 @@ impl MemoryMonitor {
         
         // Update timestamp
         {
-            let mut last_update = self.last_update.lock().map_err(|_| "Failed to lock last_update")?;
+            let mut last_update = self.last_update.lock()
+                .map_err(|_| MonitoringError::LockFailed {
+            resource: "last_update".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
             *last_update = Some(Instant::now());
         }
         
@@ -131,11 +140,15 @@ impl MemoryMonitor {
     }
     
     /// Get current memory usage with averages
-    pub fn get_memory_usage(&self) -> Result<MemoryUsage, Box<dyn std::error::Error>> {
+    pub fn get_memory_usage(&self) -> MonitoringResult<MemoryUsage> {
         let process_memory = self.get_process_memory()?;
         let heap_stats = self.get_heap_statistics();
         
-        let current_rss = self.current_rss.lock().map_err(|_| "Failed to lock current_rss")?;
+        let current_rss = self.current_rss.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "current_rss".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
         
         let avg_rss_15s = self.calculate_average(&self.history_rss_15s);
         let avg_rss_30s = self.calculate_average(&self.history_rss_30s);
@@ -174,7 +187,7 @@ impl MemoryMonitor {
     
     /// Get process memory information (Linux implementation)
     #[cfg(target_os = "linux")]
-    fn get_process_memory(&self) -> Result<ProcessMemory, Box<dyn std::error::Error>> {
+    fn get_process_memory(&self) -> MonitoringResult<ProcessMemory> {
         use std::fs;
         
         // Read /proc/self/status for memory information
@@ -200,7 +213,7 @@ impl MemoryMonitor {
     
     /// Get process memory information (macOS implementation)
     #[cfg(target_os = "macos")]
-    fn get_process_memory(&self) -> Result<ProcessMemory, Box<dyn std::error::Error>> {
+    fn get_process_memory(&self) -> MonitoringResult<ProcessMemory> {
         use std::process::Command;
         
         // Use ps command to get memory information on macOS
@@ -213,7 +226,8 @@ impl MemoryMonitor {
             return Err("Failed to get process memory info via ps command".into());
         }
         
-        let output_str = String::from_utf8(output.stdout)?;
+        let output_str = String::from_utf8(output.stdout)
+            .with_parse_context("ps output", "stdout")?;
         let lines: Vec<&str> = output_str.lines().collect();
         
         if lines.len() < 2 {
@@ -234,7 +248,7 @@ impl MemoryMonitor {
     
     /// Get process memory information (other Unix systems)
     #[cfg(all(unix, not(target_os = "linux"), not(target_os = "macos")))]
-    fn get_process_memory(&self) -> Result<ProcessMemory, Box<dyn std::error::Error>> {
+    fn get_process_memory(&self) -> MonitoringResult<ProcessMemory> {
         // Fallback implementation for other Unix systems
         // Return minimal values to avoid test failures
         Ok(ProcessMemory {
@@ -245,7 +259,7 @@ impl MemoryMonitor {
     
     /// Get process memory information (Windows implementation)
     #[cfg(windows)]
-    fn get_process_memory(&self) -> Result<ProcessMemory, Box<dyn std::error::Error>> {
+    fn get_process_memory(&self) -> MonitoringResult<ProcessMemory> {
         use std::mem;
         use winapi::um::processthreadsapi::GetCurrentProcess;
         use winapi::um::psapi::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
@@ -293,7 +307,7 @@ impl MemoryMonitor {
     }
     
     /// Format memory usage for logging
-    pub fn format_memory_usage(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn format_memory_usage(&self) -> MonitoringResult<String> {
         let usage = self.get_memory_usage()?;
         
         Ok(format!(
@@ -341,12 +355,12 @@ impl Default for MemoryMonitor {
 impl Monitor for MemoryMonitor {
     type Stats = MemoryUsage;
     
-    fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn start(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = true;
         Ok(())
     }
     
-    fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn stop(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = false;
         Ok(())
     }
@@ -355,39 +369,65 @@ impl Monitor for MemoryMonitor {
         self.is_monitoring
     }
     
-    fn get_stats(&self) -> Self::Stats {
-        self.get_memory_usage().unwrap_or(MemoryUsage {
-            rss: 0,
-            vms: 0,
-            heap_used: 0,
-            heap_total: 0,
-            external: 0,
-            array_buffers: 0,
-            avg_rss_15s: 0.0,
-            avg_rss_30s: 0.0,
-            avg_rss_1m: 0.0,
-            avg_rss_3m: 0.0,
-            avg_rss_5m: 0.0,
-            timestamp: 0,
-        })
+    fn get_stats(&self) -> MonitoringResult<Self::Stats> {
+        self.get_memory_usage()
     }
     
-    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn reset(&mut self) -> MonitoringResult<()> {
         self.history_rss_15s.clear();
         self.history_rss_30s.clear();
         self.history_rss_1m.clear();
         self.history_rss_3m.clear();
         self.history_rss_5m.clear();
         
-        if let Ok(mut current_rss) = self.current_rss.lock() {
-            *current_rss = 0;
+        self.current_rss.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "current_rss".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+            .clone_from(&0);
+        
+        self.last_update.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "last_update".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+            .take();
+        
+        Ok(())
+    }
+    
+    fn update(&mut self) -> MonitoringResult<()> {
+        let process_memory = self.get_process_memory()?;
+        
+        // Update current RSS
+        {
+            let mut current_rss = self.current_rss.lock()
+                .map_err(|_| MonitoringError::LockFailed {
+                resource: "current_rss".to_string(),
+                details: "Failed to acquire lock".to_string(),
+            })?;
+            *current_rss = process_memory.rss;
         }
         
-        if let Ok(mut last_update) = self.last_update.lock() {
-            *last_update = None;
+        // Add to history
+        self.add_to_history_all(process_memory.rss);
+        
+        // Update timestamp
+        {
+            let mut last_update = self.last_update.lock()
+                .map_err(|_| MonitoringError::LockFailed {
+                resource: "last_update".to_string(),
+                details: "Failed to acquire lock".to_string(),
+            })?;
+            *last_update = Some(Instant::now());
         }
         
         Ok(())
+    }
+    
+    fn module_name(&self) -> &'static str {
+        "memory"
     }
 }
 
@@ -397,27 +437,43 @@ pub static MEMORY_MONITOR: Lazy<Arc<Mutex<MemoryMonitor>>> = Lazy::new(|| {
 });
 
 /// Initialize global memory monitor
-pub fn init_memory_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+pub fn init_memory_monitor() -> MonitoringResult<()> {
+    let mut monitor = MEMORY_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "memory monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     *monitor = MemoryMonitor::new();
     Ok(())
 }
 
 /// Start memory monitoring
-pub fn start_memory_monitoring() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+pub fn start_memory_monitoring() -> MonitoringResult<()> {
+    let mut monitor = MEMORY_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "memory monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.start()
 }
 
 /// Stop memory monitoring
-pub fn stop_memory_monitoring() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+pub fn stop_memory_monitoring() -> MonitoringResult<()> {
+    let mut monitor = MEMORY_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "memory monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.stop()
 }
 
 /// Update memory usage
-pub fn update_memory_usage() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+pub fn update_memory_usage() -> MonitoringResult<()> {
+    let mut monitor = MEMORY_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "memory monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.update()
 }
 
@@ -428,16 +484,23 @@ pub fn get_memory_usage() -> Option<MemoryUsage> {
 }
 
 /// Get memory statistics
-pub fn get_memory_stats() -> Result<MemoryUsage, Box<dyn std::error::Error>> {
+pub fn get_memory_stats() -> MonitoringResult<MemoryUsage> {
     let monitor = MEMORY_MONITOR.lock()
-        .map_err(|_| "Failed to lock memory monitor")?;
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "memory monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     
-    Ok(monitor.get_stats())
+    monitor.get_stats()
 }
 
 /// Reset memory monitor
-pub fn reset_memory_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+pub fn reset_memory_monitor() -> MonitoringResult<()> {
+    let mut monitor = MEMORY_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "memory monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.reset()
 }
 
@@ -566,8 +629,8 @@ mod tests {
         assert!(is_memory_monitor_running());
         
         update_memory_usage().unwrap();
-        let stats = get_memory_stats();
-        assert!(stats.is_ok());
+        let stats = get_memory_stats().unwrap();
+        assert!(stats.rss > 0);
         
         stop_memory_monitoring().unwrap();
         assert!(!is_memory_monitor_running());

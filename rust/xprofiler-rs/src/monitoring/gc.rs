@@ -8,7 +8,7 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use once_cell::sync::Lazy;
-use super::Monitor;
+use super::{Monitor, MonitoringResult, MonitoringError};
 
 /// GC event types (matching V8 GC types)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -401,30 +401,33 @@ impl Default for GcMonitor {
 impl Monitor for GcMonitor {
     type Stats = GcStats;
     
-    fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn start(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = true;
         self.start_time = Some(Instant::now());
-        if let Ok(mut last_update) = self.last_update.lock() {
-            *last_update = Some(Instant::now());
-        }
+        self.last_update.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "last_update".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+            .replace(Instant::now());
         Ok(())
     }
     
-    fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn stop(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = false;
         self.start_time = None;
         Ok(())
     }
     
-    fn get_stats(&self) -> Self::Stats {
-        self.get_gc_stats()
+    fn get_stats(&self) -> MonitoringResult<Self::Stats> {
+        Ok(self.get_gc_stats())
     }
     
     fn is_running(&self) -> bool {
         self.is_monitoring
     }
     
-    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn reset(&mut self) -> MonitoringResult<()> {
         self.events.clear();
         self.is_monitoring = false;
         self.start_time = None;
@@ -442,17 +445,37 @@ impl Monitor for GcMonitor {
         self.history_pause_5m.clear();
         
         // Reset current counters
-        if let Ok(mut count) = self.current_gc_count.lock() {
-            *count = 0;
-        }
-        if let Ok(mut pause_time) = self.current_pause_time.lock() {
-            *pause_time = 0.0;
-        }
-        if let Ok(mut last_update) = self.last_update.lock() {
-            *last_update = None;
-        }
+        self.current_gc_count.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "current_gc_count".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+            .clone_from(&0);
+        
+        self.current_pause_time.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "current_pause_time".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+            .clone_from(&0.0);
+        
+        self.last_update.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "last_update".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+            .take();
         
         Ok(())
+    }
+    
+    fn update(&mut self) -> MonitoringResult<()> {
+        self.update_history();
+        Ok(())
+    }
+    
+    fn module_name(&self) -> &'static str {
+        "gc"
     }
 }
 
@@ -467,14 +490,22 @@ pub fn init_gc_monitor() {
 }
 
 /// Start GC monitoring
-pub fn start_gc_monitoring() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = GC_MONITOR.lock().map_err(|_| "Failed to lock GC monitor")?;
+pub fn start_gc_monitoring() -> MonitoringResult<()> {
+    let mut monitor = GC_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "GC monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.start()
 }
 
 /// Stop GC monitoring
-pub fn stop_gc_monitoring() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = GC_MONITOR.lock().map_err(|_| "Failed to lock GC monitor")?;
+pub fn stop_gc_monitoring() -> MonitoringResult<()> {
+    let mut monitor = GC_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "GC monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.stop()
 }
 
@@ -504,8 +535,12 @@ pub fn get_total_gc_count() -> u32 {
 }
 
 /// Reset GC monitor
-pub fn reset_gc_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = GC_MONITOR.lock().map_err(|_| "Failed to lock GC monitor")?;
+pub fn reset_gc_monitor() -> MonitoringResult<()> {
+    let mut monitor = GC_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "GC monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.reset()
 }
 

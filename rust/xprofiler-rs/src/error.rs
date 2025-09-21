@@ -283,15 +283,7 @@ macro_rules! system_error {
     };
 }
 
-#[macro_export]
-macro_rules! monitoring_error {
-    ($monitor_type:expr, $msg:expr) => {
-        XProfilerError::Monitoring {
-            message: $msg.to_string(),
-            monitor_type: $monitor_type,
-        }
-    };
-}
+
 
 /// Convert standard library errors to XProfilerError
 impl From<std::io::Error> for XProfilerError {

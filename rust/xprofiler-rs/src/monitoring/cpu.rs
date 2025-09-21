@@ -13,10 +13,12 @@ use once_cell::sync::Lazy;
 
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 use std::arch::x86_64::*;
+
 #[cfg(target_arch = "aarch64")]
 use std::arch::aarch64::*;
 
-use super::Monitor;
+use super::{Monitor, MonitoringResult, MonitoringError};
+use super::error::IntoMonitoringError;
 
 /// CPU usage information
 #[derive(Debug, Clone)]
@@ -122,7 +124,7 @@ impl CpuMonitor {
     }
     
     /// Update CPU usage measurement
-    pub fn update_cpu_usage(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn update_cpu_usage(&mut self) -> MonitoringResult<()> {
         let cpu_usage = self.get_current_cpu_usage()?;
         
         // Update current usage
@@ -158,7 +160,7 @@ impl CpuMonitor {
     }
     
     /// Get current CPU usage percentage
-    fn get_current_cpu_usage(&mut self) -> Result<f64, Box<dyn std::error::Error>> {
+    fn get_current_cpu_usage(&mut self) -> MonitoringResult<f64> {
         let current_time = self.get_current_cpu_time()?;
         
         let usage = if let Ok(mut last_time_guard) = self.last_cpu_time.lock() {
@@ -189,7 +191,7 @@ impl CpuMonitor {
     }
     
     /// Get current CPU time (platform-specific)
-    fn get_current_cpu_time(&self) -> Result<CpuTime, Box<dyn std::error::Error>> {
+    fn get_current_cpu_time(&self) -> MonitoringResult<CpuTime> {
         #[cfg(unix)]
         {
             self.get_unix_cpu_time()
@@ -202,7 +204,7 @@ impl CpuMonitor {
     
     /// Get CPU time on Unix systems
     #[cfg(unix)]
-    fn get_unix_cpu_time(&self) -> Result<CpuTime, Box<dyn std::error::Error>> {
+    fn get_unix_cpu_time(&self) -> MonitoringResult<CpuTime> {
         #[cfg(target_os = "linux")]
         {
             self.get_linux_cpu_time()
@@ -219,7 +221,7 @@ impl CpuMonitor {
     
     /// Get CPU time on Linux systems
     #[cfg(target_os = "linux")]
-    fn get_linux_cpu_time(&self) -> Result<CpuTime, Box<dyn std::error::Error>> {
+    fn get_linux_cpu_time(&self) -> MonitoringResult<CpuTime> {
         use std::fs;
         use std::time::SystemTime;
         
@@ -256,7 +258,7 @@ impl CpuMonitor {
     
     /// Get CPU time on macOS systems
     #[cfg(target_os = "macos")]
-    fn get_macos_cpu_time(&self) -> Result<CpuTime, Box<dyn std::error::Error>> {
+    fn get_macos_cpu_time(&self) -> MonitoringResult<CpuTime> {
         use std::process::Command;
         use std::time::SystemTime;
         
@@ -302,7 +304,7 @@ impl CpuMonitor {
     
     /// Get CPU time on other Unix systems
     #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
-    fn get_other_unix_cpu_time(&self) -> Result<CpuTime, Box<dyn std::error::Error>> {
+    fn get_other_unix_cpu_time(&self) -> MonitoringResult<CpuTime> {
         use std::time::SystemTime;
         
         // Fallback implementation for other Unix systems
@@ -323,7 +325,7 @@ impl CpuMonitor {
     
     /// Get CPU time on Windows systems
     #[cfg(windows)]
-    fn get_windows_cpu_time(&self) -> Result<CpuTime, Box<dyn std::error::Error>> {
+    fn get_windows_cpu_time(&self) -> MonitoringResult<CpuTime> {
         use std::mem;
         use std::time::SystemTime;
         use winapi::um::processthreadsapi::{GetCurrentProcess, GetProcessTimes};
@@ -515,7 +517,7 @@ impl CpuMonitor {
     }
     
     /// Update CPU usage and add to history
-    pub fn update(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn update(&mut self) -> MonitoringResult<()> {
         let current_usage = self.get_current_cpu_usage()?;
         
         // Update current usage
@@ -574,14 +576,13 @@ impl Default for CpuMonitor {
 impl Monitor for CpuMonitor {
     type Stats = CpuUsage;
     
-    fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn start(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = true;
-        // Initialize first measurement
-        let _ = self.get_current_cpu_usage();
+        self.last_cpu_time = Arc::new(Mutex::new(None));
         Ok(())
     }
     
-    fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn stop(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = false;
         Ok(())
     }
@@ -590,15 +591,18 @@ impl Monitor for CpuMonitor {
         self.is_monitoring
     }
     
-    fn get_stats(&self) -> Self::Stats {
-        self.get_cpu_usage()
+    fn get_stats(&self) -> MonitoringResult<Self::Stats> {
+        Ok(self.get_cpu_usage())
     }
     
-    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn reset(&mut self) -> MonitoringResult<()> {
         // Reset current usage
-        if let Ok(mut current) = self.current_usage.lock() {
-            *current = 0.0;
-        }
+        self.current_usage.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "current usage".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+            .clone_from(&0.0);
         
         // Reset all history queues
         let histories = [
@@ -607,17 +611,42 @@ impl Monitor for CpuMonitor {
         ];
         
         for history in histories {
-            if let Ok(mut hist) = history.lock() {
-                hist.clear();
-            }
+            history.lock()
+                .map_err(|_| MonitoringError::LockFailed {
+            resource: "history queue".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+                .clear();
         }
         
         // Reset last CPU time
-        if let Ok(mut last_time) = self.last_cpu_time.lock() {
-            *last_time = None;
-        }
+        self.last_cpu_time.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+            resource: "last CPU time".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?
+            .take();
         
         Ok(())
+    }
+    
+    fn update(&mut self) -> MonitoringResult<()> {
+        let current_usage = self.get_current_cpu_usage()
+            .with_context("get CPU usage")?;
+        
+        // Update current usage
+        if let Ok(mut current) = self.current_usage.lock() {
+            *current = current_usage;
+        }
+        
+        // Add to history queues
+        self.add_to_history(current_usage);
+        
+        Ok(())
+    }
+    
+    fn module_name(&self) -> &'static str {
+        "cpu"
     }
 }
 
@@ -627,40 +656,62 @@ pub static CPU_MONITOR: Lazy<Arc<Mutex<CpuMonitor>>> = Lazy::new(|| {
 });
 
 /// Initialize CPU monitoring
-pub fn init_cpu_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = CPU_MONITOR.lock().map_err(|_| "Failed to lock CPU monitor")?;
+pub fn init_cpu_monitor() -> MonitoringResult<()> {
+    let mut monitor = CPU_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "CPU monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.start()
 }
 
 /// Start CPU monitoring
-pub fn start_cpu_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = CPU_MONITOR.lock().map_err(|_| "Failed to lock CPU monitor")?;
+pub fn start_cpu_monitor() -> MonitoringResult<()> {
+    let mut monitor = CPU_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "CPU monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.start()
 }
 
 /// Stop CPU monitoring
-pub fn stop_cpu_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = CPU_MONITOR.lock().map_err(|_| "Failed to lock CPU monitor")?;
+pub fn stop_cpu_monitor() -> MonitoringResult<()> {
+    let mut monitor = CPU_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "CPU monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.stop()
 }
 
 /// Get current CPU usage statistics
-pub fn get_cpu_usage() -> CpuUsage {
-    let monitor = CPU_MONITOR.lock().unwrap_or_else(|_| {
-        panic!("Failed to lock CPU monitor")
-    });
+pub fn get_cpu_usage() -> MonitoringResult<CpuUsage> {
+    let monitor = CPU_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "CPU monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.get_stats()
 }
 
 /// Update CPU usage (should be called periodically)
-pub fn update_cpu_usage() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = CPU_MONITOR.lock().map_err(|_| "Failed to lock CPU monitor")?;
+pub fn update_cpu_usage() -> MonitoringResult<()> {
+    let mut monitor = CPU_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "CPU monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.update()
 }
 
 /// Reset CPU monitoring statistics
-pub fn reset_cpu_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = CPU_MONITOR.lock().map_err(|_| "Failed to lock CPU monitor")?;
+pub fn reset_cpu_monitor() -> MonitoringResult<()> {
+    let mut monitor = CPU_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "CPU monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     monitor.reset()
 }
 
@@ -673,11 +724,15 @@ pub fn is_cpu_monitor_running() -> bool {
 }
 
 /// Format CPU usage for logging
-pub fn format_cpu_usage(alinode_format: bool) -> String {
-    let monitor = CPU_MONITOR.lock().unwrap();
-    let usage = monitor.get_stats();
+pub fn format_cpu_usage(alinode_format: bool) -> MonitoringResult<String> {
+    let monitor = CPU_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "CPU monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
+    let usage = monitor.get_stats()?;
     
-    if alinode_format {
+    let formatted = if alinode_format {
         format!(
             "cpu_usage(%%) now: {:.2}, cpu_15: {:.2}, cpu_30: {:.2}, cpu_60: {:.2}, cpu_180: {:.2}, cpu_300: {:.2}, cpu_600: {:.2}",
             usage.current,
@@ -699,7 +754,9 @@ pub fn format_cpu_usage(alinode_format: bool) -> String {
             usage.avg_5m,
             usage.avg_10m,
         )
-    }
+    };
+    
+    Ok(formatted)
 }
 
 #[cfg(test)]
@@ -759,7 +816,7 @@ mod tests {
         assert!(init_cpu_monitor().is_ok());
         assert!(is_cpu_monitor_running());
         
-        let usage = get_cpu_usage();
+        let usage = get_cpu_usage().unwrap();
         assert!(usage.current >= 0.0);
         
         assert!(stop_cpu_monitor().is_ok());
@@ -770,10 +827,10 @@ mod tests {
     fn test_format_cpu_usage() {
         let _ = init_cpu_monitor();
         
-        let alinode_format = format_cpu_usage(true);
+        let alinode_format = format_cpu_usage(true).unwrap();
         assert!(alinode_format.contains("cpu_usage(%%) now:"));
         
-        let normal_format = format_cpu_usage(false);
+        let normal_format = format_cpu_usage(false).unwrap();
         assert!(normal_format.contains("cpu_usage(%%) cpu_now:"));
     }
 

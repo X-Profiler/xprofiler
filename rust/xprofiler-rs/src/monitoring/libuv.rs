@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use super::Monitor;
+use super::error::{MonitoringResult, MonitoringError};
 
 /// libuv handle types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -369,13 +370,13 @@ impl Default for LibuvMonitor {
 impl Monitor for LibuvMonitor {
     type Stats = LibuvStats;
     
-    fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn start(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = true;
         self.start_time = Some(Instant::now());
         Ok(())
     }
     
-    fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn stop(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = false;
         Ok(())
     }
@@ -384,14 +385,23 @@ impl Monitor for LibuvMonitor {
         self.is_monitoring
     }
     
-    fn get_stats(&self) -> Self::Stats {
-        self.get_libuv_stats()
+    fn get_stats(&self) -> MonitoringResult<Self::Stats> {
+        Ok(self.get_libuv_stats())
     }
     
-    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn reset(&mut self) -> MonitoringResult<()> {
         self.clear_data();
         self.start_time = None;
         Ok(())
+    }
+    
+    fn update(&mut self) -> MonitoringResult<()> {
+        // libuv monitoring doesn't need periodic updates
+        Ok(())
+    }
+    
+    fn module_name(&self) -> &'static str {
+        "libuv"
     }
 }
 
@@ -399,58 +409,112 @@ impl Monitor for LibuvMonitor {
 static LIBUV_MONITOR: Mutex<Option<LibuvMonitor>> = Mutex::new(None);
 
 /// Initialize global libuv monitor
-pub fn init_libuv_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = LIBUV_MONITOR.lock().unwrap();
+pub fn init_libuv_monitor() -> MonitoringResult<()> {
+    let mut monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     *monitor = Some(LibuvMonitor::new());
     Ok(())
 }
 
 /// Register a new handle
-pub fn register_handle(handle_type: HandleType, is_active: bool, is_referenced: bool) -> u64 {
-    let mut monitor = LIBUV_MONITOR.lock().unwrap();
+pub fn register_handle(handle_type: HandleType, is_active: bool, is_referenced: bool) -> MonitoringResult<u64> {
+    let mut monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut libuv_monitor) = monitor.as_mut() {
-        libuv_monitor.register_handle(handle_type, is_active, is_referenced)
+        Ok(libuv_monitor.register_handle(handle_type, is_active, is_referenced))
     } else {
-        0
+        Err(MonitoringError::NotInitialized {
+            module: "libuv monitor".to_string(),
+        })
     }
 }
 
 /// Unregister a handle
-pub fn unregister_handle(handle_id: u64) {
-    let mut monitor = LIBUV_MONITOR.lock().unwrap();
+pub fn unregister_handle(handle_id: u64) -> MonitoringResult<()> {
+    let mut monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut libuv_monitor) = monitor.as_mut() {
         libuv_monitor.unregister_handle(handle_id);
+        Ok(())
+    } else {
+        Err(MonitoringError::NotInitialized {
+            module: "libuv monitor".to_string(),
+        })
     }
 }
 
 /// Update handle status
-pub fn update_handle_status(handle_id: u64, is_active: bool, is_referenced: bool) {
-    let mut monitor = LIBUV_MONITOR.lock().unwrap();
+pub fn update_handle_status(handle_id: u64, is_active: bool, is_referenced: bool) -> MonitoringResult<()> {
+    let mut monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut libuv_monitor) = monitor.as_mut() {
         libuv_monitor.update_handle_status(handle_id, is_active, is_referenced);
+        Ok(())
+    } else {
+        Err(MonitoringError::NotInitialized {
+            module: "libuv monitor".to_string(),
+        })
     }
 }
 
 /// Record event loop iteration
-pub fn record_loop_iteration(iteration_time: Duration, idle_time: Duration, prepare_time: Duration, check_time: Duration, poll_time: Duration) {
-    let mut monitor = LIBUV_MONITOR.lock().unwrap();
+pub fn record_loop_iteration(iteration_time: Duration, idle_time: Duration, prepare_time: Duration, check_time: Duration, poll_time: Duration) -> MonitoringResult<()> {
+    let mut monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut libuv_monitor) = monitor.as_mut() {
         libuv_monitor.record_loop_iteration(iteration_time, idle_time, prepare_time, check_time, poll_time);
+        Ok(())
+    } else {
+        Err(MonitoringError::NotInitialized {
+            module: "libuv monitor".to_string(),
+        })
     }
 }
 
 /// Update active handles and requests count
-pub fn update_active_counts(active_handles: u32, active_requests: u32) {
-    let mut monitor = LIBUV_MONITOR.lock().unwrap();
+pub fn update_active_counts(active_handles: u32, active_requests: u32) -> MonitoringResult<()> {
+    let mut monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut libuv_monitor) = monitor.as_mut() {
         libuv_monitor.update_active_counts(active_handles, active_requests);
+        Ok(())
+    } else {
+        Err(MonitoringError::NotInitialized {
+            module: "libuv monitor".to_string(),
+        })
     }
 }
 
 /// Get libuv statistics
-pub fn get_libuv_stats() -> Option<LibuvStats> {
-    let monitor = LIBUV_MONITOR.lock().unwrap();
-    monitor.as_ref().map(|m| m.get_libuv_stats())
+pub fn get_libuv_stats() -> MonitoringResult<LibuvStats> {
+    let monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
+    monitor.as_ref()
+        .map(|m| m.get_libuv_stats())
+        .ok_or_else(|| MonitoringError::NotInitialized {
+            module: "libuv monitor".to_string(),
+        })
 }
 
 /// Format libuv statistics for logging
@@ -463,8 +527,12 @@ pub fn format_libuv_stats() -> String {
 }
 
 /// Start libuv monitoring
-pub fn start_libuv_monitoring() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = LIBUV_MONITOR.lock().unwrap();
+pub fn start_libuv_monitoring() -> MonitoringResult<()> {
+    let mut monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut libuv_monitor) = monitor.as_mut() {
         libuv_monitor.start()?;
     }
@@ -472,8 +540,12 @@ pub fn start_libuv_monitoring() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Stop libuv monitoring
-pub fn stop_libuv_monitoring() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = LIBUV_MONITOR.lock().unwrap();
+pub fn stop_libuv_monitoring() -> MonitoringResult<()> {
+    let mut monitor = LIBUV_MONITOR.lock()
+        .map_err(|_| MonitoringError::LockFailed {
+            resource: "libuv monitor".to_string(),
+            details: "Failed to acquire lock".to_string(),
+        })?;
     if let Some(ref mut libuv_monitor) = monitor.as_mut() {
         libuv_monitor.stop()?;
     }

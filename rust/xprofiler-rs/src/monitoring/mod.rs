@@ -9,24 +9,36 @@
 
 use std::time::Duration;
 
+// Export error handling
+pub mod error;
+pub use error::{MonitoringError, MonitoringResult, IntoMonitoringError};
+
 /// Common trait for all monitoring modules
 pub trait Monitor {
     type Stats;
     
     /// Start monitoring
-    fn start(&mut self) -> Result<(), Box<dyn std::error::Error>>;
+    fn start(&mut self) -> MonitoringResult<()>;
     
     /// Stop monitoring
-    fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>>;
+    fn stop(&mut self) -> MonitoringResult<()>;
     
     /// Check if monitoring is running
     fn is_running(&self) -> bool;
     
     /// Get current statistics
-    fn get_stats(&self) -> Self::Stats;
+    fn get_stats(&self) -> MonitoringResult<Self::Stats>;
     
     /// Reset monitoring data
-    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>>;
+    fn reset(&mut self) -> MonitoringResult<()>;
+    
+    /// Update monitoring data (optional, for modules that need periodic updates)
+    fn update(&mut self) -> MonitoringResult<()> {
+        Ok(())
+    }
+    
+    /// Get module name for error reporting
+    fn module_name(&self) -> &'static str;
 }
 
 /// Time period for averaging metrics
