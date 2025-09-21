@@ -8,6 +8,7 @@ pub mod environment;
 pub mod utils;
 pub mod platform;
 pub mod monitoring;
+pub mod profiler;
 
 #[cfg(feature = "napi")]
 pub mod bindings;

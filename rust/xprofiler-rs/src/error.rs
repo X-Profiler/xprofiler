@@ -89,6 +89,9 @@ pub enum MonitorType {
     Http,
     Libuv,
     Environment,
+    CpuProfiler,
+    HeapProfiler,
+    GcProfiler,
 }
 
 impl fmt::Display for XProfilerError {
