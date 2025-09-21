@@ -11,6 +11,11 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use once_cell::sync::Lazy;
 
+#[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+use std::arch::x86_64::*;
+#[cfg(target_arch = "aarch64")]
+use std::arch::aarch64::*;
+
 use super::Monitor;
 
 /// CPU usage information
@@ -386,17 +391,127 @@ impl CpuMonitor {
         }
     }
     
-    /// Calculate average from history queue
+    /// Calculate average from history queue with SIMD optimization
     fn calculate_average(&self, history: &Arc<Mutex<VecDeque<f64>>>) -> f64 {
         if let Ok(hist) = history.lock() {
             if hist.is_empty() {
                 0.0
             } else {
-                hist.iter().sum::<f64>() / hist.len() as f64
+                let values: Vec<f64> = hist.iter().copied().collect();
+                self.calculate_average_simd(&values)
             }
         } else {
             0.0
         }
+    }
+    
+    /// SIMD-optimized average calculation
+    fn calculate_average_simd(&self, values: &[f64]) -> f64 {
+        if values.is_empty() {
+            return 0.0;
+        }
+        
+        #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+        {
+            if is_x86_feature_detected!("avx2") {
+                return unsafe { self.calculate_average_avx2(values) };
+            } else if is_x86_feature_detected!("sse2") {
+                return unsafe { self.calculate_average_sse2(values) };
+            }
+        }
+        
+        #[cfg(target_arch = "aarch64")]
+        {
+            if std::arch::is_aarch64_feature_detected!("neon") {
+                return unsafe { self.calculate_average_neon(values) };
+            }
+        }
+        
+        // Fallback to scalar implementation
+        self.calculate_average_scalar(values)
+    }
+    
+    /// Scalar fallback implementation
+    fn calculate_average_scalar(&self, values: &[f64]) -> f64 {
+        values.iter().sum::<f64>() / values.len() as f64
+    }
+    
+    /// AVX2-optimized average calculation for x86_64
+    #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+    #[target_feature(enable = "avx2")]
+    unsafe fn calculate_average_avx2(&self, values: &[f64]) -> f64 {
+        let mut sum = _mm256_setzero_pd();
+        let chunks = values.chunks_exact(4);
+        let remainder = chunks.remainder();
+        
+        for chunk in chunks {
+            let v = _mm256_loadu_pd(chunk.as_ptr());
+            sum = _mm256_add_pd(sum, v);
+        }
+        
+        // Horizontal sum of the 4 doubles in the AVX2 register
+        let sum_high = _mm256_extractf128_pd(sum, 1);
+        let sum_low = _mm256_castpd256_pd128(sum);
+        let sum_combined = _mm_add_pd(sum_high, sum_low);
+        let sum_final = _mm_hadd_pd(sum_combined, sum_combined);
+        
+        let mut total = _mm_cvtsd_f64(sum_final);
+        
+        // Handle remainder
+        for &value in remainder {
+            total += value;
+        }
+        
+        total / values.len() as f64
+    }
+    
+    /// SSE2-optimized average calculation for x86_64
+    #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+    #[target_feature(enable = "sse2")]
+    unsafe fn calculate_average_sse2(&self, values: &[f64]) -> f64 {
+        let mut sum = _mm_setzero_pd();
+        let chunks = values.chunks_exact(2);
+        let remainder = chunks.remainder();
+        
+        for chunk in chunks {
+            let v = _mm_loadu_pd(chunk.as_ptr());
+            sum = _mm_add_pd(sum, v);
+        }
+        
+        // Horizontal sum of the 2 doubles in the SSE register
+        let sum_final = _mm_hadd_pd(sum, sum);
+        let mut total = _mm_cvtsd_f64(sum_final);
+        
+        // Handle remainder
+        for &value in remainder {
+            total += value;
+        }
+        
+        total / values.len() as f64
+    }
+    
+    /// NEON-optimized average calculation for AArch64
+    #[cfg(target_arch = "aarch64")]
+    #[target_feature(enable = "neon")]
+    unsafe fn calculate_average_neon(&self, values: &[f64]) -> f64 {
+        let mut sum = vdupq_n_f64(0.0);
+        let chunks = values.chunks_exact(2);
+        let remainder = chunks.remainder();
+        
+        for chunk in chunks {
+            let v = vld1q_f64(chunk.as_ptr());
+            sum = vaddq_f64(sum, v);
+        }
+        
+        // Horizontal sum of the 2 doubles in the NEON register
+        let mut total = vgetq_lane_f64(sum, 0) + vgetq_lane_f64(sum, 1);
+        
+        // Handle remainder
+        for &value in remainder {
+            total += value;
+        }
+        
+        total / values.len() as f64
     }
     
     /// Update CPU usage and add to history
