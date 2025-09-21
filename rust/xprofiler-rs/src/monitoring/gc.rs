@@ -559,8 +559,8 @@ pub fn format_gc_stats() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::thread;
-    use std::time::Duration as StdDuration;
+    
+    
     
     #[test]
     fn test_gc_monitor_creation() {
@@ -700,11 +700,14 @@ mod tests {
         start_gc_monitoring();
         assert!(is_gc_monitor_running());
         
-        stop_gc_monitoring();
+        let _ = stop_gc_monitoring();
         assert!(!is_gc_monitor_running());
         
         // Reset before testing
-        reset_gc_monitor();
+        let _ = reset_gc_monitor();
+        
+        // Start monitoring again to record events
+        start_gc_monitoring();
         
         let event = GcEvent {
             gc_type: GcType::Scavenge,
@@ -729,7 +732,10 @@ mod tests {
     
     #[test]
     fn test_format_gc_stats() {
-        reset_gc_monitor();
+        let _ = reset_gc_monitor();
+        
+        // Start monitoring to record events
+        start_gc_monitoring();
         
         let event = GcEvent {
             gc_type: GcType::Scavenge,

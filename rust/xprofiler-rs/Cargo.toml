@@ -68,3 +68,4 @@ harness = false
 default = []
 benchmarks = []
 testing = []
+napi = []

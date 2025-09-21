@@ -3,7 +3,7 @@
 //! This module provides platform-specific optimizations, CPU architecture detection,
 //! and performance enhancements for different operating systems and hardware.
 
-use crate::error::{XProfilerError, XProfilerResult};
+use crate::error::XProfilerResult;
 use std::sync::OnceLock;
 
 /// CPU architecture information
