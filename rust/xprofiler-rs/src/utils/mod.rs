@@ -149,7 +149,6 @@ pub fn get_v8_version() -> String {
 #[cfg(unix)]
 fn get_process_info_unix(pid: u32) -> Result<ProcessInfo, Box<dyn std::error::Error>> {
     use std::fs;
-    use std::path::Path;
     
     let proc_path = format!("/proc/{}", pid);
     

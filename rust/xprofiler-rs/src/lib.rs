@@ -1,22 +1,24 @@
-#![deny(clippy::all)]
+//! XProfiler Rust Implementation
+//!
+//! A high-performance Node.js profiler written in Rust.
 
-use napi_derive::napi;
-
-// Core modules
 pub mod config;
+pub mod error;
 pub mod environment;
-pub mod logger;
-pub mod monitoring;
 pub mod utils;
+pub mod platform;
+pub mod monitoring;
+
+#[cfg(feature = "napi")]
 pub mod bindings;
 
-// Re-export main functionality
-pub use config::*;
-pub use environment::*;
-pub use logger::*;
-pub use monitoring::*;
+// Re-export commonly used types
+pub use error::{XProfilerError, XProfilerResult};
 
-#[napi]
-pub fn plus_100(input: u32) -> u32 {
-  input + 100
+/// Initialize the profiler
+#[cfg(feature = "napi")]
+pub fn init() -> napi::Result<()> {
+    env_logger::init();
+    log::info!("XProfiler initialized");
+    Ok(())
 }

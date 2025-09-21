@@ -20,7 +20,7 @@ static ENV_REGISTRY: Lazy<Arc<RwLock<EnvironmentRegistry>>> = Lazy::new(|| {
     Arc::new(RwLock::new(EnvironmentRegistry::new()))
 });
 
-/// Thread-local environment data
+// Thread-local environment data
 thread_local! {
     static THREAD_ENV_DATA: std::cell::RefCell<Option<EnvironmentData>> = std::cell::RefCell::new(None);
 }
