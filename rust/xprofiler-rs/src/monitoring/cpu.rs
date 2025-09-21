@@ -219,35 +219,87 @@ impl CpuMonitor {
         }
     }
     
-    /// Get CPU time on Linux systems
+    /// Get CPU time on Linux systems with optimized parsing
     #[cfg(target_os = "linux")]
     fn get_linux_cpu_time(&self) -> MonitoringResult<CpuTime> {
         use std::fs;
         use std::time::SystemTime;
         
-        // Read /proc/self/stat for process CPU time
-        let stat = fs::read_to_string("/proc/self/stat")?;
-        let fields: Vec<&str> = stat.split_whitespace().collect();
+        // Try to use cached file descriptor for better performance
+        static PROC_STAT_FD: Lazy<std::sync::Mutex<Option<std::fs::File>>> = 
+            Lazy::new(|| std::sync::Mutex::new(None));
         
-        if fields.len() < 15 {
-            return Err("Invalid /proc/self/stat format".into());
+        let stat_content = if let Ok(mut fd_guard) = PROC_STAT_FD.lock() {
+            if fd_guard.is_none() {
+                *fd_guard = std::fs::File::open("/proc/self/stat").ok();
+            }
+            
+            if let Some(ref mut file) = *fd_guard {
+                use std::io::{Read, Seek, SeekFrom};
+                let _ = file.seek(SeekFrom::Start(0));
+                let mut content = String::new();
+                if file.read_to_string(&mut content).is_ok() {
+                    content
+                } else {
+                    fs::read_to_string("/proc/self/stat")?
+                }
+            } else {
+                fs::read_to_string("/proc/self/stat")?
+            }
+        } else {
+            fs::read_to_string("/proc/self/stat")?
+        };
+        
+        // Optimized parsing: find the last ')' to handle process names with spaces
+        let close_paren = stat_content.rfind(')')
+            .ok_or_else(|| MonitoringError::ParseError {
+                message: "Invalid /proc/self/stat format: missing closing parenthesis".to_string(),
+                input: stat_content.clone(),
+            })?;
+        
+        let fields_part = &stat_content[close_paren + 1..];
+        let fields: Vec<&str> = fields_part.split_whitespace().collect();
+        
+        if fields.len() < 13 {
+            return Err(MonitoringError::ParseError {
+                message: format!("Invalid /proc/self/stat format: expected at least 13 fields after process name, got {}", fields.len()),
+                input: stat_content,
+            });
         }
         
-        // Fields 13 and 14 are utime and stime (in clock ticks)
-        let utime: u64 = fields[13].parse()?;
-        let stime: u64 = fields[14].parse()?;
+        // Fields 11 and 12 are utime and stime (in clock ticks) after the process name
+        let utime: u64 = fields[11].parse()
+            .map_err(|e| MonitoringError::ParseError {
+                message: format!("Failed to parse utime: {}", e),
+                input: fields[11].to_string(),
+            })?;
+        let stime: u64 = fields[12].parse()
+            .map_err(|e| MonitoringError::ParseError {
+                message: format!("Failed to parse stime: {}", e),
+                input: fields[12].to_string(),
+            })?;
         
-        // Convert clock ticks to nanoseconds
-        let clock_ticks_per_sec = unsafe { libc::sysconf(libc::_SC_CLK_TCK) } as u64;
-        let ns_per_tick = 1_000_000_000 / clock_ticks_per_sec;
+        // Convert clock ticks to nanoseconds with error handling
+        let clock_ticks_per_sec = unsafe { libc::sysconf(libc::_SC_CLK_TCK) };
+        if clock_ticks_per_sec <= 0 {
+            return Err(MonitoringError::SystemCall {
+                operation: "sysconf(_SC_CLK_TCK)".to_string(),
+                source: std::io::Error::new(std::io::ErrorKind::Other, "Invalid clock ticks per second"),
+            });
+        }
         
+        let ns_per_tick = 1_000_000_000 / clock_ticks_per_sec as u64;
         let user_time = utime * ns_per_tick;
         let system_time = stime * ns_per_tick;
         
-        // Get wall clock time
-        let wall_time = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)?
-            .as_nanos() as u64;
+        // Get wall clock time using platform-optimized timer
+        let wall_time = if crate::platform::get_platform_capabilities().has_high_res_timer {
+            unsafe { self.get_high_res_timestamp() }
+        } else {
+            SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)?
+                .as_nanos() as u64
+        };
         
         Ok(CpuTime {
             user_time,
@@ -256,50 +308,67 @@ impl CpuMonitor {
         })
     }
     
-    /// Get CPU time on macOS systems
+    /// Get CPU time on macOS systems using mach system calls
     #[cfg(target_os = "macos")]
     fn get_macos_cpu_time(&self) -> MonitoringResult<CpuTime> {
-        use std::process::Command;
+        use std::mem;
         use std::time::SystemTime;
         
-        // Use ps command to get CPU time for current process
-        let pid = std::process::id();
-        let output = Command::new("ps")
-            .args(["-o", "time,cputime", "-p", &pid.to_string()])
-            .output()?;
+        // Use mach system calls for accurate CPU time measurement
+        let mut info: libc::rusage = unsafe { mem::zeroed() };
+        let result = unsafe {
+            libc::getrusage(libc::RUSAGE_SELF, &mut info)
+        };
         
-        if !output.status.success() {
-            return Err("Failed to get CPU time from ps command".into());
+        if result != 0 {
+            return Err(MonitoringError::SystemCall {
+                operation: "getrusage".to_string(),
+                source: Box::new(std::io::Error::last_os_error()),
+            });
         }
         
-        let output_str = String::from_utf8_lossy(&output.stdout);
-        let lines: Vec<&str> = output_str.lines().collect();
+        // Convert timeval to nanoseconds
+        let user_time = (info.ru_utime.tv_sec as u64 * 1_000_000_000) + 
+                       (info.ru_utime.tv_usec as u64 * 1_000);
+        let system_time = (info.ru_stime.tv_sec as u64 * 1_000_000_000) + 
+                         (info.ru_stime.tv_usec as u64 * 1_000);
         
-        if lines.len() < 2 {
-            return Err("Invalid ps output format".into());
-        }
-        
-        // Parse the second line (first line is header)
-        let fields: Vec<&str> = lines[1].split_whitespace().collect();
-        if fields.len() < 2 {
-            return Err("Invalid ps output fields".into());
-        }
-        
-        // For simplicity, use a basic CPU time estimation
-        // In a real implementation, you might want to use mach system calls
-        let user_time = 1000000; // 1ms in nanoseconds as placeholder
-        let system_time = 1000000; // 1ms in nanoseconds as placeholder
-        
-        // Get wall clock time
-        let wall_time = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)?
-            .as_nanos() as u64;
+        // Get wall clock time using high-resolution timer if available
+        let wall_time = if crate::platform::get_platform_capabilities().has_high_res_timer {
+            unsafe { self.get_high_res_timestamp() }
+        } else {
+            SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)?
+                .as_nanos() as u64
+        };
         
         Ok(CpuTime {
             user_time,
             system_time,
             wall_time,
         })
+    }
+    
+    /// Get high-resolution timestamp using platform-specific optimizations
+    #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+    unsafe fn get_high_res_timestamp(&self) -> u64 {
+        if is_x86_feature_detected!("rdtsc") {
+            _rdtsc()
+        } else {
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos() as u64
+        }
+    }
+    
+    /// Get high-resolution timestamp fallback
+    #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
+    unsafe fn get_high_res_timestamp(&self) -> u64 {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos() as u64
     }
     
     /// Get CPU time on other Unix systems
@@ -785,7 +854,7 @@ mod tests {
     #[test]
     fn test_cpu_usage_stats() {
         let monitor = CpuMonitor::new();
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         
         assert_eq!(stats.current, 0.0);
         assert_eq!(stats.avg_15s, 0.0);
@@ -807,7 +876,7 @@ mod tests {
         // Reset should clear all data
         assert!(monitor.reset().is_ok());
         
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         assert_eq!(stats.avg_15s, 0.0);
     }
 

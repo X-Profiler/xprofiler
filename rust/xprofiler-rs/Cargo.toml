@@ -59,6 +59,10 @@ debug = false
 name = "benchmarks"
 harness = false
 
+[[bench]]
+name = "monitoring_overhead"
+harness = false
+
 [features]
 default = []
 benchmarks = []

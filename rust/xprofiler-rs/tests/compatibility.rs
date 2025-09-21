@@ -31,7 +31,7 @@ mod platform_compatibility_tests {
         }
         
         assert!(cpu_monitor.update().is_ok());
-        let stats = cpu_monitor.get_stats();
+        let stats = cpu_monitor.get_stats().unwrap();
         
         // CPU usage should be valid on all platforms
         assert!(stats.current >= 0.0);
@@ -50,11 +50,11 @@ mod platform_compatibility_tests {
         // Give the monitor time to collect initial data
         thread::sleep(Duration::from_millis(50));
         
-        let stats = memory_monitor.get_stats();
+        let stats = memory_monitor.get_stats().unwrap();
         
         // Memory stats should be valid on all platforms
         // Note: RSS might be 0 in some test environments, so we check if it's non-negative
-        assert!(stats.rss >= 0, "RSS should be non-negative");
+        assert!(stats.rss > 0, "RSS should be positive for a running process");
         // heap_used and external are unsigned, always >= 0
         assert!(stats.heap_total >= stats.heap_used, "Heap total should be >= heap used");
         
@@ -63,7 +63,7 @@ mod platform_compatibility_tests {
         let _large_allocation: Vec<u8> = vec![0; 1024 * 1024]; // 1MB
         
         thread::sleep(Duration::from_millis(10));
-        let new_stats = memory_monitor.get_stats();
+        let new_stats = memory_monitor.get_stats().unwrap();
         
         // Memory usage might increase (platform dependent)
         assert!(new_stats.rss >= initial_rss);
@@ -107,7 +107,7 @@ mod platform_compatibility_tests {
         };
         gc_monitor.record_gc_event(gc_event3);
         
-        let stats = gc_monitor.get_stats();
+        let stats = gc_monitor.get_stats().unwrap();
         assert_eq!(stats.total_gc_count, 3);
         assert!(stats.total_gc_time >= Duration::from_secs(1));
         
@@ -176,7 +176,7 @@ mod platform_compatibility_tests {
             response_time: Duration::from_millis(100),
         };
         http_monitor.record_response("req1".to_string(), error_response);
-        let stats = http_monitor.get_stats();
+        let stats = http_monitor.get_stats().unwrap();
         assert!(stats.error_rate > 0.0);
         assert!(stats.avg_response_time >= Duration::from_secs(1800)); // Should be high due to long response
         
@@ -232,7 +232,7 @@ mod platform_compatibility_tests {
             libuv_monitor.unregister_handle(handle_id);
         }
         
-        let stats = libuv_monitor.get_stats();
+        let stats = libuv_monitor.get_stats().unwrap();
         assert_eq!(stats.total_handles, 500); // 500 remaining
         assert_eq!(stats.loop_metrics.loop_count, 2);
         assert!(stats.loop_metrics.avg_loop_time > Duration::ZERO);

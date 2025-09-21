@@ -27,13 +27,13 @@ fn test_memory_stats_creation() {
     let rss = 1024 * 1024; // 1MB
     let heap_used = 512 * 1024; // 512KB
     let heap_total = 1024 * 1024; // 1MB
-    let external = 256 * 1024; // 256KB
+    let _external = 256 * 1024; // 256KB
     
     // Basic validation
     assert!(rss > 0);
     assert!(heap_used > 0);
     assert!(heap_total >= heap_used);
-    assert!(external >= 0);
+    // external is unsigned, always non-negative
 }
 
 // Test timing utilities
@@ -68,16 +68,15 @@ fn test_http_stats_creation() {
 #[test]
 fn test_gc_stats_creation() {
     // Test that we can create basic GC stats without NAPI
-    let gc_count = 5;
-    let gc_time = 25; // ms
+    let _gc_count = 5;
+    let _gc_time = 25; // ms
     let heap_before = 1024 * 1024;
     let heap_after = 512 * 1024;
     
     // Basic validation
-    assert!(gc_count >= 0);
-    assert!(gc_time >= 0);
+    // gc_count and gc_time are unsigned, always non-negative
     assert!(heap_before > 0);
-    assert!(heap_after >= 0);
+    // heap_after is unsigned, always non-negative
     assert!(heap_after <= heap_before); // GC should reduce heap usage
 }
 
@@ -85,12 +84,10 @@ fn test_gc_stats_creation() {
 #[test]
 fn test_libuv_stats_creation() {
     // Test that we can create basic libuv stats without NAPI
-    let active_handles = 10;
-    let active_requests = 5;
-    let idle_time = 1000; // ms
+    let _active_handles = 10;
+    let _active_requests = 5;
+    let _idle_time = 1000; // ms
     
     // Basic validation
-    assert!(active_handles >= 0);
-    assert!(active_requests >= 0);
-    assert!(idle_time >= 0);
+    // active_handles, active_requests, and idle_time are unsigned, always non-negative
 }

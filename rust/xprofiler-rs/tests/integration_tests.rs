@@ -85,11 +85,11 @@ mod monitoring_integration_tests {
         gc_monitor.record_gc_event(gc_event);
 
         // Verify stats collection
-        let cpu_stats = cpu_monitor.get_stats();
-        let memory_stats = memory_monitor.get_stats();
-        let gc_stats = gc_monitor.get_stats();
-        let http_stats = http_monitor.get_stats();
-        let libuv_stats = libuv_monitor.get_stats();
+        let cpu_stats = cpu_monitor.get_stats().unwrap();
+        let memory_stats = memory_monitor.get_stats().unwrap();
+        let gc_stats = gc_monitor.get_stats().unwrap();
+        let http_stats = http_monitor.get_stats().unwrap();
+        let libuv_stats = libuv_monitor.get_stats().unwrap();
 
         assert!(cpu_stats.current >= 0.0);
         assert!(memory_stats.rss > 0);
@@ -150,9 +150,9 @@ mod monitoring_integration_tests {
         http_monitor.record_response(request_id, response);
 
         // Verify activity was recorded
-        assert!(cpu_monitor.get_stats().current >= 0.0);
-        assert_eq!(gc_monitor.get_stats().total_gc_count, 1);
-        assert_eq!(http_monitor.get_stats().total_requests, 1);
+        assert!(cpu_monitor.get_stats().unwrap().current >= 0.0);
+        assert_eq!(gc_monitor.get_stats().unwrap().total_gc_count, 1);
+        assert_eq!(http_monitor.get_stats().unwrap().total_requests, 1);
 
         // Reset all monitors
         assert!(cpu_monitor.reset().is_ok());
@@ -160,9 +160,9 @@ mod monitoring_integration_tests {
         assert!(http_monitor.reset().is_ok());
 
         // Verify reset worked
-        assert_eq!(cpu_monitor.get_stats().current, 0.0);
-        assert_eq!(gc_monitor.get_stats().total_gc_count, 0);
-        assert_eq!(http_monitor.get_stats().total_requests, 0);
+        assert_eq!(cpu_monitor.get_stats().unwrap().current, 0.0);
+        assert_eq!(gc_monitor.get_stats().unwrap().total_gc_count, 0);
+        assert_eq!(http_monitor.get_stats().unwrap().total_requests, 0);
 
         // Stop monitors
         cpu_monitor.stop().unwrap();
@@ -203,8 +203,8 @@ mod monitoring_integration_tests {
             }
         }
 
-        let cpu_stats = cpu_monitor.get_stats();
-        let libuv_stats = libuv_monitor.get_stats();
+        let cpu_stats = cpu_monitor.get_stats().unwrap();
+        let libuv_stats = libuv_monitor.get_stats().unwrap();
 
         assert!(cpu_stats.current >= 0.0);
         assert!(libuv_stats.loop_metrics.loop_count >= 100);
@@ -222,7 +222,7 @@ mod monitoring_integration_tests {
         memory_monitor.start().unwrap();
         gc_monitor.start().unwrap();
 
-        let initial_memory = memory_monitor.get_stats().rss;
+        let initial_memory = memory_monitor.get_stats().unwrap().rss;
 
         // Simulate memory allocation and GC cycles
         let mut allocations = Vec::new();
@@ -244,8 +244,8 @@ mod monitoring_integration_tests {
             thread::sleep(Duration::from_millis(10));
         }
 
-        let final_memory = memory_monitor.get_stats().rss;
-        let gc_stats = gc_monitor.get_stats();
+        let final_memory = memory_monitor.get_stats().unwrap().rss;
+        let gc_stats = gc_monitor.get_stats().unwrap();
 
         // Memory should have increased
         assert!(final_memory >= initial_memory);
@@ -335,7 +335,7 @@ mod monitoring_integration_tests {
             http_monitor.record_response(request_id, response);
         }
 
-        let stats = http_monitor.get_stats();
+        let stats = http_monitor.get_stats().unwrap();
         
         assert_eq!(stats.total_requests, 55);
         // Check error responses (status codes >= 400)
@@ -393,8 +393,8 @@ mod napi_integration_tests {
         cpu_monitor.update().unwrap();
         memory_monitor.update().unwrap();
 
-        let cpu_stats = cpu_monitor.get_stats();
-        let memory_stats = memory_monitor.get_stats();
+        let cpu_stats = cpu_monitor.get_stats().unwrap();
+        let memory_stats = memory_monitor.get_stats().unwrap();
 
         // Both monitors should show activity
         assert!(cpu_stats.current >= 0.0);

@@ -20,7 +20,7 @@ mod cpu_tests {
     fn test_cpu_monitor_creation() {
         let monitor = CpuMonitor::new();
         assert!(!monitor.is_running());
-        assert_eq!(monitor.get_stats().current, 0.0);
+        assert_eq!(monitor.get_stats().unwrap().current, 0.0);
     }
 
     #[test]
@@ -45,7 +45,7 @@ mod cpu_tests {
         thread::sleep(Duration::from_millis(100));
         monitor.update().unwrap();
         
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         assert!(stats.current >= 0.0);
         assert!(stats.current <= 100.0);
         
@@ -63,7 +63,7 @@ mod cpu_tests {
             monitor.update().unwrap();
         }
         
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         assert!(stats.avg_1m >= 0.0);
         assert!(stats.avg_5m >= 0.0);
         assert!(stats.avg_15s >= 0.0);
@@ -81,7 +81,7 @@ mod cpu_tests {
         
         // Reset and verify
         assert!(monitor.reset().is_ok());
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         assert_eq!(stats.current, 0.0);
         
         monitor.stop().unwrap();
@@ -118,8 +118,8 @@ mod memory_tests {
         // Give the monitor time to collect initial data
         thread::sleep(Duration::from_millis(50));
         
-        let stats = monitor.get_stats();
-        assert!(stats.rss >= 0);
+        let stats = monitor.get_stats().unwrap();
+        assert!(stats.rss > 0); // RSS should be positive for a running process
         // heap_used and external are unsigned, always >= 0
         assert!(stats.heap_total >= stats.heap_used);
         
@@ -137,8 +137,8 @@ mod memory_tests {
         // Give the monitor time to collect data
         thread::sleep(Duration::from_millis(50));
         
-        let stats = monitor.get_stats();
-        assert!(stats.rss >= 0);
+        let stats = monitor.get_stats().unwrap();
+        assert!(stats.rss > 0); // RSS should be positive for a running process
         
         monitor.stop().unwrap();
     }
@@ -169,7 +169,7 @@ mod gc_tests {
     #[test]
     fn test_gc_stats_initialization() {
         let monitor = GcMonitor::new();
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         
         assert_eq!(stats.total_gc_count, 0);
         assert_eq!(stats.total_gc_time, Duration::ZERO);
@@ -190,7 +190,7 @@ mod gc_tests {
         };
         monitor.record_gc_event(gc_event);
         
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         assert_eq!(stats.total_gc_count, 1);
         assert!(stats.total_gc_time > Duration::ZERO);
         
@@ -336,7 +336,7 @@ mod libuv_tests {
         );
         
         // Get stats
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         assert!(stats.total_handles > 0);
         
         // Stop monitoring
@@ -352,7 +352,7 @@ mod libuv_tests {
         let handle_id = monitor.register_handle(HandleType::Tcp, true, true);
         monitor.unregister_handle(handle_id);
         
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         assert_eq!(stats.total_handles, 0);
         assert_eq!(stats.total_active_handles, 0);
         
@@ -372,7 +372,7 @@ mod libuv_tests {
             Duration::from_millis(6)
         );
         
-        let stats = monitor.get_stats();
+        let stats = monitor.get_stats().unwrap();
         assert_eq!(stats.loop_metrics.loop_count, 1);
         assert!(stats.loop_metrics.avg_loop_time > Duration::ZERO);
         

@@ -33,7 +33,7 @@ fn system_info_collection(c: &mut Criterion) {
 fn process_info_collection(c: &mut Criterion) {
     c.bench_function("process_info_collection", |b| {
         b.iter(|| {
-            black_box(get_process_info());
+            let _ = black_box(get_process_info());
         })
     });
 }
@@ -62,7 +62,7 @@ fn cpu_monitor_benchmark(c: &mut Criterion) {
         monitor.start().unwrap();
         
         b.iter(|| {
-            black_box(monitor.get_stats());
+            let _ = black_box(monitor.get_stats());
         });
         
         monitor.stop().unwrap();
@@ -75,7 +75,7 @@ fn memory_monitor_benchmark(c: &mut Criterion) {
         monitor.start().unwrap();
         
         b.iter(|| {
-            black_box(monitor.get_stats());
+            let _ = black_box(monitor.get_stats());
         });
         
         monitor.stop().unwrap();
