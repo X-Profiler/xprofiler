@@ -1,10 +1,14 @@
 //! Memory monitoring module
 //!
 //! This module provides memory usage monitoring capabilities including
-//! RSS, heap usage, and other memory-related metrics.
+//! RSS, heap usage, and other memory-related metrics with historical tracking
+//! and time period averages following the original C++ implementation.
 
-use std::sync::Mutex;
-use super::Monitor;
+use std::collections::VecDeque;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
+use once_cell::sync::Lazy;
+use super::{Monitor, TimePeriod};
 
 /// Memory usage statistics
 #[derive(Debug, Clone)]
@@ -21,12 +25,39 @@ pub struct MemoryUsage {
     pub external: u64,
     /// Array buffers in bytes
     pub array_buffers: u64,
+    /// Average RSS over 15 seconds
+    pub avg_rss_15s: f64,
+    /// Average RSS over 30 seconds
+    pub avg_rss_30s: f64,
+    /// Average RSS over 1 minute
+    pub avg_rss_1m: f64,
+    /// Average RSS over 3 minutes
+    pub avg_rss_3m: f64,
+    /// Average RSS over 5 minutes
+    pub avg_rss_5m: f64,
+    /// Timestamp when this measurement was taken
+    pub timestamp: u64,
 }
 
 /// Memory monitor implementation
+#[derive(Debug)]
 pub struct MemoryMonitor {
     /// Whether monitoring is active
     is_monitoring: bool,
+    /// Historical RSS data for 15 seconds (capacity: 15)
+    history_rss_15s: VecDeque<u64>,
+    /// Historical RSS data for 30 seconds (capacity: 30)
+    history_rss_30s: VecDeque<u64>,
+    /// Historical RSS data for 1 minute (capacity: 60)
+    history_rss_1m: VecDeque<u64>,
+    /// Historical RSS data for 3 minutes (capacity: 180)
+    history_rss_3m: VecDeque<u64>,
+    /// Historical RSS data for 5 minutes (capacity: 300)
+    history_rss_5m: VecDeque<u64>,
+    /// Current RSS usage in bytes
+    current_rss: Arc<Mutex<u64>>,
+    /// Last update timestamp
+    last_update: Arc<Mutex<Option<Instant>>>,
 }
 
 impl MemoryMonitor {
@@ -34,22 +65,111 @@ impl MemoryMonitor {
     pub fn new() -> Self {
         Self {
             is_monitoring: false,
+            history_rss_15s: VecDeque::with_capacity(15),
+            history_rss_30s: VecDeque::with_capacity(30),
+            history_rss_1m: VecDeque::with_capacity(60),
+            history_rss_3m: VecDeque::with_capacity(180),
+            history_rss_5m: VecDeque::with_capacity(300),
+            current_rss: Arc::new(Mutex::new(0)),
+            last_update: Arc::new(Mutex::new(None)),
         }
     }
     
-    /// Get current memory usage
+    /// Update memory usage and add to history
+    pub fn update(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let process_memory = self.get_process_memory()?;
+        
+        // Update current RSS
+        {
+            let mut current_rss = self.current_rss.lock().map_err(|_| "Failed to lock current_rss")?;
+            *current_rss = process_memory.rss;
+        }
+        
+        // Add to history
+        self.add_to_history(process_memory.rss);
+        
+        // Update timestamp
+        {
+            let mut last_update = self.last_update.lock().map_err(|_| "Failed to lock last_update")?;
+            *last_update = Some(Instant::now());
+        }
+        
+        Ok(())
+    }
+    
+    /// Add RSS value to all history queues
+    fn add_to_history(&mut self, rss: u64) {
+        // Add to 15s history
+        if self.history_rss_15s.len() >= 15 {
+            self.history_rss_15s.pop_front();
+        }
+        self.history_rss_15s.push_back(rss);
+        
+        // Add to 30s history
+        if self.history_rss_30s.len() >= 30 {
+            self.history_rss_30s.pop_front();
+        }
+        self.history_rss_30s.push_back(rss);
+        
+        // Add to 1m history
+        if self.history_rss_1m.len() >= 60 {
+            self.history_rss_1m.pop_front();
+        }
+        self.history_rss_1m.push_back(rss);
+        
+        // Add to 3m history
+        if self.history_rss_3m.len() >= 180 {
+            self.history_rss_3m.pop_front();
+        }
+        self.history_rss_3m.push_back(rss);
+        
+        // Add to 5m history
+        if self.history_rss_5m.len() >= 300 {
+            self.history_rss_5m.pop_front();
+        }
+        self.history_rss_5m.push_back(rss);
+    }
+    
+    /// Get current memory usage with averages
     pub fn get_memory_usage(&self) -> Result<MemoryUsage, Box<dyn std::error::Error>> {
         let process_memory = self.get_process_memory()?;
         let heap_stats = self.get_heap_statistics();
         
+        let current_rss = self.current_rss.lock().map_err(|_| "Failed to lock current_rss")?;
+        
+        let avg_rss_15s = self.calculate_average(&self.history_rss_15s);
+        let avg_rss_30s = self.calculate_average(&self.history_rss_30s);
+        let avg_rss_1m = self.calculate_average(&self.history_rss_1m);
+        let avg_rss_3m = self.calculate_average(&self.history_rss_3m);
+        let avg_rss_5m = self.calculate_average(&self.history_rss_5m);
+        
         Ok(MemoryUsage {
-            rss: process_memory.rss,
+            rss: *current_rss,
             vms: process_memory.vms,
             heap_used: heap_stats.heap_used,
             heap_total: heap_stats.heap_total,
             external: heap_stats.external,
             array_buffers: heap_stats.array_buffers,
+            avg_rss_15s,
+            avg_rss_30s,
+            avg_rss_1m,
+            avg_rss_3m,
+            avg_rss_5m,
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs(),
         })
+    }
+    
+    /// Calculate average from history queue
+    fn calculate_average(&self, history: &VecDeque<u64>) -> f64 {
+        if history.is_empty() {
+            0.0
+        } else {
+            let sum: u64 = history.iter().sum();
+            sum as f64 / history.len() as f64
+        }
     }
     
     /// Get process memory information
@@ -155,7 +275,7 @@ impl Default for MemoryMonitor {
 }
 
 impl Monitor for MemoryMonitor {
-    type Output = MemoryUsage;
+    type Stats = MemoryUsage;
     
     fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.is_monitoring = true;
@@ -167,7 +287,11 @@ impl Monitor for MemoryMonitor {
         Ok(())
     }
     
-    fn get_metrics(&self) -> Self::Output {
+    fn is_running(&self) -> bool {
+        self.is_monitoring
+    }
+    
+    fn get_stats(&self) -> Self::Stats {
         self.get_memory_usage().unwrap_or(MemoryUsage {
             rss: 0,
             vms: 0,
@@ -175,47 +299,227 @@ impl Monitor for MemoryMonitor {
             heap_total: 0,
             external: 0,
             array_buffers: 0,
+            avg_rss_15s: 0.0,
+            avg_rss_30s: 0.0,
+            avg_rss_1m: 0.0,
+            avg_rss_3m: 0.0,
+            avg_rss_5m: 0.0,
+            timestamp: 0,
         })
     }
     
     fn reset(&mut self) {
-        // Memory monitoring doesn't need reset functionality
+        self.history_rss_15s.clear();
+        self.history_rss_30s.clear();
+        self.history_rss_1m.clear();
+        self.history_rss_3m.clear();
+        self.history_rss_5m.clear();
+        
+        if let Ok(mut current_rss) = self.current_rss.lock() {
+            *current_rss = 0;
+        }
+        
+        if let Ok(mut last_update) = self.last_update.lock() {
+            *last_update = None;
+        }
     }
 }
 
 /// Global memory monitor instance
-static MEMORY_MONITOR: Mutex<Option<MemoryMonitor>> = Mutex::new(None);
+static MEMORY_MONITOR: Lazy<Arc<Mutex<MemoryMonitor>>> = Lazy::new(|| {
+    Arc::new(Mutex::new(MemoryMonitor::new()))
+});
 
 /// Initialize global memory monitor
 pub fn init_memory_monitor() -> Result<(), Box<dyn std::error::Error>> {
-    let mut monitor = MEMORY_MONITOR.lock().unwrap();
-    *monitor = Some(MemoryMonitor::new());
+    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+    *monitor = MemoryMonitor::new();
     Ok(())
+}
+
+/// Start memory monitoring
+pub fn start_memory_monitoring() -> Result<(), Box<dyn std::error::Error>> {
+    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+    monitor.start()
+}
+
+/// Stop memory monitoring
+pub fn stop_memory_monitoring() -> Result<(), Box<dyn std::error::Error>> {
+    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+    monitor.stop()
+}
+
+/// Update memory usage
+pub fn update_memory_usage() -> Result<(), Box<dyn std::error::Error>> {
+    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+    monitor.update()
 }
 
 /// Get current memory usage statistics
 pub fn get_memory_usage() -> Option<MemoryUsage> {
-    let monitor = MEMORY_MONITOR.lock().unwrap();
-    monitor.as_ref().and_then(|m| m.get_memory_usage().ok())
+    let monitor = MEMORY_MONITOR.lock().ok()?;
+    monitor.get_memory_usage().ok()
 }
 
-/// Format memory usage for logging
+/// Get memory statistics
+pub fn get_memory_stats() -> Option<MemoryUsage> {
+    let monitor = MEMORY_MONITOR.lock().ok()?;
+    Some(monitor.get_stats())
+}
+
+/// Reset memory monitor
+pub fn reset_memory_monitor() -> Result<(), Box<dyn std::error::Error>> {
+    let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
+    monitor.reset();
+    Ok(())
+}
+
+/// Check if memory monitor is running
+pub fn is_memory_monitor_running() -> bool {
+    MEMORY_MONITOR.lock().map(|monitor| monitor.is_running()).unwrap_or(false)
+}
+
+/// Format memory usage for display
 pub fn format_memory_usage() -> String {
-    let monitor = MEMORY_MONITOR.lock().unwrap();
-    monitor
-        .as_ref()
-        .and_then(|m| m.format_memory_usage().ok())
-        .unwrap_or_else(|| "Memory monitor not initialized".to_string())
+    match get_memory_stats() {
+        Some(stats) => {
+            format!(
+                "Memory Usage:\n  RSS: {} MB (15s: {:.2} MB, 30s: {:.2} MB, 1m: {:.2} MB, 3m: {:.2} MB, 5m: {:.2} MB)\n  VMS: {} MB\n  Heap Used: {} MB\n  Heap Total: {} MB\n  External: {} MB\n  Array Buffers: {} MB\n  Timestamp: {}",
+                stats.rss / 1024 / 1024,
+                stats.avg_rss_15s / 1024.0 / 1024.0,
+                stats.avg_rss_30s / 1024.0 / 1024.0,
+                stats.avg_rss_1m / 1024.0 / 1024.0,
+                stats.avg_rss_3m / 1024.0 / 1024.0,
+                stats.avg_rss_5m / 1024.0 / 1024.0,
+                stats.vms / 1024 / 1024,
+                stats.heap_used / 1024 / 1024,
+                stats.heap_total / 1024 / 1024,
+                stats.external / 1024 / 1024,
+                stats.array_buffers / 1024 / 1024,
+                stats.timestamp
+            )
+        }
+        None => "Memory monitoring not available".to_string(),
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+    use std::thread;
+    use std::time::Duration;
+
     #[test]
     fn test_memory_monitor_creation() {
         let monitor = MemoryMonitor::new();
         assert!(!monitor.is_monitoring);
+    }
+
+    #[test]
+    fn test_memory_monitor_start_stop() {
+        let mut monitor = MemoryMonitor::new();
+        assert!(!monitor.is_running());
+        
+        monitor.start().unwrap();
+        assert!(monitor.is_running());
+        
+        monitor.stop().unwrap();
+        assert!(!monitor.is_running());
+    }
+
+    #[test]
+    fn test_memory_usage() {
+        let monitor = MemoryMonitor::new();
+        let usage = monitor.get_memory_usage();
+        assert!(usage.is_ok());
+        
+        let usage = usage.unwrap();
+        assert!(usage.rss > 0);
+        assert_eq!(usage.timestamp, 0); // Initial timestamp should be 0
+    }
+
+    #[test]
+    fn test_memory_update() {
+        let mut monitor = MemoryMonitor::new();
+        monitor.update().unwrap();
+        
+        let stats = monitor.get_stats();
+        assert!(stats.rss > 0);
+        assert!(stats.timestamp > 0);
+    }
+
+    #[test]
+    fn test_memory_averages() {
+        let mut monitor = MemoryMonitor::new();
+        
+        // Update multiple times to build history
+        for _ in 0..5 {
+            monitor.update().unwrap();
+            thread::sleep(Duration::from_millis(10));
+        }
+        
+        let stats = monitor.get_stats();
+        // Averages should be calculated based on history
+        assert!(stats.avg_rss_15s >= 0.0);
+        assert!(stats.avg_rss_30s >= 0.0);
+    }
+
+    #[test]
+    fn test_memory_reset() {
+        let mut monitor = MemoryMonitor::new();
+        
+        // Add some data
+        monitor.update().unwrap();
+        monitor.reset();
+        
+        // Check that history is cleared
+        assert_eq!(monitor.history_rss_15s.len(), 0);
+        assert_eq!(monitor.history_rss_30s.len(), 0);
+    }
+
+    #[test]
+    fn test_global_functions() {
+        init_memory_monitor().unwrap();
+        start_memory_monitoring().unwrap();
+        assert!(is_memory_monitor_running());
+        
+        update_memory_usage().unwrap();
+        let stats = get_memory_stats();
+        assert!(stats.is_some());
+        
+        stop_memory_monitoring().unwrap();
+        assert!(!is_memory_monitor_running());
+        
+        reset_memory_monitor().unwrap();
+    }
+
+    #[test]
+    fn test_format_memory_usage() {
+        init_memory_monitor().unwrap();
+        update_memory_usage().unwrap();
+        
+        let formatted = format_memory_usage();
+        assert!(formatted.contains("Memory Usage"));
+        assert!(formatted.contains("RSS:"));
+        assert!(formatted.contains("MB"));
+    }
+
+    #[test]
+    fn test_calculate_average() {
+        let monitor = MemoryMonitor::new();
+        
+        // Test with empty history
+        let avg = monitor.calculate_average(&monitor.history_rss_15s);
+        assert_eq!(avg, 0.0);
+        
+        // Test with some data
+        let mut test_queue = VecDeque::new();
+        test_queue.push_back(100);
+        test_queue.push_back(200);
+        test_queue.push_back(300);
+        
+        let avg = monitor.calculate_average(&test_queue);
+        assert_eq!(avg, 200.0); // (100 + 200 + 300) / 3
     }
     
     #[test]
@@ -227,6 +531,12 @@ mod tests {
             heap_total: 1024 * 1024,
             external: 256 * 1024,
             array_buffers: 128 * 1024,
+            avg_rss_15s: 0.0,
+            avg_rss_30s: 0.0,
+            avg_rss_1m: 0.0,
+            avg_rss_3m: 0.0,
+            avg_rss_5m: 0.0,
+            timestamp: 0,
         };
         
         assert_eq!(usage.rss, 1024 * 1024);
