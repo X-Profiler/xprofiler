@@ -2,6 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use xprofiler_rs::utils::{get_process_info, format_bytes};
 use xprofiler_rs::platform::{get_platform_capabilities, optimizations};
 use xprofiler_rs::monitoring::{
+    Monitor,
     cpu::CpuMonitor,
     memory::MemoryMonitor,
     gc::{GcMonitor, GcEvent, GcType},

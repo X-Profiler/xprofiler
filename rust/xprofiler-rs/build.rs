@@ -129,8 +129,11 @@ fn configure_optimization() {
             println!("cargo:rustc-link-arg=-flto");
             
             // Strip debug symbols in release builds
-            #[cfg(not(target_os = "windows"))]
+            #[cfg(target_os = "linux")]
             println!("cargo:rustc-link-arg=-Wl,--strip-debug");
+            
+            #[cfg(target_os = "macos")]
+            println!("cargo:rustc-link-arg=-Wl,-dead_strip");
             
             // Optimize for size
             println!("cargo:rustc-env=CARGO_CFG_OPTIMIZE=size");
