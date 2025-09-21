@@ -11,7 +11,7 @@ use std::time::Duration;
 
 /// Common trait for all monitoring modules
 pub trait Monitor {
-    type Output;
+    type Stats;
     
     /// Start monitoring
     fn start(&mut self) -> Result<(), Box<dyn std::error::Error>>;
@@ -19,11 +19,14 @@ pub trait Monitor {
     /// Stop monitoring
     fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>>;
     
-    /// Get current metrics
-    fn get_metrics(&self) -> Self::Output;
+    /// Check if monitoring is running
+    fn is_running(&self) -> bool;
+    
+    /// Get current statistics
+    fn get_stats(&self) -> Self::Stats;
     
     /// Reset monitoring data
-    fn reset(&mut self);
+    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 /// Time period for averaging metrics
@@ -50,6 +53,17 @@ impl TimePeriod {
             TimePeriod::OneMinute => Duration::from_secs(60),
             TimePeriod::TwoMinutes => Duration::from_secs(120),
             TimePeriod::FiveMinutes => Duration::from_secs(300),
+        }
+    }
+    
+    /// Get duration in seconds
+    pub fn as_seconds(&self) -> u64 {
+        match self {
+            TimePeriod::TenSeconds => 10,
+            TimePeriod::ThirtySeconds => 30,
+            TimePeriod::OneMinute => 60,
+            TimePeriod::TwoMinutes => 120,
+            TimePeriod::FiveMinutes => 300,
         }
     }
     

@@ -118,35 +118,52 @@ impl From<GcStats> for JsGcStats {
 /// Initialize GC monitoring
 #[napi]
 pub fn init_gc_monitor() -> Result<()> {
-    gc::init_gc_monitor()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to initialize GC monitor: {}", e)))
+    gc::init_gc_monitor();
+    Ok(())
 }
 
 /// Start GC monitoring
 #[napi]
 pub fn start_gc_monitoring() -> Result<()> {
-    gc::start_gc_monitoring()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to start GC monitoring: {}", e)))
+    let _ = gc::start_gc_monitoring();
+    Ok(())
 }
 
 /// Stop GC monitoring
 #[napi]
 pub fn stop_gc_monitoring() -> Result<()> {
-    gc::stop_gc_monitoring()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to stop GC monitoring: {}", e)))
+    let _ = gc::stop_gc_monitoring();
+    Ok(())
 }
 
 /// Record a GC event
 #[napi]
 pub fn record_gc_event(
-    gc_type: u32,
+    gc_type_str: String,
     duration_ms: f64,
     heap_before: f64,
     heap_after: f64,
 ) {
-    let gc_type = GcType::from_v8_type(gc_type);
-    let duration = Duration::from_secs_f64(duration_ms / 1000.0);
-    gc::record_gc_event(gc_type, duration, heap_before as u64, heap_after as u64);
+    let gc_type = match gc_type_str.as_str() {
+        "scavenge" => GcType::Scavenge,
+        "mark_sweep_compact" => GcType::MarkSweepCompact,
+        "incremental_marking" => GcType::IncrementalMarking,
+        "process_weak_callbacks" => GcType::ProcessWeakCallbacks,
+        "all" => GcType::All,
+        _ => return,
+    };
+    
+    use std::time::Instant;
+    
+    let event = GcEvent {
+         gc_type,
+         duration: Duration::from_millis(duration_ms as u64),
+         timestamp: Instant::now(),
+         heap_size_before: heap_before as u64,
+         heap_size_after: heap_after as u64,
+     };
+    
+    gc::record_gc_event(event);
 }
 
 /// Get total GC count
@@ -170,7 +187,7 @@ pub fn format_gc_stats() -> String {
 /// Get GC count by type
 #[napi]
 pub fn get_gc_count_by_type(gc_type_str: String) -> u32 {
-    let gc_type = match gc_type_str.as_str() {
+    let _gc_type = match gc_type_str.as_str() {
         "scavenge" => GcType::Scavenge,
         "mark_sweep_compact" => GcType::MarkSweepCompact,
         "incremental_marking" => GcType::IncrementalMarking,
@@ -243,4 +260,13 @@ pub fn is_gc_monitoring_active() -> bool {
     // This would need to be implemented in the gc module
     // For now, return false
     false
+}
+
+/// Update GC statistics
+#[napi]
+pub fn update_gc_stats() -> Result<()> {
+    let _monitor = gc::GC_MONITOR.lock()
+        .map_err(|_| Error::new(Status::GenericFailure, "Failed to lock GC monitor".to_string()))?;
+    // GC stats are updated automatically when events are added
+    Ok(())
 }

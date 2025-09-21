@@ -5,7 +5,7 @@ use std::io::{self, Write, BufWriter};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
-use std::time::{SystemTime, UNIX_EPOCH};
+// use std::time::{SystemTime, UNIX_EPOCH}; // Commented out unused imports
 
 /// Trait for log writers
 pub trait LogWriter {

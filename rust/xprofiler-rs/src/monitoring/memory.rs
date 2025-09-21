@@ -6,7 +6,7 @@
 
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use once_cell::sync::Lazy;
 use super::{Monitor, TimePeriod};
 
@@ -86,7 +86,7 @@ impl MemoryMonitor {
         }
         
         // Add to history
-        self.add_to_history(process_memory.rss);
+        self.add_to_history_all(process_memory.rss);
         
         // Update timestamp
         {
@@ -98,7 +98,7 @@ impl MemoryMonitor {
     }
     
     /// Add RSS value to all history queues
-    fn add_to_history(&mut self, rss: u64) {
+    fn add_to_history_all(&mut self, rss: u64) {
         // Add to 15s history
         if self.history_rss_15s.len() >= 15 {
             self.history_rss_15s.pop_front();
@@ -235,6 +235,15 @@ impl MemoryMonitor {
             heap_total: 0,
             external: 0,
             array_buffers: 0,
+            total_heap_size: 0,
+            total_heap_size_executable: 0,
+            total_physical_size: 0,
+            total_available_size: 0,
+            used_heap_size: 0,
+            heap_size_limit: 0,
+            malloced_memory: 0,
+            peak_malloced_memory: 0,
+            external_memory: 0,
         }
     }
     
@@ -261,11 +270,21 @@ struct ProcessMemory {
 }
 
 /// Heap statistics
-struct HeapStats {
-    heap_used: u64,
-    heap_total: u64,
-    external: u64,
-    array_buffers: u64,
+#[derive(Debug, Clone)]
+pub struct HeapStats {
+    pub heap_used: u64,
+    pub heap_total: u64,
+    pub external: u64,
+    pub array_buffers: u64,
+    pub total_heap_size: u64,
+    pub total_heap_size_executable: u64,
+    pub total_physical_size: u64,
+    pub total_available_size: u64,
+    pub used_heap_size: u64,
+    pub heap_size_limit: u64,
+    pub malloced_memory: u64,
+    pub peak_malloced_memory: u64,
+    pub external_memory: u64,
 }
 
 impl Default for MemoryMonitor {
@@ -308,7 +327,7 @@ impl Monitor for MemoryMonitor {
         })
     }
     
-    fn reset(&mut self) {
+    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.history_rss_15s.clear();
         self.history_rss_30s.clear();
         self.history_rss_1m.clear();
@@ -322,11 +341,13 @@ impl Monitor for MemoryMonitor {
         if let Ok(mut last_update) = self.last_update.lock() {
             *last_update = None;
         }
+        
+        Ok(())
     }
 }
 
 /// Global memory monitor instance
-static MEMORY_MONITOR: Lazy<Arc<Mutex<MemoryMonitor>>> = Lazy::new(|| {
+pub static MEMORY_MONITOR: Lazy<Arc<Mutex<MemoryMonitor>>> = Lazy::new(|| {
     Arc::new(Mutex::new(MemoryMonitor::new()))
 });
 
@@ -362,16 +383,17 @@ pub fn get_memory_usage() -> Option<MemoryUsage> {
 }
 
 /// Get memory statistics
-pub fn get_memory_stats() -> Option<MemoryUsage> {
-    let monitor = MEMORY_MONITOR.lock().ok()?;
-    Some(monitor.get_stats())
+pub fn get_memory_stats() -> Result<MemoryUsage, Box<dyn std::error::Error>> {
+    let monitor = MEMORY_MONITOR.lock()
+        .map_err(|_| "Failed to lock memory monitor")?;
+    
+    Ok(monitor.get_stats())
 }
 
 /// Reset memory monitor
 pub fn reset_memory_monitor() -> Result<(), Box<dyn std::error::Error>> {
     let mut monitor = MEMORY_MONITOR.lock().map_err(|_| "Failed to lock memory monitor")?;
-    monitor.reset();
-    Ok(())
+    monitor.reset()
 }
 
 /// Check if memory monitor is running
@@ -379,10 +401,22 @@ pub fn is_memory_monitor_running() -> bool {
     MEMORY_MONITOR.lock().map(|monitor| monitor.is_running()).unwrap_or(false)
 }
 
+/// Get memory usage for a specific time period
+pub fn get_memory_usage_for_period(_period: TimePeriod) -> Option<MemoryUsage> {
+    let monitor = MEMORY_MONITOR.lock().ok()?;
+    monitor.get_memory_usage().ok()
+}
+
+/// Get heap statistics
+pub fn get_heap_stats() -> Option<HeapStats> {
+    let monitor = MEMORY_MONITOR.lock().ok()?;
+    Some(monitor.get_heap_statistics())
+}
+
 /// Format memory usage for display
 pub fn format_memory_usage() -> String {
     match get_memory_stats() {
-        Some(stats) => {
+        Ok(stats) => {
             format!(
                 "Memory Usage:\n  RSS: {} MB (15s: {:.2} MB, 30s: {:.2} MB, 1m: {:.2} MB, 3m: {:.2} MB, 5m: {:.2} MB)\n  VMS: {} MB\n  Heap Used: {} MB\n  Heap Total: {} MB\n  External: {} MB\n  Array Buffers: {} MB\n  Timestamp: {}",
                 stats.rss / 1024 / 1024,
@@ -399,7 +433,7 @@ pub fn format_memory_usage() -> String {
                 stats.timestamp
             )
         }
-        None => "Memory monitoring not available".to_string(),
+        Err(_) => "Memory monitoring not available".to_string(),
     }
 }
 
@@ -485,7 +519,7 @@ mod tests {
         
         update_memory_usage().unwrap();
         let stats = get_memory_stats();
-        assert!(stats.is_some());
+        assert!(stats.is_ok());
         
         stop_memory_monitoring().unwrap();
         assert!(!is_memory_monitor_running());

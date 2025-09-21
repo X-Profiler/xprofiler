@@ -4,7 +4,7 @@
 //! formatting, and common operations.
 
 use std::time::{Duration, Instant};
-use std::collections::HashMap;
+// use std::collections::HashMap; // Commented out unused import
 
 /// Process information
 #[derive(Debug, Clone)]

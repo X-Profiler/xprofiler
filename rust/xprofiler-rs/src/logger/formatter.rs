@@ -2,7 +2,7 @@
 
 use super::{LogEntry, LogLevel};
 use serde_json;
-use std::collections::HashMap;
+// use std::fmt; // Commented out unused import
 
 /// Trait for log formatters
 pub trait LogFormatter {

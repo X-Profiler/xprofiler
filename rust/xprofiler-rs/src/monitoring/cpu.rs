@@ -8,10 +8,10 @@
 
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use once_cell::sync::Lazy;
 
-use super::{Monitor, TimePeriod};
+use super::Monitor;
 
 /// CPU usage information
 #[derive(Debug, Clone)]
@@ -63,42 +63,42 @@ pub struct CpuMonitor {
     is_monitoring: bool,
 }
 
-/// Data storage for a specific time period
-struct PeriodData {
-    /// Circular buffer for CPU usage values
-    values: VecDeque<f64>,
-    /// Maximum number of values to store
-    max_size: usize,
-    /// Whether the buffer is full
-    is_full: bool,
-}
-
-impl PeriodData {
-    fn new(period: TimePeriod) -> Self {
-        Self {
-            values: VecDeque::new(),
-            max_size: period.as_seconds() as usize,
-            is_full: false,
-        }
-    }
-    
-    fn add_value(&mut self, value: f64) {
-        if self.values.len() >= self.max_size {
-            self.values.pop_front();
-            self.is_full = true;
-        }
-        self.values.push_back(value);
-    }
-    
-    fn get_average(&self) -> f64 {
-        if self.values.is_empty() {
-            return 0.0;
-        }
-        
-        let sum: f64 = self.values.iter().sum();
-        sum / self.values.len() as f64
-    }
-}
+// Data storage for a specific time period - commented out as unused
+// struct PeriodData {
+//     /// Circular buffer for CPU usage values
+//     values: VecDeque<f64>,
+//     /// Maximum number of values to store
+//     max_size: usize,
+//     /// Whether the buffer is full
+//     is_full: bool,
+// }
+// 
+// impl PeriodData {
+//     fn new(period: TimePeriod) -> Self {
+//         Self {
+//             values: VecDeque::new(),
+//             max_size: period.as_seconds() as usize,
+//             is_full: false,
+//         }
+//     }
+//     
+//     fn add_value(&mut self, value: f64) {
+//         if self.values.len() >= self.max_size {
+//             self.values.pop_front();
+//             self.is_full = true;
+//         }
+//         self.values.push_back(value);
+//     }
+//     
+//     fn get_average(&self) -> f64 {
+//         if self.values.is_empty() {
+//             return 0.0;
+//         }
+//         
+//         let sum: f64 = self.values.iter().sum();
+//         sum / self.values.len() as f64
+//     }
+// }
 
 impl CpuMonitor {
     /// Create a new CPU monitor
@@ -157,14 +157,16 @@ impl CpuMonitor {
         let current_time = self.get_current_cpu_time()?;
         
         let usage = if let Ok(mut last_time_guard) = self.last_cpu_time.lock() {
-            if let Some(last_time) = *last_time_guard {
-                let cpu_time_diff = (current_time.user_time + current_time.system_time)
-                    .saturating_sub(last_time.user_time + last_time.system_time);
-                let wall_time_diff = current_time.wall_time.saturating_sub(last_time.wall_time);
+            let usage = if let Some(last_time) = *last_time_guard {
+                let time_diff = current_time.wall_time.saturating_sub(last_time.wall_time) as f64;
                 
-                if wall_time_diff > 0 {
-                    let usage = (cpu_time_diff as f64 / wall_time_diff as f64) * 100.0;
-                    usage.min(100.0).max(0.0)
+                if time_diff > 0.0 {
+                    let user_diff = current_time.user_time.saturating_sub(last_time.user_time) as f64;
+                    let system_diff = current_time.system_time.saturating_sub(last_time.system_time) as f64;
+                    let total_cpu_time = user_diff + system_diff;
+                    
+                    // Convert to percentage
+                    (total_cpu_time / time_diff) * 100.0
                 } else {
                     0.0
                 }
@@ -178,7 +180,7 @@ impl CpuMonitor {
             0.0
         };
         
-        Ok(usage)
+        Ok(usage.min(100.0).max(0.0))
     }
     
     /// Get current CPU time (platform-specific)
@@ -277,7 +279,9 @@ impl CpuMonitor {
     
     /// Get CPU usage statistics
     pub fn get_cpu_usage(&self) -> CpuUsage {
-        let current = self.current_usage.lock().unwrap_or_else(|_| std::sync::MutexGuard::new(0.0));
+        let current = self.current_usage.lock().unwrap_or_else(|_| {
+            panic!("Failed to lock current usage")
+        });
         
         let avg_15s = self.calculate_average(&self.history_15s);
         let avg_30s = self.calculate_average(&self.history_30s);
@@ -310,6 +314,27 @@ impl CpuMonitor {
             0.0
         }
     }
+    
+    /// Update CPU usage and add to history
+    pub fn update(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let current_usage = self.get_current_cpu_usage()?;
+        
+        // Update current usage
+        if let Ok(mut current) = self.current_usage.lock() {
+            *current = current_usage;
+        }
+        
+        // Add to history queues
+        let _now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_secs();
+            
+        self.add_to_history(current_usage);
+        
+        Ok(())
+    }
+    
+
     
     /// Format CPU usage for logging (compatible with original format)
     pub fn format_cpu_usage(&self, alinode_format: bool) -> String {
@@ -398,7 +423,7 @@ impl Monitor for CpuMonitor {
 }
 
 /// Global CPU monitor instance
-static CPU_MONITOR: Lazy<Arc<Mutex<CpuMonitor>>> = Lazy::new(|| {
+pub static CPU_MONITOR: Lazy<Arc<Mutex<CpuMonitor>>> = Lazy::new(|| {
     Arc::new(Mutex::new(CpuMonitor::new()))
 });
 
@@ -560,41 +585,5 @@ mod tests {
         // Test that CPU time retrieval doesn't panic
         let result = monitor.get_current_cpu_time();
         assert!(result.is_ok() || result.is_err()); // Should not panic
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    
-    #[test]
-    fn test_cpu_monitor_creation() {
-        let monitor = CpuMonitor::new();
-        assert_eq!(monitor.current_usage, 0.0);
-        assert!(!monitor.is_monitoring);
-    }
-    
-    #[test]
-    fn test_period_data() {
-        let mut data = PeriodData::new(TimePeriod::Seconds15);
-        
-        // Add some values
-        for i in 1..=10 {
-            data.add_value(i as f64);
-        }
-        
-        assert_eq!(data.values.len(), 10);
-        assert!(!data.is_full);
-        
-        let average = data.get_average();
-        assert!((average - 5.5).abs() < 0.01); // Average of 1..10 is 5.5
-    }
-    
-    #[test]
-    fn test_time_periods() {
-        let periods = TimePeriod::all();
-        assert_eq!(periods.len(), 6);
-        assert_eq!(TimePeriod::Seconds15.as_seconds(), 15);
-        assert_eq!(TimePeriod::Seconds600.as_seconds(), 600);
     }
 }

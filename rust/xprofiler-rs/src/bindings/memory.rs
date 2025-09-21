@@ -12,12 +12,14 @@ pub struct JsMemoryUsage {
     pub rss: f64,
     /// Virtual Memory Size in bytes
     pub vms: f64,
-    /// Shared memory in bytes
-    pub shared: f64,
-    /// Text (code) memory in bytes
-    pub text: f64,
-    /// Data memory in bytes
-    pub data: f64,
+    /// Heap used in bytes
+    pub heap_used: f64,
+    /// Heap total in bytes
+    pub heap_total: f64,
+    /// External memory in bytes
+    pub external: f64,
+    /// Array buffers in bytes
+    pub array_buffers: f64,
     /// Timestamp when the measurement was taken
     pub timestamp: f64,
 }
@@ -27,10 +29,11 @@ impl From<MemoryUsage> for JsMemoryUsage {
         Self {
             rss: usage.rss as f64,
             vms: usage.vms as f64,
-            shared: usage.shared as f64,
-            text: usage.text as f64,
-            data: usage.data as f64,
-            timestamp: usage.timestamp.elapsed().as_secs_f64() * 1000.0,
+            heap_used: usage.heap_used as f64,
+            heap_total: usage.heap_total as f64,
+            external: usage.external as f64,
+            array_buffers: usage.array_buffers as f64,
+            timestamp: usage.timestamp as f64 * 1000.0,
         }
     }
 }
@@ -107,11 +110,11 @@ pub fn get_memory_usage_for_period(period_seconds: u32) -> Option<JsMemoryUsage>
     use crate::monitoring::TimePeriod;
     
     let period = match period_seconds {
+        10 => TimePeriod::TenSeconds,
+        30 => TimePeriod::ThirtySeconds,
         60 => TimePeriod::OneMinute,
+        120 => TimePeriod::TwoMinutes,
         300 => TimePeriod::FiveMinutes,
-        900 => TimePeriod::FifteenMinutes,
-        1800 => TimePeriod::ThirtyMinutes,
-        3600 => TimePeriod::OneHour,
         _ => return None,
     };
     
@@ -133,8 +136,11 @@ pub fn format_memory_usage() -> String {
 /// Update memory usage (called periodically)
 #[napi]
 pub fn update_memory_usage() -> Result<()> {
-    memory::update_memory_usage()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to update memory usage: {}", e)))
+    let mut monitor = memory::MEMORY_MONITOR.lock()
+        .map_err(|_| Error::new(Status::GenericFailure, "Failed to lock memory monitor".to_string()))?;
+    monitor.update()
+        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to update memory usage: {}", e)))?;
+    Ok(())
 }
 
 /// Reset memory monitoring data
@@ -161,22 +167,22 @@ pub fn get_memory_usage_history() -> HashMap<String, Option<JsMemoryUsage>> {
         history.insert("5m".to_string(), None);
     }
     
-    if let Some(usage) = memory::get_memory_usage_for_period(crate::monitoring::TimePeriod::FifteenMinutes) {
-        history.insert("15m".to_string(), Some(usage.into()));
+    if let Some(usage) = memory::get_memory_usage_for_period(crate::monitoring::TimePeriod::TenSeconds) {
+        history.insert("10s".to_string(), Some(usage.into()));
     } else {
-        history.insert("15m".to_string(), None);
+        history.insert("10s".to_string(), None);
     }
     
-    if let Some(usage) = memory::get_memory_usage_for_period(crate::monitoring::TimePeriod::ThirtyMinutes) {
-        history.insert("30m".to_string(), Some(usage.into()));
+    if let Some(usage) = memory::get_memory_usage_for_period(crate::monitoring::TimePeriod::ThirtySeconds) {
+        history.insert("30s".to_string(), Some(usage.into()));
     } else {
-        history.insert("30m".to_string(), None);
+        history.insert("30s".to_string(), None);
     }
     
-    if let Some(usage) = memory::get_memory_usage_for_period(crate::monitoring::TimePeriod::OneHour) {
-        history.insert("1h".to_string(), Some(usage.into()));
+    if let Some(usage) = memory::get_memory_usage_for_period(crate::monitoring::TimePeriod::TwoMinutes) {
+        history.insert("2m".to_string(), Some(usage.into()));
     } else {
-        history.insert("1h".to_string(), None);
+        history.insert("2m".to_string(), None);
     }
     
     history
@@ -189,9 +195,9 @@ pub fn get_memory_usage_mb() -> Option<HashMap<String, f64>> {
         let mut result = HashMap::new();
         result.insert("rss".to_string(), usage.rss as f64 / 1024.0 / 1024.0);
         result.insert("vms".to_string(), usage.vms as f64 / 1024.0 / 1024.0);
-        result.insert("shared".to_string(), usage.shared as f64 / 1024.0 / 1024.0);
-        result.insert("text".to_string(), usage.text as f64 / 1024.0 / 1024.0);
-        result.insert("data".to_string(), usage.data as f64 / 1024.0 / 1024.0);
+        result.insert("heap_used".to_string(), usage.heap_used as f64 / 1024.0 / 1024.0);
+        result.insert("heap_total".to_string(), usage.heap_total as f64 / 1024.0 / 1024.0);
+        result.insert("external".to_string(), usage.external as f64 / 1024.0 / 1024.0);
         result
     })
 }

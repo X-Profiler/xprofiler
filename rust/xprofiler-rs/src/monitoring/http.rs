@@ -8,6 +8,78 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use super::Monitor;
 
+/// HTTP method enumeration
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum HttpMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    PATCH,
+    HEAD,
+    OPTIONS,
+    TRACE,
+    CONNECT,
+    Other(String),
+}
+
+impl From<String> for HttpMethod {
+    fn from(method: String) -> Self {
+        match method.to_uppercase().as_str() {
+            "GET" => HttpMethod::GET,
+            "POST" => HttpMethod::POST,
+            "PUT" => HttpMethod::PUT,
+            "DELETE" => HttpMethod::DELETE,
+            "PATCH" => HttpMethod::PATCH,
+            "HEAD" => HttpMethod::HEAD,
+            "OPTIONS" => HttpMethod::OPTIONS,
+            "TRACE" => HttpMethod::TRACE,
+            "CONNECT" => HttpMethod::CONNECT,
+            _ => HttpMethod::Other(method),
+        }
+    }
+}
+
+impl ToString for HttpMethod {
+    fn to_string(&self) -> String {
+        match self {
+            HttpMethod::GET => "GET".to_string(),
+            HttpMethod::POST => "POST".to_string(),
+            HttpMethod::PUT => "PUT".to_string(),
+            HttpMethod::DELETE => "DELETE".to_string(),
+            HttpMethod::PATCH => "PATCH".to_string(),
+            HttpMethod::HEAD => "HEAD".to_string(),
+            HttpMethod::OPTIONS => "OPTIONS".to_string(),
+            HttpMethod::TRACE => "TRACE".to_string(),
+            HttpMethod::CONNECT => "CONNECT".to_string(),
+            HttpMethod::Other(method) => method.clone(),
+        }
+    }
+}
+
+impl HttpMethod {
+    /// Convert HttpMethod to string slice
+    pub fn as_str(&self) -> &str {
+        match self {
+            HttpMethod::GET => "GET",
+            HttpMethod::POST => "POST",
+            HttpMethod::PUT => "PUT",
+            HttpMethod::DELETE => "DELETE",
+            HttpMethod::PATCH => "PATCH",
+            HttpMethod::HEAD => "HEAD",
+            HttpMethod::OPTIONS => "OPTIONS",
+            HttpMethod::TRACE => "TRACE",
+            HttpMethod::CONNECT => "CONNECT",
+            HttpMethod::Other(method) => method,
+        }
+    }
+    
+    /// Parse HttpMethod from string
+    pub fn from_str(method: &str) -> Self {
+        HttpMethod::from(method.to_string())
+    }
+}
+
 /// HTTP request information
 #[derive(Debug, Clone)]
 pub struct HttpRequest {
@@ -279,7 +351,7 @@ impl Default for HttpMonitor {
 }
 
 impl Monitor for HttpMonitor {
-    type Output = HttpStats;
+    type Stats = HttpStats;
     
     fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.is_monitoring = true;
@@ -292,14 +364,19 @@ impl Monitor for HttpMonitor {
         Ok(())
     }
     
-    fn get_metrics(&self) -> Self::Output {
+    fn is_running(&self) -> bool {
+        self.is_monitoring
+    }
+    
+    fn get_stats(&self) -> Self::Stats {
         self.get_http_stats()
     }
     
-    fn reset(&mut self) {
+    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.transactions.clear();
         self.pending_requests.clear();
         self.start_time = None;
+        Ok(())
     }
 }
 
@@ -376,6 +453,16 @@ pub fn stop_http_monitoring() -> Result<(), Box<dyn std::error::Error>> {
         http_monitor.stop()?;
     }
     Ok(())
+}
+
+/// Record an HTTP request (alias for record_http_request)
+pub fn record_request(request_id: String, method: String, url: String, headers_size: u64, body_size: u64, user_agent: Option<String>, remote_ip: Option<String>) {
+    record_http_request(request_id, method, url, headers_size, body_size, user_agent, remote_ip);
+}
+
+/// Record an HTTP response (alias for record_http_response)
+pub fn record_response(request_id: String, status_code: u16, headers_size: u64, body_size: u64, response_time: Duration) {
+    record_http_response(request_id, status_code, headers_size, body_size, response_time);
 }
 
 #[cfg(test)]

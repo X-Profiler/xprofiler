@@ -37,7 +37,7 @@ pub struct JsHttpRequest {
     pub method: String,
     pub url: String,
     pub headers: HashMap<String, String>,
-    pub body_size: u64,
+    pub body_size: u32,
     pub timestamp: f64,
     pub user_agent: Option<String>,
     pub remote_address: Option<String>,
@@ -48,11 +48,11 @@ impl From<HttpRequest> for JsHttpRequest {
         Self {
             method: request.method.as_str().to_string(),
             url: request.url,
-            headers: request.headers,
-            body_size: request.body_size,
+            headers: HashMap::new(), // headers not stored in current implementation
+            body_size: request.body_size as u32,
             timestamp: request.timestamp.elapsed().as_secs_f64(),
             user_agent: request.user_agent,
-            remote_address: request.remote_address,
+            remote_address: request.remote_ip,
         }
     }
 }
@@ -62,7 +62,7 @@ impl From<HttpRequest> for JsHttpRequest {
 pub struct JsHttpResponse {
     pub status_code: u16,
     pub headers: HashMap<String, String>,
-    pub body_size: u64,
+    pub body_size: u32,
     pub timestamp: f64,
 }
 
@@ -70,8 +70,8 @@ impl From<HttpResponse> for JsHttpResponse {
     fn from(response: HttpResponse) -> Self {
         Self {
             status_code: response.status_code,
-            headers: response.headers,
-            body_size: response.body_size,
+            headers: HashMap::new(), // headers not stored in current implementation
+            body_size: response.body_size as u32,
             timestamp: response.timestamp.elapsed().as_secs_f64(),
         }
     }
@@ -90,11 +90,11 @@ pub struct JsHttpTransaction {
 impl From<HttpTransaction> for JsHttpTransaction {
     fn from(transaction: HttpTransaction) -> Self {
         Self {
-            id: transaction.id,
+            id: format!("{:?}", transaction.request.timestamp), // use timestamp as ID
             request: transaction.request.into(),
-            response: transaction.response.map(|r| r.into()),
-            duration_ms: transaction.duration.map(|d| d.as_secs_f64() * 1000.0),
-            error: transaction.error,
+            response: Some(transaction.response.into()),
+            duration_ms: Some(transaction.total_time.as_millis() as f64),
+            error: None, // error handling not implemented in current version
         }
     }
 }
@@ -102,18 +102,18 @@ impl From<HttpTransaction> for JsHttpTransaction {
 /// JavaScript representation of HTTP statistics
 #[napi(object)]
 pub struct JsHttpStats {
-    pub total_requests: u64,
-    pub total_responses: u64,
-    pub active_requests: u64,
-    pub total_request_size: u64,
-    pub total_response_size: u64,
+    pub total_requests: u32,
+    pub total_responses: u32,
+    pub active_requests: u32,
+    pub total_request_size: u32,
+    pub total_response_size: u32,
     pub avg_response_time_ms: f64,
     pub min_response_time_ms: f64,
     pub max_response_time_ms: f64,
     pub status_code_counts: HashMap<String, u32>,
     pub method_counts: HashMap<String, u32>,
-    pub error_count: u64,
-    pub timeout_count: u64,
+    pub error_rate: f64,
+    pub timeout_rate: f64,
     pub requests_per_second: f64,
     pub responses_per_second: f64,
     pub recent_transactions: Vec<JsHttpTransaction>,
@@ -121,14 +121,14 @@ pub struct JsHttpStats {
 
 impl From<HttpStats> for JsHttpStats {
     fn from(stats: HttpStats) -> Self {
-        let status_code_counts = stats.status_code_counts
+        let status_code_counts = stats.responses_by_status
             .into_iter()
-            .map(|(k, v)| (k.to_string(), v))
+            .map(|(k, v)| (k.to_string(), v as u32))
             .collect();
             
-        let method_counts = stats.method_counts
+        let method_counts = stats.requests_by_method
             .into_iter()
-            .map(|(k, v)| (k.as_str().to_string(), v))
+            .map(|(k, v)| (k.as_str().to_string(), v as u32))
             .collect();
             
         let recent_transactions = stats.recent_transactions
@@ -137,20 +137,20 @@ impl From<HttpStats> for JsHttpStats {
             .collect();
         
         Self {
-            total_requests: stats.total_requests,
-            total_responses: stats.total_responses,
-            active_requests: stats.active_requests,
-            total_request_size: stats.total_request_size,
-            total_response_size: stats.total_response_size,
+            total_requests: stats.total_requests as u32,
+            total_responses: stats.total_responses as u32,
+            active_requests: 0, // not tracked in current implementation
+            total_request_size: stats.total_bytes_sent as u32,
+            total_response_size: stats.total_bytes_received as u32,
             avg_response_time_ms: stats.avg_response_time.as_secs_f64() * 1000.0,
             min_response_time_ms: stats.min_response_time.as_secs_f64() * 1000.0,
             max_response_time_ms: stats.max_response_time.as_secs_f64() * 1000.0,
             status_code_counts,
             method_counts,
-            error_count: stats.error_count,
-            timeout_count: stats.timeout_count,
+            error_rate: stats.error_rate,
+            timeout_rate: 0.0, // timeout rate not tracked in current implementation
             requests_per_second: stats.requests_per_second,
-            responses_per_second: stats.responses_per_second,
+            responses_per_second: stats.requests_per_second,
             recent_transactions,
         }
     }
@@ -180,50 +180,56 @@ pub fn stop_http_monitoring_js() -> Result<()> {
 /// Record HTTP request
 #[napi]
 pub fn record_http_request(
+    request_id: String,
     method: String,
     url: String,
-    headers: HashMap<String, String>,
+    headers_size: u32,
     body_size: u32,
     user_agent: Option<String>,
     remote_address: Option<String>,
-) -> String {
-    let http_method = HttpMethod::from_str(&method);
+) {
     record_request(
-        http_method,
+        request_id,
+        method,
         url,
-        headers,
+        headers_size as u64,
         body_size as u64,
         user_agent,
         remote_address,
-    )
+    );
 }
 
 /// Record HTTP response
 #[napi]
 pub fn record_http_response(
-    transaction_id: String,
+    request_id: String,
     status_code: u32,
-    headers: HashMap<String, String>,
+    headers_size: u32,
     body_size: u32,
+    response_time_ms: u32,
 ) {
+    use std::time::Duration;
     record_response(
-        transaction_id,
+        request_id,
         status_code as u16,
-        headers,
+        headers_size as u64,
         body_size as u64,
+        Duration::from_millis(response_time_ms as u64),
     );
 }
 
 /// Record HTTP error
 #[napi]
-pub fn record_http_error(transaction_id: String, error_message: String) {
+pub fn record_http_error(transaction_id: String, _error_message: String) {
+    use std::time::Duration;
     // This would be implemented in the monitoring module
     // For now, we'll use the existing record_response with error status
     record_response(
         transaction_id,
         500, // Internal Server Error
-        HashMap::new(),
-        0,
+        0,   // headers_size
+        0,   // body_size
+        Duration::from_millis(0), // response_time
     );
 }
 
@@ -244,9 +250,9 @@ pub fn format_http_stats_js() -> String {
 pub fn get_http_stats_by_status_code() -> HashMap<String, u32> {
     get_http_stats()
         .map(|stats| {
-            stats.status_code_counts
+            stats.responses_by_status
                 .into_iter()
-                .map(|(k, v)| (k.to_string(), v))
+                .map(|(k, v)| (k.to_string(), v as u32))
                 .collect()
         })
         .unwrap_or_default()
@@ -257,9 +263,9 @@ pub fn get_http_stats_by_status_code() -> HashMap<String, u32> {
 pub fn get_http_stats_by_method() -> HashMap<String, u32> {
     get_http_stats()
         .map(|stats| {
-            stats.method_counts
+            stats.requests_by_method
                 .into_iter()
-                .map(|(k, v)| (k.as_str().to_string(), v))
+                .map(|(k, v)| (k.as_str().to_string(), v as u32))
                 .collect()
         })
         .unwrap_or_default()
@@ -301,13 +307,13 @@ pub struct JsHttpPerformanceMetrics {
 pub fn get_http_performance_metrics() -> Option<JsHttpPerformanceMetrics> {
     get_http_stats().map(|stats| {
         let error_rate = if stats.total_requests > 0 {
-            (stats.error_count as f64) / (stats.total_requests as f64) * 100.0
+            stats.error_rate
         } else {
             0.0
         };
         
         let timeout_rate = if stats.total_requests > 0 {
-            (stats.timeout_count as f64) / (stats.total_requests as f64) * 100.0
+            0.0 // timeout rate not tracked in current implementation
         } else {
             0.0
         };
@@ -317,7 +323,7 @@ pub fn get_http_performance_metrics() -> Option<JsHttpPerformanceMetrics> {
             min_response_time_ms: stats.min_response_time.as_secs_f64() * 1000.0,
             max_response_time_ms: stats.max_response_time.as_secs_f64() * 1000.0,
             requests_per_second: stats.requests_per_second,
-            responses_per_second: stats.responses_per_second,
+            responses_per_second: stats.requests_per_second,
             error_rate,
             timeout_rate,
         }

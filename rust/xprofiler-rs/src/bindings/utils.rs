@@ -313,10 +313,10 @@ pub fn calculate_min_max(values: Vec<f64>) -> Option<JsMinMax> {
     Some(JsMinMax { min, max })
 }
 
-/// Sleep for specified milliseconds (async)
+/// Sleep for specified milliseconds (blocking)
 #[napi]
-pub async fn sleep_ms(milliseconds: u32) {
-    tokio::time::sleep(tokio::time::Duration::from_millis(milliseconds as u64)).await;
+pub fn sleep_ms(milliseconds: u32) {
+    std::thread::sleep(std::time::Duration::from_millis(milliseconds as u64));
 }
 
 /// Generate UUID v4

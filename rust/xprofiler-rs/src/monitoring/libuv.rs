@@ -367,7 +367,7 @@ impl Default for LibuvMonitor {
 }
 
 impl Monitor for LibuvMonitor {
-    type Output = LibuvStats;
+    type Stats = LibuvStats;
     
     fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.is_monitoring = true;
@@ -380,13 +380,18 @@ impl Monitor for LibuvMonitor {
         Ok(())
     }
     
-    fn get_metrics(&self) -> Self::Output {
+    fn is_running(&self) -> bool {
+        self.is_monitoring
+    }
+    
+    fn get_stats(&self) -> Self::Stats {
         self.get_libuv_stats()
     }
     
-    fn reset(&mut self) {
+    fn reset(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.clear_data();
         self.start_time = None;
+        Ok(())
     }
 }
 

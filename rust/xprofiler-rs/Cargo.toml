@@ -6,7 +6,7 @@ name = "xprofiler_rs"
 version = "0.1.0"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "lib"]
 
 [dependencies]
 napi = "3.0.0"
@@ -30,6 +30,7 @@ parking_lot = "0.12"
 dashmap = "5.5"
 tracing = "0.1"
 tracing-subscriber = "0.3"
+num_cpus = "1.16"
 
 [build-dependencies]
 napi-build = "2"
@@ -48,6 +49,7 @@ serial_test = "3.0"
 criterion = "0.5"
 proptest = "1.0"
 temp-dir = "0.1"
+tempfile = "3.0"
 
 [profile.release]
 lto = true
