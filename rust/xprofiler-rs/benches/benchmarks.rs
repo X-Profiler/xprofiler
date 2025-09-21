@@ -1,61 +1,58 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use xprofiler_rs::monitoring::*;
-use xprofiler_rs::logger::*;
-use xprofiler_rs::config::*;
-use xprofiler_rs::environment::*;
+use xprofiler_rs::utils::{get_process_info, format_bytes};
+use xprofiler_rs::platform::{get_platform_capabilities, optimizations};
 
-fn cpu_monitoring(c: &mut Criterion) {
-    c.bench_function("cpu_monitoring", |b| {
+fn platform_detection(c: &mut Criterion) {
+    c.bench_function("platform_detection", |b| {
         b.iter(|| {
-            let mut monitor = cpu::CpuMonitor::new();
-            monitor.start().unwrap();
-            monitor.update_cpu_usage().unwrap();
+            black_box(get_platform_capabilities());
         })
     });
 }
 
-fn memory_monitoring(c: &mut Criterion) {
-    c.bench_function("memory_monitoring", |b| {
+fn system_info_collection(c: &mut Criterion) {
+    c.bench_function("system_info_collection", |b| {
         b.iter(|| {
-            let mut monitor = memory::MemoryMonitor::new();
-            monitor.start().unwrap();
-            monitor.update().unwrap();
+            let timestamp_fn = optimizations::get_timestamp_fn();
+            black_box(timestamp_fn());
+            black_box(optimizations::get_memory_alignment());
+            black_box(optimizations::get_io_buffer_size());
         })
     });
 }
 
-fn logging_operations(c: &mut Criterion) {
-    c.bench_function("logging_operations", |b| {
+fn process_info_collection(c: &mut Criterion) {
+    c.bench_function("process_info_collection", |b| {
         b.iter(|| {
-            let _ = info("Benchmark log message");
+            black_box(get_process_info());
         })
     });
 }
 
-fn config_operations(c: &mut Criterion) {
-    c.bench_function("config_operations", |b| {
+fn log_operations(c: &mut Criterion) {
+    c.bench_function("log_operations", |b| {
         b.iter(|| {
-            let _ = set_config("test_key", ConfigValue::String("test_value".to_string()));
-            let _ = get_config("test_key");
+            let timestamp_fn = optimizations::get_timestamp_fn();
+            black_box(timestamp_fn());
+            black_box(timestamp_fn());
         })
     });
 }
 
-fn environment_operations(c: &mut Criterion) {
-    c.bench_function("environment_operations", |b| {
+fn memory_formatting(c: &mut Criterion) {
+    c.bench_function("memory_formatting", |b| {
         b.iter(|| {
-            let _ = setup_environment_data();
-            let _ = get_current_environment_data();
+            black_box(format_bytes(black_box(1024 * 1024 * 512))); // 512MB
         })
     });
 }
 
 criterion_group!(
     benches,
-    cpu_monitoring,
-    memory_monitoring,
-    logging_operations,
-    config_operations,
-    environment_operations
+    platform_detection,
+    system_info_collection,
+    process_info_collection,
+    log_operations,
+    memory_formatting
 );
 criterion_main!(benches);

@@ -52,10 +52,13 @@ temp-dir = "0.1"
 tempfile = "3.0"
 
 [profile.release]
-lto = false
-codegen-units = 1
-opt-level = 3
-strip = false
+lto = "off"
+codegen-units = 16
+opt-level = 1
+strip = "none"
+debug = false
+panic = "unwind"
+incremental = true
 
 [[bench]]
 name = "benchmarks"
