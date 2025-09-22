@@ -10,6 +10,7 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
+use regex::Regex;
 
 use super::{Monitor, MonitoringResult, MonitoringError, TimePeriod};
 use super::error::IntoMonitoringError;
@@ -77,10 +78,65 @@ pub struct HttpStats {
     pub bytes_sent: u64,
     /// Total bytes received (response bodies)
     pub bytes_received: u64,
+    /// URL pattern distribution
+    pub url_patterns: HashMap<String, u64>,
+    /// Slow requests count (> 1 second)
+    pub slow_requests: u64,
+    /// Very slow requests count (> 5 seconds)
+    pub very_slow_requests: u64,
+    /// Top slow requests
+    pub top_slow_requests: Vec<SlowRequest>,
     /// Time period for these statistics
     pub period: TimePeriod,
     /// Timestamp when stats were calculated
     pub timestamp: Instant,
+}
+
+/// Slow request information
+#[derive(Debug, Clone)]
+pub struct SlowRequest {
+    /// Request method
+    pub method: String,
+    /// Request URL
+    pub url: String,
+    /// Response time in milliseconds
+    pub response_time: f64,
+    /// Status code
+    pub status_code: u16,
+    /// Timestamp
+    pub timestamp: Instant,
+}
+
+/// URL pattern matcher for grouping similar URLs
+#[derive(Debug)]
+pub struct UrlPatternMatcher {
+    patterns: Vec<(Regex, String)>,
+}
+
+impl UrlPatternMatcher {
+    pub fn new() -> Self {
+        let mut patterns = Vec::new();
+        
+        // Common patterns for REST APIs
+        patterns.push((Regex::new(r"/api/v\d+/users/\d+").unwrap(), "/api/v*/users/*".to_string()));
+        patterns.push((Regex::new(r"/api/v\d+/posts/\d+").unwrap(), "/api/v*/posts/*".to_string()));
+        patterns.push((Regex::new(r"/api/v\d+/orders/\d+").unwrap(), "/api/v*/orders/*".to_string()));
+        patterns.push((Regex::new(r"/users/\d+").unwrap(), "/users/*".to_string()));
+        patterns.push((Regex::new(r"/posts/\d+").unwrap(), "/posts/*".to_string()));
+        patterns.push((Regex::new(r"/orders/\d+").unwrap(), "/orders/*".to_string()));
+        patterns.push((Regex::new(r"/files/[a-f0-9-]+").unwrap(), "/files/*".to_string()));
+        
+        Self { patterns }
+    }
+    
+    pub fn match_pattern(&self, url: &str) -> String {
+        for (regex, pattern) in &self.patterns {
+            if regex.is_match(url) {
+                return pattern.clone();
+            }
+        }
+        url.to_string()
+    }
 }
 
 /// HTTP transaction (request + response pair)
@@ -101,10 +157,20 @@ pub struct HttpMonitor {
     completed_transactions: Arc<Mutex<VecDeque<HttpTransaction>>>,
     /// Statistics cache for different periods
     stats_cache: Arc<Mutex<HashMap<TimePeriod, HttpStats>>>,
+    /// URL pattern matcher for grouping similar URLs
+    url_matcher: UrlPatternMatcher,
+    /// Slow requests tracker (top 100 slowest)
+    slow_requests: Arc<Mutex<VecDeque<SlowRequest>>>,
     /// Whether monitoring is active
     is_monitoring: bool,
     /// Maximum number of completed transactions to keep
     max_completed_transactions: usize,
+    /// Maximum number of slow requests to track
+    max_slow_requests: usize,
+    /// Slow request threshold in milliseconds
+    slow_request_threshold: u64,
+    /// Very slow request threshold in milliseconds
+    very_slow_request_threshold: u64,
     /// Last cleanup time
     last_cleanup: Instant,
 }
@@ -116,8 +182,13 @@ impl HttpMonitor {
             active_transactions: Arc::new(Mutex::new(HashMap::new())),
             completed_transactions: Arc::new(Mutex::new(VecDeque::new())),
             stats_cache: Arc::new(Mutex::new(HashMap::new())),
+            url_matcher: UrlPatternMatcher::new(),
+            slow_requests: Arc::new(Mutex::new(VecDeque::new())),
             is_monitoring: false,
             max_completed_transactions: 10000, // Keep last 10k transactions
+            max_slow_requests: 100, // Keep top 100 slow requests
+            slow_request_threshold: 1000, // 1 second
+            very_slow_request_threshold: 5000, // 5 seconds
             last_cleanup: Instant::now(),
         }
     }
@@ -159,8 +230,33 @@ impl HttpMonitor {
             }
         }
         
-        // Add to completed transactions
+        // Add to completed transactions and track slow requests
         if let Some(transaction) = transaction_opt {
+            // Track slow requests
+            let response_time_ms = response.response_time.as_millis() as u64;
+            if response_time_ms >= self.slow_request_threshold {
+                let slow_request = SlowRequest {
+                    method: transaction.request.method.clone(),
+                    url: transaction.request.url.clone(),
+                    response_time: response_time_ms as f64,
+                    status_code: response.status_code,
+                    timestamp: response.timestamp,
+                };
+                
+                if let Ok(mut slow_reqs) = self.slow_requests.lock() {
+                    slow_reqs.push_back(slow_request);
+                    
+                    // Keep only the slowest requests, sorted by response time
+                    if slow_reqs.len() > self.max_slow_requests {
+                        // Convert to vector, sort, and keep top N
+                        let mut sorted_reqs: Vec<_> = slow_reqs.drain(..).collect();
+                        sorted_reqs.sort_by(|a, b| b.response_time.partial_cmp(&a.response_time).unwrap_or(std::cmp::Ordering::Equal));
+                        sorted_reqs.truncate(self.max_slow_requests);
+                        slow_reqs.extend(sorted_reqs);
+                    }
+                }
+            }
+            
             if let Ok(mut completed) = self.completed_transactions.lock() {
                 completed.push_back(transaction);
                 
@@ -228,11 +324,18 @@ impl HttpMonitor {
         let mut bytes_sent = 0u64;
         let mut bytes_received = 0u64;
         let mut error_count = 0u64;
+        let mut url_patterns = HashMap::new();
+        let mut slow_requests = 0u64;
+        let mut very_slow_requests = 0u64;
         
         for transaction in &relevant_transactions {
             // Count request method
             *methods.entry(transaction.request.method.clone()).or_insert(0) += 1;
             bytes_sent += transaction.request.body_size;
+            
+            // Count URL patterns
+            let pattern = self.url_matcher.match_pattern(&transaction.request.url);
+            *url_patterns.entry(pattern).or_insert(0) += 1;
             
             if let Some(ref response) = transaction.response {
                 total_responses += 1;
@@ -247,7 +350,16 @@ impl HttpMonitor {
                 }
                 
                 // Record response time
-                response_times.push(response.response_time.as_millis() as f64);
+                let response_time_ms = response.response_time.as_millis() as u64;
+                response_times.push(response_time_ms as f64);
+                
+                // Count slow requests
+                if response_time_ms >= self.slow_request_threshold {
+                    slow_requests += 1;
+                }
+                if response_time_ms >= self.very_slow_request_threshold {
+                    very_slow_requests += 1;
+                }
             }
         }
         
@@ -284,6 +396,17 @@ impl HttpMonitor {
             0.0
         };
         
+        // Get top slow requests within the time period
+        let top_slow_requests = if let Ok(slow_reqs) = self.slow_requests.lock() {
+            slow_reqs
+                .iter()
+                .filter(|req| req.timestamp >= cutoff_time)
+                .cloned()
+                .collect()
+        } else {
+            Vec::new()
+        };
+        
         Ok(HttpStats {
             total_requests,
             total_responses,
@@ -298,6 +421,10 @@ impl HttpMonitor {
             methods,
             bytes_sent,
             bytes_received,
+            url_patterns,
+            slow_requests,
+            very_slow_requests,
+            top_slow_requests,
             period,
             timestamp: now,
         })
@@ -330,6 +457,11 @@ impl HttpMonitor {
                     break;
                 }
             }
+        }
+        
+        // Cleanup old slow requests
+        if let Ok(mut slow_reqs) = self.slow_requests.lock() {
+            slow_reqs.retain(|req| req.timestamp >= old_cutoff);
         }
         
         self.last_cleanup = now;
@@ -511,5 +643,53 @@ mod tests {
         for (_, period_stats) in stats {
             assert_eq!(period_stats.total_requests, 0);
         }
+    }
+    
+    #[test]
+    fn test_slow_request_tracking() {
+        let mut monitor = HttpMonitor::new();
+        monitor.start().unwrap();
+        
+        // Record a slow request
+        let request = HttpRequest {
+            method: "GET".to_string(),
+            url: "/api/slow".to_string(),
+            headers: HashMap::new(),
+            body_size: 0,
+            timestamp: Instant::now(),
+            request_id: "slow-1".to_string(),
+        };
+        
+        monitor.record_request(request).unwrap();
+        
+        // Simulate slow response (2 seconds)
+        let response = HttpResponse {
+            status_code: 200,
+            headers: HashMap::new(),
+            body_size: 1024,
+            timestamp: Instant::now(),
+            request_id: "slow-1".to_string(),
+            response_time: Duration::from_millis(2000),
+        };
+        
+        monitor.record_response(response).unwrap();
+        
+        let stats = monitor.get_stats().unwrap();
+        if let Some(one_min_stats) = stats.get(&TimePeriod::Last1Min) {
+            assert_eq!(one_min_stats.total_requests, 1);
+            assert_eq!(one_min_stats.slow_requests, 1);
+        }
+    }
+    
+    #[test]
+    fn test_url_pattern_matching() {
+        let matcher = UrlPatternMatcher::new();
+        
+        // Test ID pattern matching
+        assert_eq!(matcher.match_pattern("/api/v1/users/123"), "/api/v*/users/*");
+        assert_eq!(matcher.match_pattern("/users/456"), "/users/*");
+        
+        // Test static paths
+        assert_eq!(matcher.match_pattern("/api/health"), "/api/health");
     }
 }
