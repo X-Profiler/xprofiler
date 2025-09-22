@@ -9,11 +9,11 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
-use serde::{Deserialize, Serialize};
+// Removed unused serde imports
 use regex::Regex;
 
 use super::{Monitor, MonitoringResult, MonitoringError, TimePeriod};
-use super::error::IntoMonitoringError;
+// Removed unused IntoMonitoringError import
 
 /// HTTP request information
 #[derive(Debug, Clone)]
@@ -22,14 +22,16 @@ pub struct HttpRequest {
     pub method: String,
     /// Request URL or path
     pub url: String,
-    /// Request headers
-    pub headers: HashMap<String, String>,
+    /// Request headers size in bytes
+    pub headers_size: u64,
     /// Request body size in bytes
     pub body_size: u64,
     /// Request timestamp
     pub timestamp: Instant,
-    /// Request ID for tracking
-    pub request_id: String,
+    /// User agent string
+    pub user_agent: Option<String>,
+    /// Remote IP address
+    pub remote_ip: Option<String>,
 }
 
 /// HTTP response information
@@ -37,14 +39,12 @@ pub struct HttpRequest {
 pub struct HttpResponse {
     /// HTTP status code
     pub status_code: u16,
-    /// Response headers
-    pub headers: HashMap<String, String>,
+    /// Response headers size in bytes
+    pub headers_size: u64,
     /// Response body size in bytes
     pub body_size: u64,
     /// Response timestamp
     pub timestamp: Instant,
-    /// Request ID for correlation
-    pub request_id: String,
     /// Response time in milliseconds
     pub response_time: Duration,
 }
@@ -194,7 +194,7 @@ impl HttpMonitor {
     }
     
     /// Record an HTTP request
-    pub fn record_request(&self, request: HttpRequest) -> MonitoringResult<()> {
+    pub fn record_request(&self, request_id: String, request: HttpRequest) -> MonitoringResult<()> {
         if !self.is_monitoring {
             return Ok(());
         }
@@ -207,14 +207,14 @@ impl HttpMonitor {
         };
         
         if let Ok(mut active) = self.active_transactions.lock() {
-            active.insert(request.request_id, transaction);
+            active.insert(request_id, transaction);
         }
         
         Ok(())
     }
     
     /// Record an HTTP response
-    pub fn record_response(&self, response: HttpResponse) -> MonitoringResult<()> {
+    pub fn record_response(&self, request_id: String, response: HttpResponse) -> MonitoringResult<()> {
         if !self.is_monitoring {
             return Ok(());
         }
@@ -223,7 +223,7 @@ impl HttpMonitor {
         
         // Remove from active transactions
         if let Ok(mut active) = self.active_transactions.lock() {
-            if let Some(mut transaction) = active.remove(&response.request_id) {
+            if let Some(mut transaction) = active.remove(&request_id) {
                 transaction.response = Some(response.clone());
                 transaction.end_time = Some(response.timestamp);
                 transaction_opt = Some(transaction);
@@ -559,24 +559,24 @@ mod tests {
         let request = HttpRequest {
             method: "GET".to_string(),
             url: "/api/test".to_string(),
-            headers: HashMap::new(),
+            headers_size: 1024,
             body_size: 0,
             timestamp: Instant::now(),
-            request_id: "test-123".to_string(),
+            user_agent: Some("test-agent".to_string()),
+            remote_ip: Some("127.0.0.1".to_string()),
         };
         
-        assert!(monitor.record_request(request).is_ok());
+        assert!(monitor.record_request("test-123".to_string(), request).is_ok());
         
         let response = HttpResponse {
             status_code: 200,
-            headers: HashMap::new(),
+            headers_size: 1024,
             body_size: 1024,
             timestamp: Instant::now(),
-            request_id: "test-123".to_string(),
             response_time: Duration::from_millis(50),
         };
         
-        assert!(monitor.record_response(response).is_ok());
+        assert!(monitor.record_response("test-123".to_string(), response).is_ok());
     }
     
     #[test]
@@ -589,24 +589,24 @@ mod tests {
             let request = HttpRequest {
                 method: "GET".to_string(),
                 url: format!("/api/test/{}", i),
-                headers: HashMap::new(),
+                headers_size: 1024,
                 body_size: 100,
                 timestamp: Instant::now(),
-                request_id: format!("test-{}", i),
+                user_agent: Some("test-agent".to_string()),
+                remote_ip: Some("127.0.0.1".to_string()),
             };
             
-            monitor.record_request(request).unwrap();
+            monitor.record_request(format!("test-{}", i), request).unwrap();
             
             let response = HttpResponse {
                 status_code: if i % 2 == 0 { 200 } else { 404 },
-                headers: HashMap::new(),
+                headers_size: 500,
                 body_size: 500,
                 timestamp: Instant::now(),
-                request_id: format!("test-{}", i),
                 response_time: Duration::from_millis(50 + i * 10),
             };
             
-            monitor.record_response(response).unwrap();
+            monitor.record_response(format!("test-{}", i), response).unwrap();
         }
         
         let stats = monitor.get_stats().unwrap();
@@ -628,13 +628,14 @@ mod tests {
         let request = HttpRequest {
             method: "GET".to_string(),
             url: "/test".to_string(),
-            headers: HashMap::new(),
+            headers_size: 1024,
             body_size: 0,
             timestamp: Instant::now(),
-            request_id: "test".to_string(),
+            user_agent: Some("test-agent".to_string()),
+            remote_ip: Some("127.0.0.1".to_string()),
         };
         
-        monitor.record_request(request).unwrap();
+        monitor.record_request("test".to_string(), request).unwrap();
         
         // Reset should clear all data
         assert!(monitor.reset().is_ok());
@@ -654,28 +655,28 @@ mod tests {
         let request = HttpRequest {
             method: "GET".to_string(),
             url: "/api/slow".to_string(),
-            headers: HashMap::new(),
+            headers_size: 1024,
             body_size: 0,
             timestamp: Instant::now(),
-            request_id: "slow-1".to_string(),
+            user_agent: Some("test-agent".to_string()),
+            remote_ip: Some("127.0.0.1".to_string()),
         };
         
-        monitor.record_request(request).unwrap();
+        monitor.record_request("slow-1".to_string(), request).unwrap();
         
         // Simulate slow response (2 seconds)
         let response = HttpResponse {
             status_code: 200,
-            headers: HashMap::new(),
+            headers_size: 1024,
             body_size: 1024,
             timestamp: Instant::now(),
-            request_id: "slow-1".to_string(),
             response_time: Duration::from_millis(2000),
         };
         
-        monitor.record_response(response).unwrap();
+        monitor.record_response("slow-1".to_string(), response).unwrap();
         
         let stats = monitor.get_stats().unwrap();
-        if let Some(one_min_stats) = stats.get(&TimePeriod::Last1Min) {
+        if let Some(one_min_stats) = stats.get(&TimePeriod::OneMinute) {
             assert_eq!(one_min_stats.total_requests, 1);
             assert_eq!(one_min_stats.slow_requests, 1);
         }

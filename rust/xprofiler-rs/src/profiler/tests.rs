@@ -143,22 +143,23 @@ mod integration_tests {
         {
             let mut cpu = cpu_profiler.lock().unwrap();
             cpu.stop().expect("Failed to stop CPU profiler");
-            let cpu_samples = cpu.get_samples().expect("Failed to get CPU samples");
+            let cpu_results = cpu.get_results().expect("Failed to get CPU results");
             // CPU profiler may not have samples in this short test
+            assert!(!cpu_results.is_empty());
         }
-        
+
         {
             let mut heap = heap_profiler.lock().unwrap();
             heap.stop().expect("Failed to stop Heap profiler");
-            let heap_stats = heap.get_stats().expect("Failed to get Heap stats");
-            assert!(heap_stats.total_allocations > 0);
+            let heap_results = heap.get_results().expect("Failed to get Heap results");
+            assert!(!heap_results.is_empty());
         }
-        
+
         {
             let mut gc = gc_profiler.lock().unwrap();
             gc.stop().expect("Failed to stop GC profiler");
-            let gc_stats = gc.get_stats().expect("Failed to get GC stats");
-            assert!(gc_stats.total_gc_events > 0);
+            let gc_results = gc.get_results().expect("Failed to get GC results");
+            assert!(!gc_results.is_empty());
         }
     }
 
@@ -268,17 +269,16 @@ mod integration_tests {
         
         // Verify that profilers respect max_samples limit
         // This is implementation-dependent, but they should not grow unbounded
-        let cpu_results = cpu_profiler.get_samples().expect("Failed to get CPU samples"); // CPU profiler returns samples
-        let heap_results = heap_profiler.get_stats().expect("Failed to get heap stats"); // Heap profiler returns stats
-        let gc_results = gc_profiler.get_stats().expect("Failed to get GC stats"); // GC profiler returns stats
+        let cpu_results = cpu_profiler.get_results().expect("Failed to get CPU results"); // CPU profiler returns JSON string
+        let heap_results = heap_profiler.get_results().expect("Failed to get heap results"); // Heap profiler returns JSON string
+        let gc_results = gc_profiler.get_results().expect("Failed to get GC results"); // GC profiler returns JSON string
         
         // CPU profiler may have samples from automatic collection
         // Heap and GC profilers should have recorded events
-        // Note: heap_results and gc_results are stats structs, not vectors
-        // Just verify they exist and are accessible
-        assert!(cpu_results.len() >= 0); // CPU profiler may have 0 samples in short test
-        // For heap and GC stats, we just verify they were retrieved successfully
-        // The actual validation of stats content would depend on the specific struct fields
+        // All results are JSON strings, just verify they are not empty
+        assert!(!cpu_results.is_empty()); // CPU profiler should return valid JSON
+        assert!(!heap_results.is_empty()); // Heap profiler should return valid JSON
+        assert!(!gc_results.is_empty()); // GC profiler should return valid JSON
     }
 
     #[test]
@@ -360,13 +360,14 @@ mod integration_tests {
         gc_profiler.stop().expect("Failed to stop GC profiler");
         
         // Verify data exists
-        let cpu_results_before = cpu_profiler.get_samples().expect("Failed to get CPU samples before reset"); // CPU profiler returns samples
-        let heap_results_before = heap_profiler.get_stats().expect("Failed to get heap stats before reset"); // Heap profiler returns stats
-        let gc_results_before = gc_profiler.get_stats().expect("Failed to get GC stats before reset"); // GC profiler returns stats
+        let cpu_results_before = cpu_profiler.get_results().expect("Failed to get CPU results before reset"); // CPU profiler returns JSON string
+        let heap_results_before = heap_profiler.get_results().expect("Failed to get heap results before reset"); // Heap profiler returns JSON string
+        let gc_results_before = gc_profiler.get_results().expect("Failed to get GC results before reset"); // GC profiler returns JSON string
         
         // Heap and GC profilers should have recorded events
-        // Note: heap_results_before and gc_results_before are stats structs, not vectors
-        // Just verify they were retrieved successfully
+        // All results are JSON strings, just verify they were retrieved successfully
+        assert!(!heap_results_before.is_empty());
+        assert!(!gc_results_before.is_empty());
         
         // Reset profilers
         cpu_profiler.reset().expect("Failed to reset CPU profiler");
@@ -379,13 +380,14 @@ mod integration_tests {
         assert!(!gc_profiler.is_running());
         
         // Results should still be accessible but may be empty or contain default values
-        let cpu_results_after = cpu_profiler.get_samples().expect("Failed to get CPU samples after reset"); // CPU profiler returns samples
-        let heap_results_after = heap_profiler.get_stats().expect("Failed to get heap stats after reset"); // Heap profiler returns stats
-        let gc_results_after = gc_profiler.get_stats().expect("Failed to get GC stats after reset"); // GC profiler returns stats
+        let cpu_results_after = cpu_profiler.get_results().expect("Failed to get CPU results after reset"); // CPU profiler returns JSON string
+        let heap_results_after = heap_profiler.get_results().expect("Failed to get heap results after reset"); // Heap profiler returns JSON string
+        let gc_results_after = gc_profiler.get_results().expect("Failed to get GC results after reset"); // GC profiler returns JSON string
         
         // Results should be accessible after reset
-        assert!(cpu_results_after.len() >= 0); // CPU results should be accessible
-        // For heap and GC stats, we just verify they were retrieved successfully after reset
+        assert!(!cpu_results_after.is_empty()); // CPU results should be accessible
+        assert!(!heap_results_after.is_empty()); // Heap results should be accessible
+        assert!(!gc_results_after.is_empty()); // GC results should be accessible
         // The actual validation of reset behavior would depend on the specific implementation
     }
 
@@ -431,13 +433,13 @@ mod integration_tests {
         gc_profiler.stop().expect("Failed to stop GC profiler");
         
         // Get results and verify they are accessible
-        let cpu_results = cpu_profiler.get_samples().expect("Failed to get CPU samples"); // CPU profiler returns samples
-        let heap_results = heap_profiler.get_stats().expect("Failed to get heap stats"); // Heap profiler returns stats
-        let gc_results = gc_profiler.get_stats().expect("Failed to get GC stats"); // GC profiler returns stats
+        let cpu_results = cpu_profiler.get_results().expect("Failed to get CPU results"); // CPU profiler returns JSON string
+        let heap_results = heap_profiler.get_results().expect("Failed to get heap results"); // Heap profiler returns JSON string
+        let gc_results = gc_profiler.get_results().expect("Failed to get GC results"); // GC profiler returns JSON string
         
         // Verify results are accessible and have expected structure
-        assert!(cpu_results.len() >= 0); // CPU profiler may have 0 samples in short test
-        // For heap and GC stats, we just verify they were retrieved successfully
-        // The actual validation of stats content would depend on the specific struct fields
+        assert!(!cpu_results.is_empty()); // CPU profiler should return valid JSON
+        assert!(!heap_results.is_empty()); // Heap profiler should return valid JSON
+        assert!(!gc_results.is_empty()); // GC profiler should return valid JSON
     }
 }

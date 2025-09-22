@@ -13,6 +13,7 @@ use xprofiler_rs::monitoring::memory::MemoryMonitor;
 use xprofiler_rs::monitoring::gc::{GcMonitor, GcType, GcEvent};
 use xprofiler_rs::monitoring::http::{HttpMonitor, HttpRequest, HttpResponse};
 use xprofiler_rs::monitoring::libuv::{LibuvMonitor, HandleType};
+use xprofiler_rs::monitoring::TimePeriod;
 
 #[cfg(test)]
 mod end_to_end_tests {
@@ -349,12 +350,14 @@ mod end_to_end_tests {
         let baseline_avg: Duration = baseline_times.iter().sum::<Duration>() / baseline_times.len() as u32;
         let current_avg: Duration = current_times.iter().sum::<Duration>() / current_times.len() as u32;
 
-        let http_stats = http_monitor.get_stats().unwrap();
-        let libuv_stats = libuv_monitor.get_stats().unwrap();
+        let http_stats_map = http_monitor.get_stats().unwrap();
+        let libuv_stats_map = libuv_monitor.get_stats().unwrap();
+        let http_stats = http_stats_map.get(&TimePeriod::TenSeconds).unwrap();
+        let libuv_stats = libuv_stats_map.get(&TimePeriod::TenSeconds).unwrap();
 
         // Verify monitoring captured the performance data
         assert_eq!(http_stats.total_requests, 100);
-        assert!(http_stats.avg_response_time > Duration::ZERO);
+        assert!(http_stats.avg_response_time > 0.0);
         assert_eq!(libuv_stats.loop_metrics.loop_count, 50);
         assert!(libuv_stats.loop_metrics.avg_loop_time > Duration::ZERO);
 
@@ -381,7 +384,8 @@ mod end_to_end_tests {
         memory_monitor.start().unwrap();
         gc_monitor.start().unwrap();
 
-        let initial_memory = memory_monitor.get_stats().unwrap().rss;
+        let initial_memory_map = memory_monitor.get_stats().unwrap();
+        let initial_memory = initial_memory_map.get(&TimePeriod::TenSeconds).unwrap().rss;
         let mut allocations = Vec::new();
         let mut memory_samples = Vec::new();
 
@@ -393,7 +397,8 @@ mod end_to_end_tests {
 
             // Update memory stats
             memory_monitor.update().unwrap();
-            let current_memory = memory_monitor.get_stats().unwrap().rss;
+            let current_memory_map = memory_monitor.get_stats().unwrap();
+            let current_memory = current_memory_map.get(&TimePeriod::TenSeconds).unwrap().rss;
             memory_samples.push(current_memory);
 
             // Simulate GC that doesn't reclaim the leaked memory
@@ -409,8 +414,10 @@ mod end_to_end_tests {
             thread::sleep(Duration::from_millis(10));
         }
 
-        let final_memory = memory_monitor.get_stats().unwrap().rss;
-        let gc_stats = gc_monitor.get_stats().unwrap();
+        let final_memory_map = memory_monitor.get_stats().unwrap();
+        let final_memory = final_memory_map.get(&TimePeriod::TenSeconds).unwrap().rss;
+        let gc_stats_map = gc_monitor.get_stats().unwrap();
+        let gc_stats = gc_stats_map.get(&TimePeriod::TenSeconds).unwrap();
 
         // Verify memory leak detection
         assert!(final_memory > initial_memory, "Memory should have increased");
@@ -547,14 +554,18 @@ mod end_to_end_tests {
         }
 
         // Verify comprehensive monitoring results
-        let cpu_stats = cpu_monitor.get_stats().unwrap();
-        let memory_stats = memory_monitor.get_stats().unwrap();
-        let http_stats = http_monitor.get_stats().unwrap();
-        let libuv_stats = libuv_monitor.get_stats().unwrap();
+        let cpu_stats_map = cpu_monitor.get_stats().unwrap();
+        let memory_stats_map = memory_monitor.get_stats().unwrap();
+        let http_stats_map = http_monitor.get_stats().unwrap();
+        let libuv_stats_map = libuv_monitor.get_stats().unwrap();
+        let cpu_stats = cpu_stats_map.get(&TimePeriod::TenSeconds).unwrap();
+        let memory_stats = memory_stats_map.get(&TimePeriod::TenSeconds).unwrap();
+        let http_stats = http_stats_map.get(&TimePeriod::TenSeconds).unwrap();
+        let libuv_stats = libuv_stats_map.get(&TimePeriod::TenSeconds).unwrap();
 
         // Validate HTTP monitoring
         assert_eq!(http_stats.total_requests, total_requests as u64);
-        assert!(http_stats.avg_response_time > Duration::ZERO);
+        assert!(http_stats.avg_response_time > 0.0);
         
         // Check status code distribution
         let success_responses = http_stats.responses_by_status.get(&200).unwrap_or(&0);

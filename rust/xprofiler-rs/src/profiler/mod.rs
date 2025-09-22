@@ -5,7 +5,7 @@
 //! - Heap profiling for memory allocation tracking
 //! - GC profiling for garbage collection monitoring
 
-use crate::error::{XProfilerError, XProfilerResult};
+use crate::error::XProfilerResult;
 use std::time::Duration;
 
 pub mod cpu_profiler;

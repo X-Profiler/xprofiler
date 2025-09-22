@@ -12,7 +12,6 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 
 use super::{Monitor, MonitoringResult, MonitoringError, TimePeriod};
-use super::error::IntoMonitoringError;
 
 /// Libuv handle types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -93,6 +92,19 @@ impl HandleType {
     }
 }
 
+/// Loop metrics for detailed event loop analysis
+#[derive(Debug, Clone)]
+pub struct LoopMetrics {
+    /// Average loop lag in milliseconds
+    pub avg_lag: f64,
+    /// Maximum loop lag in milliseconds
+    pub max_lag: f64,
+    /// Total loop iterations
+    pub iterations: u64,
+    /// Iterations per second
+    pub iterations_per_second: f64,
+}
+
 /// Libuv statistics for a specific time period
 #[derive(Debug, Clone)]
 pub struct LibuvStats {
@@ -120,6 +132,8 @@ pub struct LibuvStats {
     pub loops_per_second: f64,
     /// Time spent in different phases (in milliseconds)
     pub phase_times: HashMap<String, f64>,
+    /// Loop metrics for detailed analysis
+    pub loop_metrics: LoopMetrics,
     /// Time period for these statistics
     pub period: TimePeriod,
     /// Timestamp when stats were calculated
@@ -160,6 +174,10 @@ pub struct LibuvMonitor {
     last_measurement: Instant,
     /// Measurement interval
     measurement_interval: Duration,
+    /// Registered handles by ID
+    registered_handles: Arc<Mutex<HashMap<String, HandleType>>>,
+    /// Loop iteration counter
+    loop_iterations: Arc<Mutex<u64>>,
 }
 
 impl LibuvMonitor {
@@ -172,6 +190,8 @@ impl LibuvMonitor {
             max_measurements: 3600, // Keep 1 hour of measurements (1 per second)
             last_measurement: Instant::now(),
             measurement_interval: Duration::from_secs(1),
+            registered_handles: Arc::new(Mutex::new(HashMap::new())),
+            loop_iterations: Arc::new(Mutex::new(0)),
         }
     }
     
@@ -271,6 +291,12 @@ impl LibuvMonitor {
                 total_loop_count: 0,
                 loops_per_second: 0.0,
                 phase_times: HashMap::new(),
+                loop_metrics: LoopMetrics {
+                    avg_lag: 0.0,
+                    max_lag: 0.0,
+                    iterations: 0,
+                    iterations_per_second: 0.0,
+                },
                 period,
                 timestamp: now,
             });
@@ -348,6 +374,14 @@ impl LibuvMonitor {
             *time /= measurement_count;
         }
         
+        // Create loop metrics
+        let loop_metrics = LoopMetrics {
+            avg_lag: avg_loop_lag,
+            max_lag: max_loop_lag,
+            iterations: total_loop_count,
+            iterations_per_second: loops_per_second,
+        };
+        
         Ok(LibuvStats {
             avg_loop_lag,
             min_loop_lag,
@@ -361,6 +395,7 @@ impl LibuvMonitor {
             total_loop_count,
             loops_per_second,
             phase_times,
+            loop_metrics,
             period,
             timestamp: now,
         })
@@ -400,6 +435,40 @@ impl LibuvMonitor {
             phase_times,
         )
     }
+    
+    /// Register a handle for monitoring
+    pub fn register_handle(&self, handle_id: String, handle_type: HandleType) -> MonitoringResult<()> {
+        if let Ok(mut handles) = self.registered_handles.lock() {
+            handles.insert(handle_id, handle_type);
+        }
+        Ok(())
+    }
+    
+    /// Unregister a handle from monitoring
+    pub fn unregister_handle(&self, handle_id: &str) -> MonitoringResult<()> {
+        if let Ok(mut handles) = self.registered_handles.lock() {
+            handles.remove(handle_id);
+        }
+        Ok(())
+    }
+    
+    /// Record a loop iteration
+    pub fn record_loop_iteration(&self) -> MonitoringResult<()> {
+        if let Ok(mut iterations) = self.loop_iterations.lock() {
+            *iterations += 1;
+        }
+        Ok(())
+    }
+    
+    /// Get current loop iteration count
+    pub fn get_loop_iterations(&self) -> u64 {
+        self.loop_iterations.lock().map(|i| *i).unwrap_or(0)
+    }
+    
+    /// Get registered handles count
+    pub fn get_registered_handles_count(&self) -> u64 {
+        self.registered_handles.lock().map(|h| h.len() as u64).unwrap_or(0)
+    }
 }
 
 impl Monitor for LibuvMonitor {
@@ -437,6 +506,14 @@ impl Monitor for LibuvMonitor {
         
         if let Ok(mut cache) = self.stats_cache.lock() {
             cache.clear();
+        }
+        
+        if let Ok(mut handles) = self.registered_handles.lock() {
+            handles.clear();
+        }
+        
+        if let Ok(mut iterations) = self.loop_iterations.lock() {
+            *iterations = 0;
         }
         
         Ok(())
@@ -597,6 +674,8 @@ mod tests {
         for (_, period_stats) in stats {
             assert_eq!(period_stats.avg_loop_lag, 0.0);
             assert_eq!(period_stats.total_handles, 0);
+            assert_eq!(period_stats.loop_metrics.avg_lag, 0.0);
+            assert_eq!(period_stats.loop_metrics.iterations, 0);
         }
     }
 }
