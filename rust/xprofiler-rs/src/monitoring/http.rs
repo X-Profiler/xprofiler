@@ -1,84 +1,18 @@
 //! HTTP monitoring module
 //!
-//! This module provides HTTP request/response monitoring capabilities
-//! including request counting, response time tracking, and status code analysis.
+//! This module provides HTTP request/response monitoring functionality,
+//! including request counts, response times, status codes, and error rates.
+//! 
+//! The implementation tracks HTTP traffic patterns and provides statistics
+//! for performance analysis and debugging.
 
-use std::collections::HashMap;
-use std::sync::Mutex;
+use std::collections::{HashMap, VecDeque};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
-use super::{Monitor, MonitoringResult, MonitoringError};
+use serde::{Deserialize, Serialize};
 
-/// HTTP method enumeration
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum HttpMethod {
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    PATCH,
-    HEAD,
-    OPTIONS,
-    TRACE,
-    CONNECT,
-    Other(String),
-}
-
-impl From<String> for HttpMethod {
-    fn from(method: String) -> Self {
-        match method.to_uppercase().as_str() {
-            "GET" => HttpMethod::GET,
-            "POST" => HttpMethod::POST,
-            "PUT" => HttpMethod::PUT,
-            "DELETE" => HttpMethod::DELETE,
-            "PATCH" => HttpMethod::PATCH,
-            "HEAD" => HttpMethod::HEAD,
-            "OPTIONS" => HttpMethod::OPTIONS,
-            "TRACE" => HttpMethod::TRACE,
-            "CONNECT" => HttpMethod::CONNECT,
-            _ => HttpMethod::Other(method),
-        }
-    }
-}
-
-impl ToString for HttpMethod {
-    fn to_string(&self) -> String {
-        match self {
-            HttpMethod::GET => "GET".to_string(),
-            HttpMethod::POST => "POST".to_string(),
-            HttpMethod::PUT => "PUT".to_string(),
-            HttpMethod::DELETE => "DELETE".to_string(),
-            HttpMethod::PATCH => "PATCH".to_string(),
-            HttpMethod::HEAD => "HEAD".to_string(),
-            HttpMethod::OPTIONS => "OPTIONS".to_string(),
-            HttpMethod::TRACE => "TRACE".to_string(),
-            HttpMethod::CONNECT => "CONNECT".to_string(),
-            HttpMethod::Other(method) => method.clone(),
-        }
-    }
-}
-
-impl HttpMethod {
-    /// Convert HttpMethod to string slice
-    pub fn as_str(&self) -> &str {
-        match self {
-            HttpMethod::GET => "GET",
-            HttpMethod::POST => "POST",
-            HttpMethod::PUT => "PUT",
-            HttpMethod::DELETE => "DELETE",
-            HttpMethod::PATCH => "PATCH",
-            HttpMethod::HEAD => "HEAD",
-            HttpMethod::OPTIONS => "OPTIONS",
-            HttpMethod::TRACE => "TRACE",
-            HttpMethod::CONNECT => "CONNECT",
-            HttpMethod::Other(method) => method,
-        }
-    }
-    
-    /// Parse HttpMethod from string
-    pub fn from_str(method: &str) -> Self {
-        HttpMethod::from(method.to_string())
-    }
-}
+use super::{Monitor, MonitoringResult, MonitoringError, TimePeriod};
+use super::error::IntoMonitoringError;
 
 /// HTTP request information
 #[derive(Debug, Clone)]
@@ -87,16 +21,14 @@ pub struct HttpRequest {
     pub method: String,
     /// Request URL or path
     pub url: String,
+    /// Request headers
+    pub headers: HashMap<String, String>,
+    /// Request body size in bytes
+    pub body_size: u64,
     /// Request timestamp
     pub timestamp: Instant,
-    /// Request headers size
-    pub headers_size: u64,
-    /// Request body size
-    pub body_size: u64,
-    /// User agent
-    pub user_agent: Option<String>,
-    /// Remote IP address
-    pub remote_ip: Option<String>,
+    /// Request ID for tracking
+    pub request_id: String,
 }
 
 /// HTTP response information
@@ -104,258 +36,312 @@ pub struct HttpRequest {
 pub struct HttpResponse {
     /// HTTP status code
     pub status_code: u16,
+    /// Response headers
+    pub headers: HashMap<String, String>,
+    /// Response body size in bytes
+    pub body_size: u64,
     /// Response timestamp
     pub timestamp: Instant,
-    /// Response headers size
-    pub headers_size: u64,
-    /// Response body size
-    pub body_size: u64,
-    /// Response time (duration from request to response)
+    /// Request ID for correlation
+    pub request_id: String,
+    /// Response time in milliseconds
     pub response_time: Duration,
 }
 
-/// Complete HTTP transaction
-#[derive(Debug, Clone)]
-pub struct HttpTransaction {
-    /// Request information
-    pub request: HttpRequest,
-    /// Response information
-    pub response: HttpResponse,
-    /// Total transaction time
-    pub total_time: Duration,
-}
-
-/// HTTP monitoring statistics
+/// HTTP statistics for a specific time period
 #[derive(Debug, Clone)]
 pub struct HttpStats {
     /// Total number of requests
     pub total_requests: u64,
     /// Total number of responses
     pub total_responses: u64,
-    /// Requests by HTTP method
-    pub requests_by_method: HashMap<String, u64>,
-    /// Responses by status code
-    pub responses_by_status: HashMap<u16, u64>,
-    /// Average response time
-    pub avg_response_time: Duration,
-    /// Minimum response time
-    pub min_response_time: Duration,
-    /// Maximum response time
-    pub max_response_time: Duration,
-    /// Total bytes sent (request bodies + headers)
-    pub total_bytes_sent: u64,
-    /// Total bytes received (response bodies + headers)
-    pub total_bytes_received: u64,
-    /// Requests per second (based on monitoring period)
+    /// Average response time in milliseconds
+    pub avg_response_time: f64,
+    /// Minimum response time in milliseconds
+    pub min_response_time: f64,
+    /// Maximum response time in milliseconds
+    pub max_response_time: f64,
+    /// 95th percentile response time in milliseconds
+    pub p95_response_time: f64,
+    /// 99th percentile response time in milliseconds
+    pub p99_response_time: f64,
+    /// Requests per second
     pub requests_per_second: f64,
-    /// Error rate (4xx and 5xx responses)
+    /// Error rate (percentage)
     pub error_rate: f64,
-    /// Recent transactions (last 100)
-    pub recent_transactions: Vec<HttpTransaction>,
+    /// Status code distribution
+    pub status_codes: HashMap<u16, u64>,
+    /// HTTP method distribution
+    pub methods: HashMap<String, u64>,
+    /// Total bytes sent (request bodies)
+    pub bytes_sent: u64,
+    /// Total bytes received (response bodies)
+    pub bytes_received: u64,
+    /// Time period for these statistics
+    pub period: TimePeriod,
+    /// Timestamp when stats were calculated
+    pub timestamp: Instant,
+}
+
+/// HTTP transaction (request + response pair)
+#[derive(Debug, Clone)]
+struct HttpTransaction {
+    pub request: HttpRequest,
+    pub response: Option<HttpResponse>,
+    pub start_time: Instant,
+    pub end_time: Option<Instant>,
 }
 
 /// HTTP monitor implementation
+#[derive(Debug)]
 pub struct HttpMonitor {
-    /// HTTP transactions history
-    transactions: Vec<HttpTransaction>,
-    /// Pending requests (waiting for response)
-    pending_requests: HashMap<String, HttpRequest>,
-    /// Maximum number of transactions to keep
-    max_transactions: usize,
+    /// Active HTTP transactions (pending responses)
+    active_transactions: Arc<Mutex<HashMap<String, HttpTransaction>>>,
+    /// Completed transactions for different time periods
+    completed_transactions: Arc<Mutex<VecDeque<HttpTransaction>>>,
+    /// Statistics cache for different periods
+    stats_cache: Arc<Mutex<HashMap<TimePeriod, HttpStats>>>,
     /// Whether monitoring is active
     is_monitoring: bool,
-    /// Start time for monitoring
-    start_time: Option<Instant>,
+    /// Maximum number of completed transactions to keep
+    max_completed_transactions: usize,
+    /// Last cleanup time
+    last_cleanup: Instant,
 }
 
 impl HttpMonitor {
     /// Create a new HTTP monitor
     pub fn new() -> Self {
         Self {
-            transactions: Vec::new(),
-            pending_requests: HashMap::new(),
-            max_transactions: 10000, // Keep last 10000 transactions
+            active_transactions: Arc::new(Mutex::new(HashMap::new())),
+            completed_transactions: Arc::new(Mutex::new(VecDeque::new())),
+            stats_cache: Arc::new(Mutex::new(HashMap::new())),
             is_monitoring: false,
-            start_time: None,
+            max_completed_transactions: 10000, // Keep last 10k transactions
+            last_cleanup: Instant::now(),
         }
     }
     
     /// Record an HTTP request
-    pub fn record_request(&mut self, request_id: String, request: HttpRequest) {
+    pub fn record_request(&self, request: HttpRequest) -> MonitoringResult<()> {
         if !self.is_monitoring {
-            return;
+            return Ok(());
         }
         
-        self.pending_requests.insert(request_id, request);
+        let transaction = HttpTransaction {
+            start_time: request.timestamp,
+            request: request.clone(),
+            response: None,
+            end_time: None,
+        };
+        
+        if let Ok(mut active) = self.active_transactions.lock() {
+            active.insert(request.request_id, transaction);
+        }
+        
+        Ok(())
     }
     
-    /// Record an HTTP response and complete the transaction
-    pub fn record_response(&mut self, request_id: String, response: HttpResponse) {
+    /// Record an HTTP response
+    pub fn record_response(&self, response: HttpResponse) -> MonitoringResult<()> {
         if !self.is_monitoring {
-            return;
+            return Ok(());
         }
         
-        if let Some(request) = self.pending_requests.remove(&request_id) {
-            let total_time = response.timestamp.duration_since(request.timestamp);
-            
-            let transaction = HttpTransaction {
-                request,
-                response,
-                total_time,
-            };
-            
-            self.transactions.push(transaction);
-            
-            // Keep only the most recent transactions
-            if self.transactions.len() > self.max_transactions {
-                self.transactions.remove(0);
+        let mut transaction_opt = None;
+        
+        // Remove from active transactions
+        if let Ok(mut active) = self.active_transactions.lock() {
+            if let Some(mut transaction) = active.remove(&response.request_id) {
+                transaction.response = Some(response.clone());
+                transaction.end_time = Some(response.timestamp);
+                transaction_opt = Some(transaction);
             }
         }
+        
+        // Add to completed transactions
+        if let Some(transaction) = transaction_opt {
+            if let Ok(mut completed) = self.completed_transactions.lock() {
+                completed.push_back(transaction);
+                
+                // Cleanup old transactions if needed
+                while completed.len() > self.max_completed_transactions {
+                    completed.pop_front();
+                }
+            }
+            
+            // Invalidate stats cache
+            if let Ok(mut cache) = self.stats_cache.lock() {
+                cache.clear();
+            }
+        }
+        
+        Ok(())
     }
     
-    /// Get HTTP statistics
-    pub fn get_http_stats(&self) -> HttpStats {
-        let mut requests_by_method = HashMap::new();
-        let mut responses_by_status = HashMap::new();
-        let mut response_times = Vec::new();
-        let mut total_bytes_sent = 0;
-        let mut total_bytes_received = 0;
-        let mut error_count = 0;
+    /// Get HTTP statistics for a specific time period
+    pub fn get_stats_for_period(&self, period: TimePeriod) -> MonitoringResult<HttpStats> {
+        // Check cache first
+        if let Ok(cache) = self.stats_cache.lock() {
+            if let Some(stats) = cache.get(&period) {
+                // Return cached stats if they're recent (within 1 second)
+                if stats.timestamp.elapsed() < Duration::from_secs(1) {
+                    return Ok(stats.clone());
+                }
+            }
+        }
         
-        for transaction in &self.transactions {
-            // Count by method
-            *requests_by_method.entry(transaction.request.method.clone()).or_insert(0) += 1;
+        // Calculate new stats
+        let stats = self.calculate_stats_for_period(period)?;
+        
+        // Cache the stats
+        if let Ok(mut cache) = self.stats_cache.lock() {
+            cache.insert(period, stats.clone());
+        }
+        
+        Ok(stats)
+    }
+    
+    /// Calculate statistics for a specific time period
+    fn calculate_stats_for_period(&self, period: TimePeriod) -> MonitoringResult<HttpStats> {
+        let now = Instant::now();
+        let period_duration = period.duration();
+        let cutoff_time = now - period_duration;
+        
+        let completed = self.completed_transactions.lock()
+            .map_err(|_| MonitoringError::LockFailed {
+                resource: "completed_transactions".to_string(),
+                details: "Failed to lock completed transactions".to_string(),
+            })?;
+        
+        // Filter transactions within the time period
+        let relevant_transactions: Vec<_> = completed
+            .iter()
+            .filter(|t| t.start_time >= cutoff_time)
+            .collect();
+        
+        let total_requests = relevant_transactions.len() as u64;
+        let mut total_responses = 0u64;
+        let mut response_times = Vec::new();
+        let mut status_codes = HashMap::new();
+        let mut methods = HashMap::new();
+        let mut bytes_sent = 0u64;
+        let mut bytes_received = 0u64;
+        let mut error_count = 0u64;
+        
+        for transaction in &relevant_transactions {
+            // Count request method
+            *methods.entry(transaction.request.method.clone()).or_insert(0) += 1;
+            bytes_sent += transaction.request.body_size;
             
-            // Count by status
-            *responses_by_status.entry(transaction.response.status_code).or_insert(0) += 1;
-            
-            // Collect response times
-            response_times.push(transaction.response.response_time);
-            
-            // Sum bytes
-            total_bytes_sent += transaction.request.headers_size + transaction.request.body_size;
-            total_bytes_received += transaction.response.headers_size + transaction.response.body_size;
-            
-            // Count errors (4xx and 5xx)
-            if transaction.response.status_code >= 400 {
-                error_count += 1;
+            if let Some(ref response) = transaction.response {
+                total_responses += 1;
+                
+                // Count status code
+                *status_codes.entry(response.status_code).or_insert(0) += 1;
+                bytes_received += response.body_size;
+                
+                // Count errors (4xx and 5xx status codes)
+                if response.status_code >= 400 {
+                    error_count += 1;
+                }
+                
+                // Record response time
+                response_times.push(response.response_time.as_millis() as f64);
             }
         }
         
         // Calculate response time statistics
-        let (avg_response_time, min_response_time, max_response_time) = if response_times.is_empty() {
-            (Duration::ZERO, Duration::ZERO, Duration::ZERO)
+        response_times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        
+        let avg_response_time = if response_times.is_empty() {
+            0.0
         } else {
-            let total: Duration = response_times.iter().sum();
-            let avg = total / response_times.len() as u32;
-            let min = *response_times.iter().min().unwrap();
-            let max = *response_times.iter().max().unwrap();
-            (avg, min, max)
+            response_times.iter().sum::<f64>() / response_times.len() as f64
         };
         
-        // Calculate requests per second
-        let requests_per_second = if let Some(start_time) = self.start_time {
-            let elapsed = start_time.elapsed().as_secs_f64();
-            if elapsed > 0.0 {
-                self.transactions.len() as f64 / elapsed
-            } else {
-                0.0
-            }
+        let min_response_time = response_times.first().copied().unwrap_or(0.0);
+        let max_response_time = response_times.last().copied().unwrap_or(0.0);
+        
+        let p95_response_time = if response_times.is_empty() {
+            0.0
+        } else {
+            let index = ((response_times.len() as f64 * 0.95) as usize).min(response_times.len() - 1);
+            response_times[index]
+        };
+        
+        let p99_response_time = if response_times.is_empty() {
+            0.0
+        } else {
+            let index = ((response_times.len() as f64 * 0.99) as usize).min(response_times.len() - 1);
+            response_times[index]
+        };
+        
+        let requests_per_second = total_requests as f64 / period.as_seconds() as f64;
+        let error_rate = if total_responses > 0 {
+            (error_count as f64 / total_responses as f64) * 100.0
         } else {
             0.0
         };
         
-        // Calculate error rate
-        let error_rate = if self.transactions.is_empty() {
-            0.0
-        } else {
-            error_count as f64 / self.transactions.len() as f64 * 100.0
-        };
-        
-        // Get recent transactions (last 100)
-        let recent_transactions = if self.transactions.len() > 100 {
-            self.transactions[self.transactions.len() - 100..].to_vec()
-        } else {
-            self.transactions.clone()
-        };
-        
-        HttpStats {
-            total_requests: self.transactions.len() as u64 + self.pending_requests.len() as u64,
-            total_responses: self.transactions.len() as u64,
-            requests_by_method,
-            responses_by_status,
+        Ok(HttpStats {
+            total_requests,
+            total_responses,
             avg_response_time,
             min_response_time,
             max_response_time,
-            total_bytes_sent,
-            total_bytes_received,
+            p95_response_time,
+            p99_response_time,
             requests_per_second,
             error_rate,
-            recent_transactions,
+            status_codes,
+            methods,
+            bytes_sent,
+            bytes_received,
+            period,
+            timestamp: now,
+        })
+    }
+    
+    /// Cleanup old transactions and active requests that have timed out
+    fn cleanup(&mut self) -> MonitoringResult<()> {
+        let now = Instant::now();
+        
+        // Only cleanup every 60 seconds
+        if now.duration_since(self.last_cleanup) < Duration::from_secs(60) {
+            return Ok(());
         }
-    }
-    
-    /// Format HTTP statistics for logging
-    pub fn format_http_stats(&self) -> String {
-        let stats = self.get_http_stats();
         
-        let status_2xx = stats.responses_by_status.iter()
-            .filter(|(code, _)| **code >= 200 && **code < 300)
-            .map(|(_, count)| *count)
-            .sum::<u64>();
-            
-        let status_3xx = stats.responses_by_status.iter()
-            .filter(|(code, _)| **code >= 300 && **code < 400)
-            .map(|(_, count)| *count)
-            .sum::<u64>();
-            
-        let status_4xx = stats.responses_by_status.iter()
-            .filter(|(code, _)| **code >= 400 && **code < 500)
-            .map(|(_, count)| *count)
-            .sum::<u64>();
-            
-        let status_5xx = stats.responses_by_status.iter()
-            .filter(|(code, _)| **code >= 500)
-            .map(|(_, count)| *count)
-            .sum::<u64>();
+        // Cleanup timed out active transactions (older than 5 minutes)
+        let timeout = Duration::from_secs(300);
+        if let Ok(mut active) = self.active_transactions.lock() {
+            active.retain(|_, transaction| {
+                now.duration_since(transaction.start_time) < timeout
+            });
+        }
         
-        format!(
-            "http total_requests: {}, total_responses: {}, status_2xx: {}, status_3xx: {}, \
-             status_4xx: {}, status_5xx: {}, avg_response_time: {}ms, error_rate: {:.2}%, \
-             requests_per_second: {:.2}, total_bytes_sent: {}, total_bytes_received: {}",
-            stats.total_requests,
-            stats.total_responses,
-            status_2xx,
-            status_3xx,
-            status_4xx,
-            status_5xx,
-            stats.avg_response_time.as_millis(),
-            stats.error_rate,
-            stats.requests_per_second,
-            stats.total_bytes_sent,
-            stats.total_bytes_received
-        )
-    }
-    
-    /// Clear all recorded transactions
-    pub fn clear_transactions(&mut self) {
-        self.transactions.clear();
-        self.pending_requests.clear();
-    }
-}
-
-impl Default for HttpMonitor {
-    fn default() -> Self {
-        Self::new()
+        // Cleanup old completed transactions (older than 1 hour)
+        let old_cutoff = now - Duration::from_secs(3600);
+        if let Ok(mut completed) = self.completed_transactions.lock() {
+            while let Some(front) = completed.front() {
+                if front.start_time < old_cutoff {
+                    completed.pop_front();
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        self.last_cleanup = now;
+        Ok(())
     }
 }
 
 impl Monitor for HttpMonitor {
-    type Stats = HttpStats;
+    type Stats = HashMap<TimePeriod, HttpStats>;
     
     fn start(&mut self) -> MonitoringResult<()> {
         self.is_monitoring = true;
-        self.start_time = Some(Instant::now());
         Ok(())
     }
     
@@ -369,19 +355,34 @@ impl Monitor for HttpMonitor {
     }
     
     fn get_stats(&self) -> MonitoringResult<Self::Stats> {
-        Ok(self.get_http_stats())
+        let mut all_stats = HashMap::new();
+        
+        for period in TimePeriod::all() {
+            let stats = self.get_stats_for_period(period)?;
+            all_stats.insert(period, stats);
+        }
+        
+        Ok(all_stats)
     }
     
     fn reset(&mut self) -> MonitoringResult<()> {
-        self.transactions.clear();
-        self.pending_requests.clear();
-        self.start_time = None;
+        if let Ok(mut active) = self.active_transactions.lock() {
+            active.clear();
+        }
+        
+        if let Ok(mut completed) = self.completed_transactions.lock() {
+            completed.clear();
+        }
+        
+        if let Ok(mut cache) = self.stats_cache.lock() {
+            cache.clear();
+        }
+        
         Ok(())
     }
     
     fn update(&mut self) -> MonitoringResult<()> {
-        // HTTP monitoring doesn't need periodic updates
-        Ok(())
+        self.cleanup()
     }
     
     fn module_name(&self) -> &'static str {
@@ -389,164 +390,126 @@ impl Monitor for HttpMonitor {
     }
 }
 
-/// Global HTTP monitor instance
-static HTTP_MONITOR: Mutex<Option<HttpMonitor>> = Mutex::new(None);
-
-/// Initialize global HTTP monitor
-pub fn init_http_monitor() -> MonitoringResult<()> {
-    let mut monitor = HTTP_MONITOR.lock()
-        .map_err(|_| MonitoringError::LockFailed {
-            resource: "HTTP monitor".to_string(),
-            details: "Failed to acquire lock".to_string(),
-        })?;
-    *monitor = Some(HttpMonitor::new());
-    Ok(())
-}
-
-/// Record an HTTP request
-pub fn record_http_request(request_id: String, method: String, url: String, headers_size: u64, body_size: u64, user_agent: Option<String>, remote_ip: Option<String>) -> MonitoringResult<()> {
-    let mut monitor = HTTP_MONITOR.lock()
-        .map_err(|_| MonitoringError::LockFailed {
-            resource: "HTTP monitor".to_string(),
-            details: "Failed to acquire lock".to_string(),
-        })?;
-    if let Some(ref mut http_monitor) = monitor.as_mut() {
-        let request = HttpRequest {
-            method,
-            url,
-            timestamp: Instant::now(),
-            headers_size,
-            body_size,
-            user_agent,
-            remote_ip,
-        };
-        http_monitor.record_request(request_id, request);
+impl Default for HttpMonitor {
+    fn default() -> Self {
+        Self::new()
     }
-    Ok(())
-}
-
-/// Record an HTTP response
-pub fn record_http_response(request_id: String, status_code: u16, headers_size: u64, body_size: u64, response_time: Duration) -> MonitoringResult<()> {
-    let mut monitor = HTTP_MONITOR.lock()
-        .map_err(|_| MonitoringError::LockFailed {
-            resource: "HTTP monitor".to_string(),
-            details: "Failed to acquire lock".to_string(),
-        })?;
-    if let Some(ref mut http_monitor) = monitor.as_mut() {
-        let response = HttpResponse {
-            status_code,
-            timestamp: Instant::now(),
-            headers_size,
-            body_size,
-            response_time,
-        };
-        http_monitor.record_response(request_id, response);
-    }
-    Ok(())
-}
-
-/// Get HTTP statistics
-pub fn get_http_stats() -> MonitoringResult<HttpStats> {
-    let monitor = HTTP_MONITOR.lock()
-        .map_err(|_| MonitoringError::LockFailed {
-            resource: "HTTP monitor".to_string(),
-            details: "Failed to acquire lock".to_string(),
-        })?;
-    monitor.as_ref()
-        .map(|m| m.get_http_stats())
-        .ok_or_else(|| MonitoringError::NotInitialized {
-            module: "HTTP monitor".to_string(),
-        })
-}
-
-/// Format HTTP statistics for logging
-pub fn format_http_stats() -> String {
-    let monitor = HTTP_MONITOR.lock().unwrap();
-    monitor
-        .as_ref()
-        .map(|m| m.format_http_stats())
-        .unwrap_or_else(|| "HTTP monitor not initialized".to_string())
-}
-
-/// Start HTTP monitoring
-pub fn start_http_monitoring() -> MonitoringResult<()> {
-    let mut monitor = HTTP_MONITOR.lock()
-        .map_err(|_| MonitoringError::LockFailed {
-            resource: "HTTP monitor".to_string(),
-            details: "Failed to acquire lock".to_string(),
-        })?;
-    if let Some(ref mut http_monitor) = monitor.as_mut() {
-        http_monitor.start()?;
-    }
-    Ok(())
-}
-
-/// Stop HTTP monitoring
-pub fn stop_http_monitoring() -> MonitoringResult<()> {
-    let mut monitor = HTTP_MONITOR.lock()
-        .map_err(|_| MonitoringError::LockFailed {
-            resource: "HTTP monitor".to_string(),
-            details: "Failed to acquire lock".to_string(),
-        })?;
-    if let Some(ref mut http_monitor) = monitor.as_mut() {
-        http_monitor.stop()?;
-    }
-    Ok(())
-}
-
-/// Record an HTTP request (alias for record_http_request)
-pub fn record_request(request_id: String, method: String, url: String, headers_size: u64, body_size: u64, user_agent: Option<String>, remote_ip: Option<String>) -> MonitoringResult<()> {
-    record_http_request(request_id, method, url, headers_size, body_size, user_agent, remote_ip)
-}
-
-/// Record an HTTP response (alias for record_http_response)
-pub fn record_response(request_id: String, status_code: u16, headers_size: u64, body_size: u64, response_time: Duration) -> MonitoringResult<()> {
-    record_http_response(request_id, status_code, headers_size, body_size, response_time)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::thread;
+    use std::time::Duration;
     
     #[test]
     fn test_http_monitor_creation() {
         let monitor = HttpMonitor::new();
-        assert!(!monitor.is_monitoring);
-        assert_eq!(monitor.transactions.len(), 0);
+        assert!(!monitor.is_running());
     }
     
     #[test]
-    fn test_http_transaction_recording() {
+    fn test_http_monitor_start_stop() {
+        let mut monitor = HttpMonitor::new();
+        
+        assert!(monitor.start().is_ok());
+        assert!(monitor.is_running());
+        
+        assert!(monitor.stop().is_ok());
+        assert!(!monitor.is_running());
+    }
+    
+    #[test]
+    fn test_record_request_response() {
         let mut monitor = HttpMonitor::new();
         monitor.start().unwrap();
         
         let request = HttpRequest {
             method: "GET".to_string(),
             url: "/api/test".to_string(),
-            timestamp: Instant::now(),
-            headers_size: 256,
+            headers: HashMap::new(),
             body_size: 0,
-            user_agent: Some("test-agent".to_string()),
-            remote_ip: Some("127.0.0.1".to_string()),
+            timestamp: Instant::now(),
+            request_id: "test-123".to_string(),
         };
+        
+        assert!(monitor.record_request(request).is_ok());
         
         let response = HttpResponse {
             status_code: 200,
-            timestamp: Instant::now(),
-            headers_size: 128,
+            headers: HashMap::new(),
             body_size: 1024,
+            timestamp: Instant::now(),
+            request_id: "test-123".to_string(),
             response_time: Duration::from_millis(50),
         };
         
-        monitor.record_request("req1".to_string(), request);
-        monitor.record_response("req1".to_string(), response);
+        assert!(monitor.record_response(response).is_ok());
+    }
+    
+    #[test]
+    fn test_get_stats() {
+        let mut monitor = HttpMonitor::new();
+        monitor.start().unwrap();
         
-        assert_eq!(monitor.transactions.len(), 1);
+        // Record some test data
+        for i in 0..5 {
+            let request = HttpRequest {
+                method: "GET".to_string(),
+                url: format!("/api/test/{}", i),
+                headers: HashMap::new(),
+                body_size: 100,
+                timestamp: Instant::now(),
+                request_id: format!("test-{}", i),
+            };
+            
+            monitor.record_request(request).unwrap();
+            
+            let response = HttpResponse {
+                status_code: if i % 2 == 0 { 200 } else { 404 },
+                headers: HashMap::new(),
+                body_size: 500,
+                timestamp: Instant::now(),
+                request_id: format!("test-{}", i),
+                response_time: Duration::from_millis(50 + i * 10),
+            };
+            
+            monitor.record_response(response).unwrap();
+        }
         
-        let stats = monitor.get_http_stats();
-        assert_eq!(stats.total_requests, 1);
-        assert_eq!(stats.total_responses, 1);
-        assert_eq!(*stats.requests_by_method.get("GET").unwrap(), 1);
-        assert_eq!(*stats.responses_by_status.get(&200).unwrap(), 1);
+        let stats = monitor.get_stats().unwrap();
+        assert!(!stats.is_empty());
+        
+        if let Some(ten_sec_stats) = stats.get(&TimePeriod::TenSeconds) {
+            assert_eq!(ten_sec_stats.total_requests, 5);
+            assert_eq!(ten_sec_stats.total_responses, 5);
+            assert!(ten_sec_stats.avg_response_time > 0.0);
+        }
+    }
+    
+    #[test]
+    fn test_reset() {
+        let mut monitor = HttpMonitor::new();
+        monitor.start().unwrap();
+        
+        // Add some data
+        let request = HttpRequest {
+            method: "GET".to_string(),
+            url: "/test".to_string(),
+            headers: HashMap::new(),
+            body_size: 0,
+            timestamp: Instant::now(),
+            request_id: "test".to_string(),
+        };
+        
+        monitor.record_request(request).unwrap();
+        
+        // Reset should clear all data
+        assert!(monitor.reset().is_ok());
+        
+        let stats = monitor.get_stats().unwrap();
+        for (_, period_stats) in stats {
+            assert_eq!(period_stats.total_requests, 0);
+        }
     }
 }

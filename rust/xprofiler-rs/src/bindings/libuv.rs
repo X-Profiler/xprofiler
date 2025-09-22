@@ -7,11 +7,21 @@ use napi_derive::napi;
 use std::collections::HashMap;
 use std::time::Duration;
 use crate::monitoring::libuv::{
-    HandleType, HandleInfo, LoopMetrics, LibuvStats,
-    init_libuv_monitor, start_libuv_monitoring, stop_libuv_monitoring,
-    register_handle, unregister_handle, update_handle_status,
-    record_loop_iteration, update_active_counts, get_libuv_stats, format_libuv_stats
+    HandleType, LibuvStats, LibuvMonitor,
 };
+use crate::monitoring::{Monitor, TimePeriod};
+use std::sync::{Arc, Mutex, OnceLock};
+use std::collections::HashMap;
+
+// Global libuv monitor instance
+static LIBUV_MONITOR: OnceLock<Arc<Mutex<LibuvMonitor>>> = OnceLock::new();
+
+// Helper function to get the libuv monitor instance
+fn get_libuv_monitor() -> Arc<Mutex<LibuvMonitor>> {
+    LIBUV_MONITOR.get_or_init(|| {
+        Arc::new(Mutex::new(LibuvMonitor::new()))
+    }).clone()
+}
 
 /// JavaScript representation of handle type
 #[napi(object)]
@@ -144,84 +154,89 @@ impl From<LibuvStats> for JsLibuvStats {
 /// Initialize libuv monitor
 #[napi]
 pub fn init_libuv_monitor_js() -> Result<()> {
-    init_libuv_monitor()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to initialize libuv monitor: {}", e)))
+    let _monitor = get_libuv_monitor();
+    Ok(())
 }
 
 /// Start libuv monitoring
 #[napi]
 pub fn start_libuv_monitoring_js() -> Result<()> {
-    start_libuv_monitoring()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to start libuv monitoring: {}", e)))
+    let monitor = get_libuv_monitor();
+    if let Ok(mut monitor) = monitor.lock() {
+        monitor.start()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to start libuv monitoring: {}", e)))
+    } else {
+        Err(Error::new(Status::GenericFailure, "Failed to lock libuv monitor".to_string()))
+    }
 }
 
 /// Stop libuv monitoring
 #[napi]
 pub fn stop_libuv_monitoring_js() -> Result<()> {
-    stop_libuv_monitoring()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to stop libuv monitoring: {}", e)))
+    let monitor = get_libuv_monitor();
+    if let Ok(mut monitor) = monitor.lock() {
+        monitor.stop()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to stop libuv monitoring: {}", e)))
+    } else {
+        Err(Error::new(Status::GenericFailure, "Failed to lock libuv monitor".to_string()))
+    }
 }
 
-/// Register a new handle
+/// Register a libuv handle
 #[napi]
-pub fn register_libuv_handle(
-    handle_type: String,
-    is_active: bool,
-    is_referenced: bool,
-) -> f64 {
-    let handle_type_enum = match handle_type.as_str() {
-        "timer" => HandleType::Timer,
+pub fn register_libuv_handle_js(handle_id: String, handle_type: String) {
+    let handle_type = match handle_type.as_str() {
         "tcp" => HandleType::Tcp,
         "udp" => HandleType::Udp,
         "pipe" => HandleType::Pipe,
-        "tty" => HandleType::Tty,
-        "poll" => HandleType::Poll,
-        "prepare" => HandleType::Prepare,
-        "check" => HandleType::Check,
-        "idle" => HandleType::Idle,
-        "async" => HandleType::Async,
-        "fs_event" => HandleType::FsEvent,
-        "fs_poll" => HandleType::FsPoll,
-        "signal" => HandleType::Signal,
+        "timer" => HandleType::Timer,
+        "fs" => HandleType::Fs,
         "process" => HandleType::Process,
-        _ => HandleType::Unknown,
+        _ => HandleType::Other,
     };
     
-    register_handle(handle_type_enum, is_active, is_referenced) as f64
+    let monitor = get_libuv_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        let mut metadata = HashMap::new();
+        metadata.insert("handle_id".to_string(), handle_id);
+        let _ = monitor.record_measurement(handle_type, 1.0, metadata);
+    }
 }
 
-/// Unregister a handle
+/// Unregister a libuv handle
 #[napi]
-pub fn unregister_libuv_handle(handle_id: f64) {
-    unregister_handle(handle_id as u64);
+pub fn unregister_libuv_handle_js(handle_id: String) {
+    // For now, we don't have a specific unregister method in the monitor
+    // This could be implemented as recording a negative measurement
+    let _ = handle_id; // Suppress unused variable warning
 }
 
 /// Update handle status
 #[napi]
-pub fn update_libuv_handle_status(
-    handle_id: f64,
-    is_active: bool,
-    is_referenced: bool,
-) {
-    update_handle_status(handle_id as u64, is_active, is_referenced);
+pub fn update_libuv_handle_status_js(handle_id: String, is_active: bool) {
+    let monitor = get_libuv_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        let mut metadata = HashMap::new();
+        metadata.insert("handle_id".to_string(), handle_id);
+        metadata.insert("is_active".to_string(), is_active.to_string());
+        let _ = monitor.record_measurement(HandleType::Other, if is_active { 1.0 } else { 0.0 }, metadata);
+    }
 }
 
 /// Record event loop iteration
 #[napi]
-pub fn record_libuv_loop_iteration(
+pub fn record_libuv_loop_iteration_js(
     iteration_time_ms: f64,
-    idle_time_ms: f64,
-    prepare_time_ms: f64,
-    check_time_ms: f64,
-    poll_time_ms: f64,
+    pending_handles: u32,
+    active_handles: u32,
 ) {
-    let iteration_time = Duration::from_secs_f64(iteration_time_ms / 1000.0);
-    let idle_time = Duration::from_secs_f64(idle_time_ms / 1000.0);
-    let prepare_time = Duration::from_secs_f64(prepare_time_ms / 1000.0);
-    let check_time = Duration::from_secs_f64(check_time_ms / 1000.0);
-    let poll_time = Duration::from_secs_f64(poll_time_ms / 1000.0);
-    
-    record_loop_iteration(iteration_time, idle_time, prepare_time, check_time, poll_time);
+    let monitor = get_libuv_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        let mut metadata = HashMap::new();
+        metadata.insert("pending_handles".to_string(), pending_handles.to_string());
+        metadata.insert("active_handles".to_string(), active_handles.to_string());
+        let _ = monitor.record_measurement(HandleType::Other, iteration_time_ms, metadata);
+    }
 }
 
 /// Update active handles and requests count
@@ -233,13 +248,27 @@ pub fn update_libuv_active_counts(active_handles: u32, active_requests: u32) {
 /// Get libuv statistics
 #[napi]
 pub fn get_libuv_stats_js() -> Option<JsLibuvStats> {
-    get_libuv_stats().map(|stats| stats.into())
+    let monitor = get_libuv_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        if let Ok(stats_map) = monitor.get_stats_for_period(TimePeriod::TenSeconds) {
+            return Some(stats_map.into());
+        }
+    }
+    None
 }
 
 /// Format libuv statistics for logging
 #[napi]
 pub fn format_libuv_stats_js() -> String {
-    format_libuv_stats()
+    let monitor = get_libuv_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        if let Ok(stats) = monitor.get_stats_for_period(TimePeriod::TenSeconds) {
+            return format!("Libuv Stats: {} handles, avg measurement: {:.2}", 
+                stats.handle_counts.values().sum::<u64>(), 
+                stats.avg_measurement_value);
+        }
+    }
+    "Libuv monitoring not available".to_string()
 }
 
 /// Get handle counts by type

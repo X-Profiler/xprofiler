@@ -6,10 +6,36 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::collections::HashMap;
 use crate::monitoring::http::{
-    HttpRequest, HttpResponse, HttpTransaction, HttpStats, HttpMethod,
-    init_http_monitor, start_http_monitoring, stop_http_monitoring,
-    record_request, record_response, get_http_stats, format_http_stats
+    HttpRequest, HttpResponse, HttpTransaction, HttpStats, HttpMethod, HttpMonitor
 };
+use crate::monitoring::{Monitor, TimePeriod};
+use std::sync::{Arc, Mutex};
+use std::sync::OnceLock;
+
+impl HttpMethod {
+    fn from_str(method: &str) -> Self {
+        match method.to_uppercase().as_str() {
+            "GET" => HttpMethod::Get,
+            "POST" => HttpMethod::Post,
+            "PUT" => HttpMethod::Put,
+            "DELETE" => HttpMethod::Delete,
+            "PATCH" => HttpMethod::Patch,
+            "HEAD" => HttpMethod::Head,
+            "OPTIONS" => HttpMethod::Options,
+            _ => HttpMethod::Other,
+        }
+    }
+}
+
+// Global HTTP monitor instance
+static HTTP_MONITOR: OnceLock<Arc<Mutex<HttpMonitor>>> = OnceLock::new();
+
+// Helper function to get or initialize the HTTP monitor
+fn get_http_monitor() -> Arc<Mutex<HttpMonitor>> {
+    HTTP_MONITOR.get_or_init(|| {
+        Arc::new(Mutex::new(HttpMonitor::new()))
+    }).clone()
+}
 
 /// JavaScript representation of HTTP method
 #[napi(object)]
@@ -159,22 +185,32 @@ impl From<HttpStats> for JsHttpStats {
 /// Initialize HTTP monitor
 #[napi]
 pub fn init_http_monitor_js() -> Result<()> {
-    init_http_monitor()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to initialize HTTP monitor: {}", e)))
+    let _monitor = get_http_monitor();
+    Ok(())
 }
 
 /// Start HTTP monitoring
 #[napi]
 pub fn start_http_monitoring_js() -> Result<()> {
-    start_http_monitoring()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to start HTTP monitoring: {}", e)))
+    let monitor = get_http_monitor();
+    if let Ok(mut monitor) = monitor.lock() {
+        monitor.start()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to start HTTP monitoring: {}", e)))
+    } else {
+        Err(Error::new(Status::GenericFailure, "Failed to lock HTTP monitor".to_string()))
+    }
 }
 
 /// Stop HTTP monitoring
 #[napi]
 pub fn stop_http_monitoring_js() -> Result<()> {
-    stop_http_monitoring()
-        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to stop HTTP monitoring: {}", e)))
+    let monitor = get_http_monitor();
+    if let Ok(mut monitor) = monitor.lock() {
+        monitor.stop()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to stop HTTP monitoring: {}", e)))
+    } else {
+        Err(Error::new(Status::GenericFailure, "Failed to lock HTTP monitor".to_string()))
+    }
 }
 
 /// Record HTTP request
@@ -188,15 +224,19 @@ pub fn record_http_request(
     user_agent: Option<String>,
     remote_address: Option<String>,
 ) {
-    record_request(
-        request_id,
-        method,
-        url,
-        headers_size as u64,
-        body_size as u64,
-        user_agent,
-        remote_address,
-    );
+    let monitor = get_http_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        let http_method = HttpMethod::from_str(&method);
+        let _ = monitor.record_request(
+            request_id,
+            http_method,
+            url,
+            headers_size as u64,
+            body_size as u64,
+            user_agent,
+            remote_address,
+        );
+    }
 }
 
 /// Record HTTP response
@@ -208,41 +248,59 @@ pub fn record_http_response(
     body_size: u32,
     response_time_ms: u32,
 ) {
-    use std::time::Duration;
-    record_response(
-        request_id,
-        status_code as u16,
-        headers_size as u64,
-        body_size as u64,
-        Duration::from_millis(response_time_ms as u64),
-    );
+    let monitor = get_http_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        let _ = monitor.record_response(
+            request_id,
+            status_code as u16,
+            headers_size as u64,
+            body_size as u64,
+        );
+    }
 }
 
 /// Record HTTP error
 #[napi]
 pub fn record_http_error(transaction_id: String, _error_message: String) {
-    use std::time::Duration;
-    // This would be implemented in the monitoring module
-    // For now, we'll use the existing record_response with error status
-    record_response(
-        transaction_id,
-        500, // Internal Server Error
-        0,   // headers_size
-        0,   // body_size
-        Duration::from_millis(0), // response_time
-    );
+    let monitor = get_http_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        let _ = monitor.record_response(
+            transaction_id,
+            500, // Internal Server Error
+            0,   // headers_size
+            0,   // body_size
+        );
+    }
 }
 
 /// Get HTTP statistics
 #[napi]
 pub fn get_http_stats_js() -> Option<JsHttpStats> {
-    get_http_stats().map(|stats| stats.into())
+    let monitor = get_http_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        if let Ok(stats_map) = monitor.get_stats() {
+            if let Some(stats) = stats_map.get(&TimePeriod::TenSeconds) {
+                return Some(stats.clone().into());
+            }
+        }
+    }
+    None
 }
 
 /// Format HTTP statistics for logging
 #[napi]
 pub fn format_http_stats_js() -> String {
-    format_http_stats()
+    let monitor = get_http_monitor();
+    if let Ok(monitor) = monitor.lock() {
+        if let Ok(stats_map) = monitor.get_stats() {
+            if let Some(stats) = stats_map.get(&TimePeriod::TenSeconds) {
+                return format!("HTTP Stats: {} requests, {} responses, avg response time: {:.2}ms", 
+                    stats.total_requests, stats.total_responses, 
+                    stats.avg_response_time.as_secs_f64() * 1000.0);
+            }
+        }
+    }
+    "HTTP monitoring not available".to_string()
 }
 
 /// Get HTTP statistics by status code

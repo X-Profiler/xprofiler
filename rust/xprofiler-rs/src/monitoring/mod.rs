@@ -42,7 +42,7 @@ pub trait Monitor {
 }
 
 /// Time period for averaging metrics
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TimePeriod {
     /// 10 seconds
     TenSeconds,
