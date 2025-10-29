@@ -88,7 +88,7 @@
                         "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
                         "GCC_OPTIMIZATION_LEVEL": "3",
                         "OTHER_CFLAGS": [
-                            "-std=c++17",
+                            "-std=c++20",
                             "-Wconversion",
                             "-Wno-sign-conversion",
                         ]
