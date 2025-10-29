@@ -1,0 +1,35 @@
+{
+  "name": "xprofiler-rs-examples",
+  "version": "1.0.0",
+  "description": "Node.js examples for xprofiler-rs library",
+  "main": "basic_usage.js",
+  "scripts": {
+    "basic": "node basic_usage.js",
+    "advanced": "node advanced_config.js",
+    "basic-gc": "node --expose-gc basic_usage.js",
+    "advanced-gc": "node --expose-gc advanced_config.js",
+    "help": "echo 'Available scripts: npm run basic, npm run advanced, npm run basic-gc, npm run advanced-gc'"
+  },
+  "keywords": [
+    "profiler",
+    "performance",
+    "monitoring",
+    "rust",
+    "nodejs",
+    "xprofiler"
+  ],
+  "author": "XProfiler Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "xprofiler-rs": "file:../../"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/X-Profiler/xprofiler.git",
+    "directory": "rust/xprofiler-rs/examples/nodejs"
+  }
+}
