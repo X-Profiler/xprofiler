@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0 (2025-10-29)
+
+* feat: build from Node.js v24 (#253) ([10dd462](https://github.com/X-Profiler/xprofiler/commit/10dd462)), closes [#253](https://github.com/X-Profiler/xprofiler/issues/253)
+
 ## [3.0.0](https://github.com/X-Profiler/xprofiler/compare/v2.6.1...v3.0.0) (2025-03-10)
 
 
