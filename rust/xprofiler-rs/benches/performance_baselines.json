@@ -1,0 +1,184 @@
+{
+  "version": "1.0.0",
+  "description": "Performance baselines for XProfiler Rust regression testing",
+  "last_updated": "2024-01-20",
+  "baselines": {
+    "cpu_profiler_startup": {
+      "start_stop": {
+        "threshold_ns": 1000000,
+        "target_ns": 500000,
+        "description": "Time to start and stop CPU profiler"
+      }
+    },
+    "cpu_profiler_overhead": {
+      "sampling_overhead_1ms": {
+        "max_overhead_percent": 10.0,
+        "target_overhead_percent": 5.0,
+        "description": "CPU overhead with 1ms sampling interval"
+      },
+      "sampling_overhead_10ms": {
+        "max_overhead_percent": 5.0,
+        "target_overhead_percent": 2.0,
+        "description": "CPU overhead with 10ms sampling interval"
+      },
+      "sampling_overhead_50ms": {
+        "max_overhead_percent": 3.0,
+        "target_overhead_percent": 1.0,
+        "description": "CPU overhead with 50ms sampling interval"
+      },
+      "sampling_overhead_100ms": {
+        "max_overhead_percent": 2.0,
+        "target_overhead_percent": 0.5,
+        "description": "CPU overhead with 100ms sampling interval"
+      }
+    },
+    "heap_profiler_allocation": {
+      "allocation_tracking_100": {
+        "threshold_ns_per_allocation": 50000,
+        "target_ns_per_allocation": 25000,
+        "description": "Time per allocation tracking (100 allocations)"
+      },
+      "allocation_tracking_1000": {
+        "threshold_ns_per_allocation": 50000,
+        "target_ns_per_allocation": 25000,
+        "description": "Time per allocation tracking (1000 allocations)"
+      },
+      "allocation_tracking_10000": {
+        "threshold_ns_per_allocation": 50000,
+        "target_ns_per_allocation": 25000,
+        "description": "Time per allocation tracking (10000 allocations)"
+      }
+    },
+    "gc_profiler_events": {
+      "event_recording": {
+        "threshold_ns": 10000,
+        "target_ns": 5000,
+        "description": "Time to record a single GC event"
+      }
+    },
+    "monitor_updates": {
+      "cpu_monitor_update": {
+        "threshold_ns": 500000,
+        "target_ns": 250000,
+        "description": "Time to update CPU monitor"
+      },
+      "memory_monitor_update": {
+        "threshold_ns": 500000,
+        "target_ns": 250000,
+        "description": "Time to update memory monitor"
+      }
+    },
+    "scalability": {
+      "cpu_profiler_scalability_100": {
+        "min_samples": 1,
+        "target_samples": 10,
+        "description": "Minimum samples collected for workload size 100"
+      },
+      "cpu_profiler_scalability_1000": {
+        "min_samples": 5,
+        "target_samples": 50,
+        "description": "Minimum samples collected for workload size 1000"
+      },
+      "cpu_profiler_scalability_10000": {
+        "min_samples": 50,
+        "target_samples": 500,
+        "description": "Minimum samples collected for workload size 10000"
+      },
+      "cpu_profiler_scalability_100000": {
+        "min_samples": 500,
+        "target_samples": 5000,
+        "description": "Minimum samples collected for workload size 100000"
+      }
+    },
+    "memory_usage": {
+      "profiler_memory_footprint": {
+        "max_memory_mb": 100,
+        "target_memory_mb": 50,
+        "description": "Maximum memory usage for all profilers combined"
+      }
+    },
+    "concurrency": {
+      "concurrent_profilers": {
+        "max_overhead_percent": 15.0,
+        "target_overhead_percent": 8.0,
+        "description": "Overhead when running multiple profilers concurrently"
+      }
+    }
+  },
+  "test_configurations": {
+    "default_config": {
+      "sampling_interval_ms": 10,
+      "max_samples": 10000,
+      "enable_stack_traces": true,
+      "max_stack_depth": 32,
+      "enable_timing": true
+    },
+    "low_overhead_config": {
+      "sampling_interval_ms": 100,
+      "max_samples": 1000,
+      "enable_stack_traces": false,
+      "max_stack_depth": 16,
+      "enable_timing": false
+    },
+    "high_frequency_config": {
+      "sampling_interval_ms": 1,
+      "max_samples": 100000,
+      "enable_stack_traces": true,
+      "max_stack_depth": 64,
+      "enable_timing": true
+    }
+  },
+  "workload_sizes": {
+    "small": 100,
+    "medium": 1000,
+    "large": 10000,
+    "extra_large": 100000
+  },
+  "platform_specific": {
+    "linux": {
+      "cpu_profiler_startup": {
+        "start_stop": {
+          "threshold_ns": 800000,
+          "target_ns": 400000
+        }
+      }
+    },
+    "macos": {
+      "cpu_profiler_startup": {
+        "start_stop": {
+          "threshold_ns": 1200000,
+          "target_ns": 600000
+        }
+      }
+    },
+    "windows": {
+      "cpu_profiler_startup": {
+        "start_stop": {
+          "threshold_ns": 1500000,
+          "target_ns": 750000
+        }
+      }
+    }
+  },
+  "regression_detection": {
+    "enabled": true,
+    "threshold_percent": 20.0,
+    "consecutive_failures": 3,
+    "notification_email": "dev-team@example.com",
+    "ci_integration": {
+      "fail_on_regression": true,
+      "warning_threshold_percent": 10.0
+    }
+  },
+  "historical_data": {
+    "retention_days": 90,
+    "storage_format": "json",
+    "compression": "gzip"
+  },
+  "reporting": {
+    "generate_charts": true,
+    "chart_formats": ["png", "svg"],
+    "include_trends": true,
+    "trend_window_days": 30
+  }
+}

@@ -2,29 +2,29 @@
 //!
 //! This module provides Node.js bindings for HTTP monitoring functionality.
 
+use crate::monitoring::http::{
+  HttpMethod, HttpMonitor, HttpRequest, HttpResponse, HttpStats, HttpTransaction,
+};
+use crate::monitoring::{Monitor, TimePeriod};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::collections::HashMap;
-use crate::monitoring::http::{
-    HttpRequest, HttpResponse, HttpTransaction, HttpStats, HttpMethod, HttpMonitor
-};
-use crate::monitoring::{Monitor, TimePeriod};
-use std::sync::{Arc, Mutex};
 use std::sync::OnceLock;
+use std::sync::{Arc, Mutex};
 
 impl HttpMethod {
-    fn from_str(method: &str) -> Self {
-        match method.to_uppercase().as_str() {
-            "GET" => HttpMethod::Get,
-            "POST" => HttpMethod::Post,
-            "PUT" => HttpMethod::Put,
-            "DELETE" => HttpMethod::Delete,
-            "PATCH" => HttpMethod::Patch,
-            "HEAD" => HttpMethod::Head,
-            "OPTIONS" => HttpMethod::Options,
-            _ => HttpMethod::Other,
-        }
+  fn from_str(method: &str) -> Self {
+    match method.to_uppercase().as_str() {
+      "GET" => HttpMethod::Get,
+      "POST" => HttpMethod::Post,
+      "PUT" => HttpMethod::Put,
+      "DELETE" => HttpMethod::Delete,
+      "PATCH" => HttpMethod::Patch,
+      "HEAD" => HttpMethod::Head,
+      "OPTIONS" => HttpMethod::Options,
+      _ => HttpMethod::Other,
     }
+  }
 }
 
 // Global HTTP monitor instance
@@ -32,366 +32,389 @@ static HTTP_MONITOR: OnceLock<Arc<Mutex<HttpMonitor>>> = OnceLock::new();
 
 // Helper function to get or initialize the HTTP monitor
 fn get_http_monitor() -> Arc<Mutex<HttpMonitor>> {
-    HTTP_MONITOR.get_or_init(|| {
-        Arc::new(Mutex::new(HttpMonitor::new()))
-    }).clone()
+  HTTP_MONITOR
+    .get_or_init(|| Arc::new(Mutex::new(HttpMonitor::new())))
+    .clone()
 }
 
 /// JavaScript representation of HTTP method
 #[napi(object)]
 pub struct JsHttpMethod {
-    pub value: String,
+  pub value: String,
 }
 
 impl From<HttpMethod> for JsHttpMethod {
-    fn from(method: HttpMethod) -> Self {
-        Self {
-            value: method.as_str().to_string(),
-        }
+  fn from(method: HttpMethod) -> Self {
+    Self {
+      value: method.as_str().to_string(),
     }
+  }
 }
 
 impl From<JsHttpMethod> for HttpMethod {
-    fn from(js_method: JsHttpMethod) -> Self {
-        HttpMethod::from_str(&js_method.value)
-    }
+  fn from(js_method: JsHttpMethod) -> Self {
+    HttpMethod::from_str(&js_method.value)
+  }
 }
 
 /// JavaScript representation of HTTP request
 #[napi(object)]
 pub struct JsHttpRequest {
-    pub method: String,
-    pub url: String,
-    pub headers: HashMap<String, String>,
-    pub body_size: u32,
-    pub timestamp: f64,
-    pub user_agent: Option<String>,
-    pub remote_address: Option<String>,
+  pub method: String,
+  pub url: String,
+  pub headers: HashMap<String, String>,
+  pub body_size: u32,
+  pub timestamp: f64,
+  pub user_agent: Option<String>,
+  pub remote_address: Option<String>,
 }
 
 impl From<HttpRequest> for JsHttpRequest {
-    fn from(request: HttpRequest) -> Self {
-        Self {
-            method: request.method.as_str().to_string(),
-            url: request.url,
-            headers: HashMap::new(), // headers not stored in current implementation
-            body_size: request.body_size as u32,
-            timestamp: request.timestamp.elapsed().as_secs_f64(),
-            user_agent: request.user_agent,
-            remote_address: request.remote_ip,
-        }
+  fn from(request: HttpRequest) -> Self {
+    Self {
+      method: request.method.as_str().to_string(),
+      url: request.url,
+      headers: HashMap::new(), // headers not stored in current implementation
+      body_size: request.body_size as u32,
+      timestamp: request.timestamp.elapsed().as_secs_f64(),
+      user_agent: request.user_agent,
+      remote_address: request.remote_ip,
     }
+  }
 }
 
 /// JavaScript representation of HTTP response
 #[napi(object)]
 pub struct JsHttpResponse {
-    pub status_code: u16,
-    pub headers: HashMap<String, String>,
-    pub body_size: u32,
-    pub timestamp: f64,
+  pub status_code: u16,
+  pub headers: HashMap<String, String>,
+  pub body_size: u32,
+  pub timestamp: f64,
 }
 
 impl From<HttpResponse> for JsHttpResponse {
-    fn from(response: HttpResponse) -> Self {
-        Self {
-            status_code: response.status_code,
-            headers: HashMap::new(), // headers not stored in current implementation
-            body_size: response.body_size as u32,
-            timestamp: response.timestamp.elapsed().as_secs_f64(),
-        }
+  fn from(response: HttpResponse) -> Self {
+    Self {
+      status_code: response.status_code,
+      headers: HashMap::new(), // headers not stored in current implementation
+      body_size: response.body_size as u32,
+      timestamp: response.timestamp.elapsed().as_secs_f64(),
     }
+  }
 }
 
 /// JavaScript representation of HTTP transaction
 #[napi(object)]
 pub struct JsHttpTransaction {
-    pub id: String,
-    pub request: JsHttpRequest,
-    pub response: Option<JsHttpResponse>,
-    pub duration_ms: Option<f64>,
-    pub error: Option<String>,
+  pub id: String,
+  pub request: JsHttpRequest,
+  pub response: Option<JsHttpResponse>,
+  pub duration_ms: Option<f64>,
+  pub error: Option<String>,
 }
 
 impl From<HttpTransaction> for JsHttpTransaction {
-    fn from(transaction: HttpTransaction) -> Self {
-        Self {
-            id: format!("{:?}", transaction.request.timestamp), // use timestamp as ID
-            request: transaction.request.into(),
-            response: Some(transaction.response.into()),
-            duration_ms: Some(transaction.total_time.as_millis() as f64),
-            error: None, // error handling not implemented in current version
-        }
+  fn from(transaction: HttpTransaction) -> Self {
+    Self {
+      id: format!("{:?}", transaction.request.timestamp), // use timestamp as ID
+      request: transaction.request.into(),
+      response: Some(transaction.response.into()),
+      duration_ms: Some(transaction.total_time.as_millis() as f64),
+      error: None, // error handling not implemented in current version
     }
+  }
 }
 
 /// JavaScript representation of HTTP statistics
 #[napi(object)]
 pub struct JsHttpStats {
-    pub total_requests: u32,
-    pub total_responses: u32,
-    pub active_requests: u32,
-    pub total_request_size: u32,
-    pub total_response_size: u32,
-    pub avg_response_time_ms: f64,
-    pub min_response_time_ms: f64,
-    pub max_response_time_ms: f64,
-    pub status_code_counts: HashMap<String, u32>,
-    pub method_counts: HashMap<String, u32>,
-    pub error_rate: f64,
-    pub timeout_rate: f64,
-    pub requests_per_second: f64,
-    pub responses_per_second: f64,
-    pub recent_transactions: Vec<JsHttpTransaction>,
+  pub total_requests: u32,
+  pub total_responses: u32,
+  pub active_requests: u32,
+  pub total_request_size: u32,
+  pub total_response_size: u32,
+  pub avg_response_time_ms: f64,
+  pub min_response_time_ms: f64,
+  pub max_response_time_ms: f64,
+  pub status_code_counts: HashMap<String, u32>,
+  pub method_counts: HashMap<String, u32>,
+  pub error_rate: f64,
+  pub timeout_rate: f64,
+  pub requests_per_second: f64,
+  pub responses_per_second: f64,
+  pub recent_transactions: Vec<JsHttpTransaction>,
 }
 
 impl From<HttpStats> for JsHttpStats {
-    fn from(stats: HttpStats) -> Self {
-        let status_code_counts = stats.responses_by_status
-            .into_iter()
-            .map(|(k, v)| (k.to_string(), v as u32))
-            .collect();
-            
-        let method_counts = stats.requests_by_method
-            .into_iter()
-            .map(|(k, v)| (k.as_str().to_string(), v as u32))
-            .collect();
-            
-        let recent_transactions = stats.recent_transactions
-            .into_iter()
-            .map(|t| t.into())
-            .collect();
-        
-        Self {
-            total_requests: stats.total_requests as u32,
-            total_responses: stats.total_responses as u32,
-            active_requests: 0, // not tracked in current implementation
-            total_request_size: stats.total_bytes_sent as u32,
-            total_response_size: stats.total_bytes_received as u32,
-            avg_response_time_ms: stats.avg_response_time.as_secs_f64() * 1000.0,
-            min_response_time_ms: stats.min_response_time.as_secs_f64() * 1000.0,
-            max_response_time_ms: stats.max_response_time.as_secs_f64() * 1000.0,
-            status_code_counts,
-            method_counts,
-            error_rate: stats.error_rate,
-            timeout_rate: 0.0, // timeout rate not tracked in current implementation
-            requests_per_second: stats.requests_per_second,
-            responses_per_second: stats.requests_per_second,
-            recent_transactions,
-        }
+  fn from(stats: HttpStats) -> Self {
+    let status_code_counts = stats
+      .responses_by_status
+      .into_iter()
+      .map(|(k, v)| (k.to_string(), v as u32))
+      .collect();
+
+    let method_counts = stats
+      .requests_by_method
+      .into_iter()
+      .map(|(k, v)| (k.as_str().to_string(), v as u32))
+      .collect();
+
+    let recent_transactions = stats
+      .recent_transactions
+      .into_iter()
+      .map(|t| t.into())
+      .collect();
+
+    Self {
+      total_requests: stats.total_requests as u32,
+      total_responses: stats.total_responses as u32,
+      active_requests: 0, // not tracked in current implementation
+      total_request_size: stats.total_bytes_sent as u32,
+      total_response_size: stats.total_bytes_received as u32,
+      avg_response_time_ms: stats.avg_response_time.as_secs_f64() * 1000.0,
+      min_response_time_ms: stats.min_response_time.as_secs_f64() * 1000.0,
+      max_response_time_ms: stats.max_response_time.as_secs_f64() * 1000.0,
+      status_code_counts,
+      method_counts,
+      error_rate: stats.error_rate,
+      timeout_rate: 0.0, // timeout rate not tracked in current implementation
+      requests_per_second: stats.requests_per_second,
+      responses_per_second: stats.requests_per_second,
+      recent_transactions,
     }
+  }
 }
 
 /// Initialize HTTP monitor
 #[napi]
 pub fn init_http_monitor_js() -> Result<()> {
-    let _monitor = get_http_monitor();
-    Ok(())
+  let _monitor = get_http_monitor();
+  Ok(())
 }
 
 /// Start HTTP monitoring
 #[napi]
 pub fn start_http_monitoring_js() -> Result<()> {
-    let monitor = get_http_monitor();
-    if let Ok(mut monitor) = monitor.lock() {
-        monitor.start()
-            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to start HTTP monitoring: {}", e)))
-    } else {
-        Err(Error::new(Status::GenericFailure, "Failed to lock HTTP monitor".to_string()))
-    }
+  let monitor = get_http_monitor();
+  if let Ok(mut monitor) = monitor.lock() {
+    monitor.start().map_err(|e| {
+      Error::new(
+        Status::GenericFailure,
+        format!("Failed to start HTTP monitoring: {}", e),
+      )
+    })
+  } else {
+    Err(Error::new(
+      Status::GenericFailure,
+      "Failed to lock HTTP monitor".to_string(),
+    ))
+  }
 }
 
 /// Stop HTTP monitoring
 #[napi]
 pub fn stop_http_monitoring_js() -> Result<()> {
-    let monitor = get_http_monitor();
-    if let Ok(mut monitor) = monitor.lock() {
-        monitor.stop()
-            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to stop HTTP monitoring: {}", e)))
-    } else {
-        Err(Error::new(Status::GenericFailure, "Failed to lock HTTP monitor".to_string()))
-    }
+  let monitor = get_http_monitor();
+  if let Ok(mut monitor) = monitor.lock() {
+    monitor.stop().map_err(|e| {
+      Error::new(
+        Status::GenericFailure,
+        format!("Failed to stop HTTP monitoring: {}", e),
+      )
+    })
+  } else {
+    Err(Error::new(
+      Status::GenericFailure,
+      "Failed to lock HTTP monitor".to_string(),
+    ))
+  }
 }
 
 /// Record HTTP request
 #[napi]
 pub fn record_http_request(
-    request_id: String,
-    method: String,
-    url: String,
-    headers_size: u32,
-    body_size: u32,
-    user_agent: Option<String>,
-    remote_address: Option<String>,
+  request_id: String,
+  method: String,
+  url: String,
+  headers_size: u32,
+  body_size: u32,
+  user_agent: Option<String>,
+  remote_address: Option<String>,
 ) {
-    let monitor = get_http_monitor();
-    if let Ok(monitor) = monitor.lock() {
-        let http_method = HttpMethod::from_str(&method);
-        let _ = monitor.record_request(
-            request_id,
-            http_method,
-            url,
-            headers_size as u64,
-            body_size as u64,
-            user_agent,
-            remote_address,
-        );
-    }
+  let monitor = get_http_monitor();
+  if let Ok(monitor) = monitor.lock() {
+    let http_method = HttpMethod::from_str(&method);
+    let _ = monitor.record_request(
+      request_id,
+      http_method,
+      url,
+      headers_size as u64,
+      body_size as u64,
+      user_agent,
+      remote_address,
+    );
+  }
 }
 
 /// Record HTTP response
 #[napi]
 pub fn record_http_response(
-    request_id: String,
-    status_code: u32,
-    headers_size: u32,
-    body_size: u32,
-    response_time_ms: u32,
+  request_id: String,
+  status_code: u32,
+  headers_size: u32,
+  body_size: u32,
+  response_time_ms: u32,
 ) {
-    let monitor = get_http_monitor();
-    if let Ok(monitor) = monitor.lock() {
-        let _ = monitor.record_response(
-            request_id,
-            status_code as u16,
-            headers_size as u64,
-            body_size as u64,
-        );
-    }
+  let monitor = get_http_monitor();
+  if let Ok(monitor) = monitor.lock() {
+    let _ = monitor.record_response(
+      request_id,
+      status_code as u16,
+      headers_size as u64,
+      body_size as u64,
+    );
+  }
 }
 
 /// Record HTTP error
 #[napi]
 pub fn record_http_error(transaction_id: String, _error_message: String) {
-    let monitor = get_http_monitor();
-    if let Ok(monitor) = monitor.lock() {
-        let _ = monitor.record_response(
-            transaction_id,
-            500, // Internal Server Error
-            0,   // headers_size
-            0,   // body_size
-        );
-    }
+  let monitor = get_http_monitor();
+  if let Ok(monitor) = monitor.lock() {
+    let _ = monitor.record_response(
+      transaction_id,
+      500, // Internal Server Error
+      0,   // headers_size
+      0,   // body_size
+    );
+  }
 }
 
 /// Get HTTP statistics
 #[napi]
 pub fn get_http_stats_js() -> Option<JsHttpStats> {
-    let monitor = get_http_monitor();
-    if let Ok(monitor) = monitor.lock() {
-        if let Ok(stats_map) = monitor.get_stats() {
-            if let Some(stats) = stats_map.get(&TimePeriod::TenSeconds) {
-                return Some(stats.clone().into());
-            }
-        }
+  let monitor = get_http_monitor();
+  if let Ok(monitor) = monitor.lock() {
+    if let Ok(stats_map) = monitor.get_stats() {
+      if let Some(stats) = stats_map.get(&TimePeriod::TenSeconds) {
+        return Some(stats.clone().into());
+      }
     }
-    None
+  }
+  None
 }
 
 /// Format HTTP statistics for logging
 #[napi]
 pub fn format_http_stats_js() -> String {
-    let monitor = get_http_monitor();
-    if let Ok(monitor) = monitor.lock() {
-        if let Ok(stats_map) = monitor.get_stats() {
-            if let Some(stats) = stats_map.get(&TimePeriod::TenSeconds) {
-                return format!("HTTP Stats: {} requests, {} responses, avg response time: {:.2}ms", 
-                    stats.total_requests, stats.total_responses, 
-                    stats.avg_response_time.as_secs_f64() * 1000.0);
-            }
-        }
+  let monitor = get_http_monitor();
+  if let Ok(monitor) = monitor.lock() {
+    if let Ok(stats_map) = monitor.get_stats() {
+      if let Some(stats) = stats_map.get(&TimePeriod::TenSeconds) {
+        return format!(
+          "HTTP Stats: {} requests, {} responses, avg response time: {:.2}ms",
+          stats.total_requests,
+          stats.total_responses,
+          stats.avg_response_time.as_secs_f64() * 1000.0
+        );
+      }
     }
-    "HTTP monitoring not available".to_string()
+  }
+  "HTTP monitoring not available".to_string()
 }
 
 /// Get HTTP statistics by status code
 #[napi]
 pub fn get_http_stats_by_status_code() -> HashMap<String, u32> {
-    get_http_stats()
-        .map(|stats| {
-            stats.responses_by_status
-                .into_iter()
-                .map(|(k, v)| (k.to_string(), v as u32))
-                .collect()
-        })
-        .unwrap_or_default()
+  get_http_stats()
+    .map(|stats| {
+      stats
+        .responses_by_status
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v as u32))
+        .collect()
+    })
+    .unwrap_or_default()
 }
 
 /// Get HTTP statistics by method
 #[napi]
 pub fn get_http_stats_by_method() -> HashMap<String, u32> {
-    get_http_stats()
-        .map(|stats| {
-            stats.requests_by_method
-                .into_iter()
-                .map(|(k, v)| (k.as_str().to_string(), v as u32))
-                .collect()
-        })
-        .unwrap_or_default()
+  get_http_stats()
+    .map(|stats| {
+      stats
+        .requests_by_method
+        .into_iter()
+        .map(|(k, v)| (k.as_str().to_string(), v as u32))
+        .collect()
+    })
+    .unwrap_or_default()
 }
 
 /// Get recent HTTP transactions
 #[napi]
 pub fn get_recent_http_transactions(limit: Option<u32>) -> Vec<JsHttpTransaction> {
-    get_http_stats()
-        .map(|stats| {
-            let mut transactions: Vec<JsHttpTransaction> = stats.recent_transactions
-                .into_iter()
-                .map(|t| t.into())
-                .collect();
-            
-            if let Some(limit) = limit {
-                transactions.truncate(limit as usize);
-            }
-            
-            transactions
-        })
-        .unwrap_or_default()
+  get_http_stats()
+    .map(|stats| {
+      let mut transactions: Vec<JsHttpTransaction> = stats
+        .recent_transactions
+        .into_iter()
+        .map(|t| t.into())
+        .collect();
+
+      if let Some(limit) = limit {
+        transactions.truncate(limit as usize);
+      }
+
+      transactions
+    })
+    .unwrap_or_default()
 }
 
 /// Get HTTP performance metrics
 #[napi(object)]
 pub struct JsHttpPerformanceMetrics {
-    pub avg_response_time_ms: f64,
-    pub min_response_time_ms: f64,
-    pub max_response_time_ms: f64,
-    pub requests_per_second: f64,
-    pub responses_per_second: f64,
-    pub error_rate: f64,
-    pub timeout_rate: f64,
+  pub avg_response_time_ms: f64,
+  pub min_response_time_ms: f64,
+  pub max_response_time_ms: f64,
+  pub requests_per_second: f64,
+  pub responses_per_second: f64,
+  pub error_rate: f64,
+  pub timeout_rate: f64,
 }
 
 /// Get HTTP performance metrics
 #[napi]
 pub fn get_http_performance_metrics() -> Option<JsHttpPerformanceMetrics> {
-    get_http_stats().map(|stats| {
-        let error_rate = if stats.total_requests > 0 {
-            stats.error_rate
-        } else {
-            0.0
-        };
-        
-        let timeout_rate = if stats.total_requests > 0 {
-            0.0 // timeout rate not tracked in current implementation
-        } else {
-            0.0
-        };
-        
-        JsHttpPerformanceMetrics {
-            avg_response_time_ms: stats.avg_response_time.as_secs_f64() * 1000.0,
-            min_response_time_ms: stats.min_response_time.as_secs_f64() * 1000.0,
-            max_response_time_ms: stats.max_response_time.as_secs_f64() * 1000.0,
-            requests_per_second: stats.requests_per_second,
-            responses_per_second: stats.requests_per_second,
-            error_rate,
-            timeout_rate,
-        }
-    })
+  get_http_stats().map(|stats| {
+    let error_rate = if stats.total_requests > 0 {
+      stats.error_rate
+    } else {
+      0.0
+    };
+
+    let timeout_rate = if stats.total_requests > 0 {
+      0.0 // timeout rate not tracked in current implementation
+    } else {
+      0.0
+    };
+
+    JsHttpPerformanceMetrics {
+      avg_response_time_ms: stats.avg_response_time.as_secs_f64() * 1000.0,
+      min_response_time_ms: stats.min_response_time.as_secs_f64() * 1000.0,
+      max_response_time_ms: stats.max_response_time.as_secs_f64() * 1000.0,
+      requests_per_second: stats.requests_per_second,
+      responses_per_second: stats.requests_per_second,
+      error_rate,
+      timeout_rate,
+    }
+  })
 }
 
 /// Reset HTTP monitoring statistics
 #[napi]
 pub fn reset_http_stats() -> Result<()> {
-    // This would be implemented in the monitoring module
-    // For now, we'll return success
-    Ok(())
+  // This would be implemented in the monitoring module
+  // For now, we'll return success
+  Ok(())
 }
