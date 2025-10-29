@@ -42,9 +42,10 @@ npm run lint
 
 ## Build System & C++ Compilation
 
-**CRITICAL:** Node.js v24+ requires C++20. The binding.gyp must use:
-- Linux: `-std=c++20` in `cflags`
-- macOS: `-std=c++20` in `xcode_settings.OTHER_CFLAGS`
+**C++ Standard Requirements:**
+- Linux: Uses C++17 (`-std=c++17` in `cflags`)
+- macOS: Uses C++20 (`-std=c++20` in `xcode_settings.OTHER_CFLAGS`) - required for Node.js v24+
+- Windows: Uses MSVC default settings
 
 The project uses:
 - **node-gyp** for native compilation
