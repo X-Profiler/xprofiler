@@ -17,6 +17,7 @@ jobs:
           {os: "ubuntu-latest", arch: "x64"},
         ]
         node-version: [ 18, 20, 22, 24 ]
+        binding: [ cpp, rust ]
     steps:
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -35,13 +36,31 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      if: ${{ matrix.binding == 'rust' }}
+
     - name: Install Dependencies
       run: npm install
 
-    - name: Continuous Integration
-      run: npm run ci
+    - name: Build C++ Binding
+      if: ${{ matrix.binding == 'cpp' }}
+      run: npm run build
+
+    - name: Build Rust Binding
+      if: ${{ matrix.binding == 'rust' }}
+      run: npm run build:rs
+
+    - name: Test C++ Binding
+      if: ${{ matrix.binding == 'cpp' }}
+      run: npm test
+
+    - name: Test Rust Binding
+      if: ${{ matrix.binding == 'rust' }}
+      run: npm run test:rs
 
     - name: Code Coverage
+      if: ${{ matrix.binding == 'cpp' }}
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
