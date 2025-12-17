@@ -11,6 +11,7 @@ mod constants;
 mod env;
 mod error;
 mod ipc;
+mod logbypass;
 mod logger;
 mod platform;
 mod utils;
@@ -175,8 +176,8 @@ pub fn init_mallopt() -> Result<()> {
 /// Run the log bypass thread for statistics collection
 #[napi]
 pub fn run_log_bypass() -> Result<()> {
-    // TODO: Implement in Phase 4
-    Ok(())
+    logbypass::start_log_bypass()
+        .map_err(|e| Error::from_reason(e))
 }
 
 /// Run the commands listener thread for IPC

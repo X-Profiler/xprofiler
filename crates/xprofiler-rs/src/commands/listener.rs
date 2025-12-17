@@ -36,7 +36,17 @@ pub fn start_commands_listener() -> Result<(), String> {
     });
 
     // Start the server
-    server.start(handler).map_err(|e| format!("Failed to start IPC server: {}", e))?;
+    // If the path is too long (common in test fixtures), just skip starting the server
+    // The JS layer already logs the warning via checkSocketPath()
+    if let Err(e) = server.start(handler) {
+        let error_msg = e.to_string();
+        if error_msg.contains("SUN_LEN") || error_msg.contains("too long") {
+            // Path too long - this is handled gracefully, don't fail
+            eprintln!("[xprofiler] IPC server not started: socket path too long");
+            return Ok(());
+        }
+        return Err(format!("Failed to start IPC server: {}", e));
+    }
 
     *listener = Some(CommandsListener { server });
 
