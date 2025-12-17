@@ -32,6 +32,9 @@ thiserror = "2"
 # Logging/tracing
 tracing = "0.1"
 
+# Async runtime for IPC
+tokio = { version = "1", features = ["rt", "sync", "time", "io-util", "net", "macros"] }
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 nix = { version = "0.30", features = ["socket", "uio", "process", "signal", "fs"] }

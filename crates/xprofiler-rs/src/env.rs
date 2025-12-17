@@ -186,9 +186,9 @@ impl EnvironmentRegistry {
             .cloned()
     }
 
-    pub fn for_each<F>(&self, f: F)
+    pub fn for_each<F>(&self, mut f: F)
     where
-        F: Fn(&EnvironmentData),
+        F: FnMut(&EnvironmentData),
     {
         for env in self.environments.read().values() {
             f(env);
