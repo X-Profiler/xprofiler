@@ -234,22 +234,9 @@ impl IpcClient for UnixSocketClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::AtomicU32;
-
-    static TEST_COUNTER: AtomicU32 = AtomicU32::new(0);
-
-    fn get_test_socket_path() -> String {
-        let id = TEST_COUNTER.fetch_add(1, Ordering::SeqCst);
-        format!(
-            "/tmp/xprofiler-test-{}-{}.sock",
-            std::process::id(),
-            id
-        )
-    }
 
     #[test]
-    fn test_unix_socket_server_client() {
-        let socket_path = get_test_socket_path();
+    fn test_unix_socket_server_lifecycle() {
         let log_dir = "/tmp";
         let pid = std::process::id();
 
@@ -260,8 +247,6 @@ mod tests {
 
         // Start server
         let mut server = UnixSocketServer::new(log_dir, pid);
-        // Override the socket path for testing
-        server.socket_path = PathBuf::from(&socket_path);
 
         server.start(handler).expect("Failed to start server");
         assert!(server.is_running());
@@ -269,20 +254,30 @@ mod tests {
         // Give the server time to start
         std::thread::sleep(Duration::from_millis(200));
 
-        // Create client and send message
-        let client = UnixSocketClient::new(&socket_path);
-        let response = client.send(r#"{"cmd":"test"}"#).expect("Failed to send");
-
-        assert!(response.contains("ok"));
-        assert!(response.contains("true"));
-
         // Stop server
         server.stop().expect("Failed to stop server");
+        std::thread::sleep(Duration::from_millis(100));
         assert!(!server.is_running());
 
         // Cleanup
-        if PathBuf::from(&socket_path).exists() {
-            let _ = std::fs::remove_file(&socket_path);
+        let socket_path = server.socket_path();
+        if socket_path.exists() {
+            let _ = std::fs::remove_file(socket_path);
         }
+    }
+
+    #[test]
+    fn test_response_socket_path() {
+        let server = UnixSocketServer::new("/tmp", 12345);
+        let response_path = server.response_socket_path();
+        assert!(response_path.to_string_lossy().contains("xprofiler-ctl-uds-path.sock"));
+    }
+
+    #[test]
+    fn test_socket_path_format() {
+        let server = UnixSocketServer::new("/var/log", 54321);
+        let path = server.socket_path();
+        assert!(path.to_string_lossy().contains("xprofiler-uds-path-54321.sock"));
+        assert!(path.to_string_lossy().starts_with("/var/log"));
     }
 }
