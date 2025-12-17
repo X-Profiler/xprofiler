@@ -20,8 +20,9 @@ struct CommandsListener {
 pub fn start_commands_listener() -> Result<(), String> {
     let mut listener = COMMANDS_LISTENER.lock();
 
+    // If already started, just return success
     if listener.is_some() {
-        return Err("Commands listener already started".to_string());
+        return Ok(());
     }
 
     let cfg = config::get_config();
@@ -91,9 +92,9 @@ mod tests {
         assert!(result.is_ok(), "Failed to start: {:?}", result);
         assert!(is_commands_listener_running());
 
-        // Try to start again (should fail)
+        // Try to start again (should succeed silently)
         let result = start_commands_listener();
-        assert!(result.is_err());
+        assert!(result.is_ok());
 
         // Stop the listener
         let result = stop_commands_listener();

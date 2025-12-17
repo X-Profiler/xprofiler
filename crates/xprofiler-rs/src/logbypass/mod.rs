@@ -39,8 +39,9 @@ impl LogByPass {
 pub fn start_log_bypass() -> Result<(), String> {
     let mut guard = LOG_BYPASS.lock();
 
+    // If already started, just return success (worker threads may call this again)
     if guard.is_some() {
-        return Err("LogByPass already started".to_string());
+        return Ok(());
     }
 
     let cfg = config::get_config();

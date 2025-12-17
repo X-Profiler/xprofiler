@@ -16,7 +16,10 @@ exports.alinodePrefixRegexp =
   /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{6}\] \[(.+)\] \[(.+)\] \[(\d+)\] (.*)/g;
 
 exports.createLogDir = function createLogDir(logdir) {
-  const log_dir = path.join(__dirname, logdir);
+  // On macOS, use /tmp to avoid socket path length limits (104 bytes max)
+  // The project path is often too long for Unix domain sockets
+  const baseDir = os.platform() === 'darwin' ? '/tmp/xprofiler-test' : __dirname;
+  const log_dir = path.join(baseDir, logdir);
   if (!fs.existsSync(log_dir)) {
     fs.mkdirSync(log_dir, { recursive: true });
   } else {

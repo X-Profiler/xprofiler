@@ -363,10 +363,7 @@ fn handle_generate_coredump(request: &CommandRequest) -> CommandResponse {
     {
         CommandResponse::error(
             &request.traceid,
-            &format!(
-                "generate_coredump only supported on Linux. {}",
-                crate::coredump::get_coredump_guidance()
-            ),
+            "generate_coredump only support linux now.",
         )
     }
 }
