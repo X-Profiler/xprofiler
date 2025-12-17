@@ -78,3 +78,7 @@ logdir*
 
 tmphome*
 
+# Rust build artifacts
+crates/*/target/
+Cargo.lock
+*.node

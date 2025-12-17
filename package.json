@@ -24,13 +24,17 @@
     "pack-8u": "node scripts/8u.js",
     "copy": "node scripts/copy.js",
     "build": "node-pre-gyp rebuild",
+    "build:rs": "napi build --platform --release --manifest-path crates/xprofiler-rs/Cargo.toml -o build/binding/Release",
+    "build:rs:debug": "napi build --platform --manifest-path crates/xprofiler-rs/Cargo.toml -o build/binding/Debug",
     "format": "clang-format --version && clang-format -i --glob=\"src/**/!(report_win)[.h|.cc]\"",
     "lint": "npm run format && eslint --fix  *.js \"test/**/*.js\" lib/*.js patch/*.js bin/xprofctl scripts/**/*.js",
     "test": "mocha -t 0 -R spec test/*.test.js test/patch/*.test.js",
     "test-single": "mocha -t 0 -R spec",
+    "test:rs": "XPROFILER_USE_RUST=true npm test",
     "cov": "nyc --reporter=html --reporter=text --reporter=lcov mocha -R spec test/*.test.js test/patch/*.test.js --timeout 60000",
     "cov-single": "nyc --reporter=html --reporter=text --reporter=lcov mocha --timeout 60000 -R spec",
     "ci": "npm run lint && npm run build && npm run cov",
+    "ci:rs": "npm run lint && npm run build:rs && npm run test:rs",
     "dep": "npm run build && npm run cov",
     "release": "node scripts/release.js",
     "pack": "node scripts/clean.js && node-pre-gyp package && node-pre-gyp testpackage && npm run copy"
@@ -44,10 +48,12 @@
     "lib",
     "patch",
     "src",
+    "crates",
     "binding.gyp",
     "configuration.js",
     "index.d.ts",
-    "xprofiler.js"
+    "xprofiler.js",
+    "*.node"
   ],
   "author": "yeekwanvong@gmail.com",
   "license": "BSD-2-Clause",
@@ -64,6 +70,7 @@
   },
   "devDependencies": {
     "@istanbuljs/schema": "^0.1.3",
+    "@napi-rs/cli": "^3.1.5",
     "clang-format": "^1.8.0",
     "eslint": "^8.57.1",
     "expect.js": "^0.3.1",
@@ -75,5 +82,15 @@
     "unix": "xprofiler-ctl-uds-path.sock",
     "win32": "xprofiler-ctl"
   },
-  "blurryTag": "__"
+  "blurryTag": "__",
+  "napi": {
+    "binaryName": "xprofiler-rs",
+    "targets": [
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "aarch64-unknown-linux-gnu",
+      "x86_64-pc-windows-msvc"
+    ]
+  }
 }
