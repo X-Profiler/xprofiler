@@ -335,18 +335,39 @@ fn handle_generate_coredump(request: &CommandRequest) -> CommandResponse {
             state.coredump_filepath = Some(filepath.clone());
         }
 
-        // TODO: Implement actual coredump generation
-        CommandResponse::success(
-            &request.traceid,
-            Some(serde_json::json!({
-                "filepath": filepath,
-            })),
-        )
+        // Attempt to generate coredump
+        let result = crate::coredump::write_coredump(&filepath);
+
+        if result.success {
+            CommandResponse::success(
+                &request.traceid,
+                Some(serde_json::json!({
+                    "filepath": result.filepath.unwrap_or(filepath),
+                    "message": result.message,
+                })),
+            )
+        } else {
+            // Return success with guidance (coredump info file was created)
+            CommandResponse::success(
+                &request.traceid,
+                Some(serde_json::json!({
+                    "filepath": result.filepath.unwrap_or(filepath),
+                    "message": result.message,
+                    "guidance": crate::coredump::get_coredump_guidance(),
+                })),
+            )
+        }
     }
 
     #[cfg(not(target_os = "linux"))]
     {
-        CommandResponse::error(&request.traceid, "generate_coredump only support linux now.")
+        CommandResponse::error(
+            &request.traceid,
+            &format!(
+                "generate_coredump only supported on Linux. {}",
+                crate::coredump::get_coredump_guidance()
+            ),
+        )
     }
 }
 

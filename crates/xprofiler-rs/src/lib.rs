@@ -8,6 +8,7 @@
 mod commands;
 mod config;
 mod constants;
+mod coredump;
 mod env;
 mod error;
 mod hooks;
