@@ -1,7 +1,7 @@
 //! Unix domain socket IPC implementation
 
 use super::{IpcClient, IpcError, IpcServer, IpcServerHandle, MessageHandler};
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -9,9 +9,13 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
 
+/// Response socket filename (where server sends responses back to client)
+const RESPONSE_SOCKET_FILENAME: &str = "xprofiler-ctl-uds-path.sock";
+
 /// Unix domain socket server
 pub struct UnixSocketServer {
     socket_path: PathBuf,
+    log_dir: String,
     handle: IpcServerHandle,
 }
 
@@ -20,12 +24,18 @@ impl UnixSocketServer {
         let socket_path = PathBuf::from(log_dir).join(format!("xprofiler-uds-path-{}.sock", pid));
         Self {
             socket_path,
+            log_dir: log_dir.to_string(),
             handle: IpcServerHandle::new(),
         }
     }
 
     pub fn socket_path(&self) -> &PathBuf {
         &self.socket_path
+    }
+
+    /// Get the response socket path where client listens for responses
+    pub fn response_socket_path(&self) -> PathBuf {
+        PathBuf::from(&self.log_dir).join(RESPONSE_SOCKET_FILENAME)
     }
 }
 
@@ -48,6 +58,7 @@ impl IpcServer for UnixSocketServer {
         self.handle.shutdown_tx = Some(shutdown_tx);
 
         let socket_path = self.socket_path.clone();
+        let response_socket_path = self.response_socket_path();
         let is_running = Arc::new(AtomicBool::new(true));
         let is_running_clone = is_running.clone();
 
@@ -74,9 +85,9 @@ impl IpcServer for UnixSocketServer {
                             match listener.accept() {
                                 Ok((stream, _addr)) => {
                                     let handler = handler.clone();
+                                    let resp_path = response_socket_path.clone();
                                     // Handle the connection in a blocking manner
-                                    // (Unix sockets are typically fast enough)
-                                    handle_connection(stream, handler);
+                                    handle_connection(stream, handler, resp_path);
                                 }
                                 Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                                     // No connection available, continue
@@ -114,38 +125,62 @@ impl IpcServer for UnixSocketServer {
     }
 }
 
-fn handle_connection(mut stream: UnixStream, handler: MessageHandler) {
+fn handle_connection(stream: UnixStream, handler: MessageHandler, response_socket_path: PathBuf) {
+    // Set the stream to blocking mode (it inherits non-blocking from listener)
+    if let Err(e) = stream.set_nonblocking(false) {
+        eprintln!("[xprofiler] IPC set blocking error: {}", e);
+        return;
+    }
+
     // Set a read timeout
-    let _ = stream.set_read_timeout(Some(Duration::from_secs(30)));
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(1)));
 
-    let mut reader = BufReader::new(stream.try_clone().unwrap_or_else(|_| {
-        // If clone fails, we can't read and write separately
-        return stream.try_clone().unwrap();
-    }));
-
-    let mut line = String::new();
-    match reader.read_line(&mut line) {
+    // Read the message (client sends without newline, so use read to buffer)
+    let mut buffer = [0u8; 4096];
+    let n = match stream.try_clone().unwrap().read(&mut buffer) {
         Ok(0) => {
             // Connection closed
             return;
         }
-        Ok(_) => {
-            // Process the message
-            let response = handler(line.trim().to_string());
-
-            // Send response
-            if let Err(e) = stream.write_all(response.as_bytes()) {
-                eprintln!("[xprofiler] IPC write error: {}", e);
-            }
-            if let Err(e) = stream.write_all(b"\n") {
-                eprintln!("[xprofiler] IPC write newline error: {}", e);
-            }
-            let _ = stream.flush();
-        }
+        Ok(n) => n,
         Err(e) => {
             eprintln!("[xprofiler] IPC read error: {}", e);
+            return;
         }
+    };
+
+    let message = String::from_utf8_lossy(&buffer[..n]).trim().to_string();
+    if message.is_empty() {
+        return;
     }
+
+    // Process the message
+    let response = handler(message);
+
+    // Send response to the response socket (not the incoming socket)
+    send_response(&response_socket_path, &response);
+}
+
+/// Send response to the client's response socket
+fn send_response(response_socket_path: &PathBuf, response: &str) {
+    // Connect to the client's response socket
+    let mut stream = match UnixStream::connect(response_socket_path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("[xprofiler] Failed to connect to response socket {}: {}",
+                     response_socket_path.display(), e);
+            return;
+        }
+    };
+
+    // Set timeouts
+    let _ = stream.set_write_timeout(Some(Duration::from_secs(5)));
+
+    // Send the response
+    if let Err(e) = stream.write_all(response.as_bytes()) {
+        eprintln!("[xprofiler] IPC write error: {}", e);
+    }
+    let _ = stream.flush();
 }
 
 /// Unix domain socket client

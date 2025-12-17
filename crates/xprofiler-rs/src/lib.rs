@@ -14,6 +14,7 @@ mod ipc;
 mod logbypass;
 mod logger;
 mod platform;
+mod profilers;
 mod utils;
 
 use napi::bindgen_prelude::*;

@@ -45,8 +45,15 @@ pub const IPC_SOCKET_FILENAME: &str = "xprofiler-ctl-uds-path.sock";
 pub const IPC_PIPE_NAME: &str = "xprofiler-ctl";
 
 /// Maximum Unix socket path length
-#[cfg(unix)]
+/// macOS: 104 bytes, Linux: 108 bytes
+#[cfg(target_os = "macos")]
+pub const MAX_UNIX_SOCKET_PATH_LEN: usize = 104;
+
+#[cfg(target_os = "linux")]
 pub const MAX_UNIX_SOCKET_PATH_LEN: usize = 108;
+
+#[cfg(all(unix, not(target_os = "macos"), not(target_os = "linux")))]
+pub const MAX_UNIX_SOCKET_PATH_LEN: usize = 104;
 
 /// Blurry tag used in log output
 pub const BLURRY_TAG: &str = "__";

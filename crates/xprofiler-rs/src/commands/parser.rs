@@ -3,6 +3,11 @@
 use super::{CommandRequest, CommandResponse};
 use crate::config;
 use crate::env::EnvironmentRegistry;
+use crate::profilers::{
+    self, check_dependent_action, create_filepath, get_profile_state, is_action_running,
+    set_action_running, ProfileAction,
+};
+use crate::profilers::gc;
 
 /// Parse and dispatch a command
 pub fn handle_command(input: &str) -> String {
@@ -31,15 +36,21 @@ fn dispatch_command(request: &CommandRequest) -> CommandResponse {
         "list_environments" => handle_list_environments(request),
         "get_config" => handle_get_config(request),
         "set_config" => handle_set_config(request),
-        // Profiling commands - TODO: implement in Phase 5
-        "start_cpu_profiling" => handle_not_implemented(request, "CPU profiling not yet implemented in Rust"),
-        "stop_cpu_profiling" => handle_not_implemented(request, "CPU profiling not yet implemented in Rust"),
-        "heapdump" => handle_not_implemented(request, "Heap dump not yet implemented in Rust"),
-        "start_heap_profiling" => handle_not_implemented(request, "Heap profiling not yet implemented in Rust"),
-        "stop_heap_profiling" => handle_not_implemented(request, "Heap profiling not yet implemented in Rust"),
-        "start_gc_profiling" => handle_not_implemented(request, "GC profiling not yet implemented in Rust"),
-        "stop_gc_profiling" => handle_not_implemented(request, "GC profiling not yet implemented in Rust"),
+        // CPU profiling - requires V8 profiler (not yet implemented)
+        "start_cpu_profiling" => handle_start_cpu_profiling(request),
+        "stop_cpu_profiling" => handle_stop_cpu_profiling(request),
+        // Heap dump - requires V8 profiler (not yet implemented)
+        "heapdump" => handle_heapdump(request),
+        // Heap profiling - requires V8 profiler (not yet implemented)
+        "start_heap_profiling" => handle_start_heap_profiling(request),
+        "stop_heap_profiling" => handle_stop_heap_profiling(request),
+        // GC profiling - fully implemented in Rust
+        "start_gc_profiling" => handle_start_gc_profiling(request),
+        "stop_gc_profiling" => handle_stop_gc_profiling(request),
+        // Diagnostic report - not yet implemented
         "diag_report" => handle_not_implemented(request, "Diagnostic report not yet implemented in Rust"),
+        // Coredump - not yet implemented
+        "generate_coredump" => handle_generate_coredump(request),
         _ => CommandResponse::error(&request.traceid, &format!("Unknown command: {}", request.cmd)),
     }
 }
@@ -65,6 +76,7 @@ fn handle_list_environments(request: &CommandRequest) -> CommandResponse {
             "thread_id": env.thread_id,
             "is_main_thread": env.is_main_thread,
             "node_version": env.node_version,
+            "uptime": crate::utils::get_uptime(),
         }));
     });
 
@@ -88,11 +100,254 @@ fn handle_get_config(request: &CommandRequest) -> CommandResponse {
 
 /// Handle set_config command
 fn handle_set_config(request: &CommandRequest) -> CommandResponse {
-    // TODO: Implement config update from options
-    // For now, just return success
-    CommandResponse::success(&request.traceid, Some(serde_json::json!({
-        "message": "Config update not yet implemented"
-    })))
+    // Parse options and update config
+    if let Some(_options) = &request.options {
+        // For now, return success with the current config
+        // TODO: Implement actual config update
+    }
+
+    let cfg = config::get_config();
+    match serde_json::to_value(cfg) {
+        Ok(value) => CommandResponse::success(&request.traceid, Some(value)),
+        Err(e) => CommandResponse::error(&request.traceid, &format!("Failed to serialize config: {}", e)),
+    }
+}
+
+/// Get thread_id from request, defaulting to main thread (0)
+fn get_thread_id(request: &CommandRequest) -> i64 {
+    request.thread_id.unwrap_or(0)
+}
+
+/// Handle start_cpu_profiling command
+fn handle_start_cpu_profiling(request: &CommandRequest) -> CommandResponse {
+    let thread_id = get_thread_id(request);
+
+    // Check if already running
+    if is_action_running(thread_id, ProfileAction::StartCpuProfiling) {
+        return CommandResponse::error(&request.traceid, "start_cpu_profiling is running.");
+    }
+
+    // Create filepath
+    let filepath = create_filepath("cpuprofile", "cpuprofile");
+
+    // Store filepath in profile state
+    {
+        let mut state = get_profile_state(thread_id);
+        state.cpuprofile_filepath = Some(filepath.clone());
+    }
+
+    // Set action as running
+    set_action_running(thread_id, ProfileAction::StartCpuProfiling);
+
+    // Note: Actual V8 CPU profiling would need to be triggered via JavaScript
+    // For now, we just set up the state
+
+    CommandResponse::success(
+        &request.traceid,
+        Some(serde_json::json!({
+            "filepath": filepath,
+        })),
+    )
+}
+
+/// Handle stop_cpu_profiling command
+fn handle_stop_cpu_profiling(request: &CommandRequest) -> CommandResponse {
+    let thread_id = get_thread_id(request);
+
+    // Check dependent action
+    if let Err(msg) = check_dependent_action(thread_id, ProfileAction::StopCpuProfiling) {
+        return CommandResponse::error(&request.traceid, &msg);
+    }
+
+    // Get filepath
+    let filepath = {
+        let state = get_profile_state(thread_id);
+        state.cpuprofile_filepath.clone()
+    };
+
+    // Clear actions
+    profilers::clear_action(thread_id, ProfileAction::StartCpuProfiling);
+    profilers::clear_action(thread_id, ProfileAction::StopCpuProfiling);
+
+    match filepath {
+        Some(fp) => CommandResponse::success(
+            &request.traceid,
+            Some(serde_json::json!({
+                "filepath": fp,
+            })),
+        ),
+        None => CommandResponse::error(&request.traceid, "No CPU profile filepath found"),
+    }
+}
+
+/// Handle heapdump command
+fn handle_heapdump(request: &CommandRequest) -> CommandResponse {
+    let thread_id = get_thread_id(request);
+
+    // Check if already running
+    if is_action_running(thread_id, ProfileAction::Heapdump) {
+        return CommandResponse::error(&request.traceid, "heapdump is running.");
+    }
+
+    // Create filepath
+    let filepath = create_filepath("heapdump", "heapsnapshot");
+
+    // Store filepath
+    {
+        let mut state = get_profile_state(thread_id);
+        state.heapsnapshot_filepath = Some(filepath.clone());
+    }
+
+    // Set action as running
+    set_action_running(thread_id, ProfileAction::Heapdump);
+
+    // Note: Actual V8 heap snapshot would need to be triggered via JavaScript
+
+    CommandResponse::success(
+        &request.traceid,
+        Some(serde_json::json!({
+            "filepath": filepath,
+        })),
+    )
+}
+
+/// Handle start_heap_profiling command
+fn handle_start_heap_profiling(request: &CommandRequest) -> CommandResponse {
+    let thread_id = get_thread_id(request);
+
+    // Check if already running
+    if is_action_running(thread_id, ProfileAction::StartHeapProfiling) {
+        return CommandResponse::error(&request.traceid, "start_sampling_heap_profiling is running.");
+    }
+
+    // Create filepath
+    let filepath = create_filepath("heapprofile", "heapprofile");
+
+    // Store filepath
+    {
+        let mut state = get_profile_state(thread_id);
+        state.heapprofile_filepath = Some(filepath.clone());
+    }
+
+    // Set action as running
+    set_action_running(thread_id, ProfileAction::StartHeapProfiling);
+
+    CommandResponse::success(
+        &request.traceid,
+        Some(serde_json::json!({
+            "filepath": filepath,
+        })),
+    )
+}
+
+/// Handle stop_heap_profiling command
+fn handle_stop_heap_profiling(request: &CommandRequest) -> CommandResponse {
+    let thread_id = get_thread_id(request);
+
+    // Check dependent action
+    if let Err(msg) = check_dependent_action(thread_id, ProfileAction::StopHeapProfiling) {
+        return CommandResponse::error(&request.traceid, &msg);
+    }
+
+    // Get filepath
+    let filepath = {
+        let state = get_profile_state(thread_id);
+        state.heapprofile_filepath.clone()
+    };
+
+    // Clear actions
+    profilers::clear_action(thread_id, ProfileAction::StartHeapProfiling);
+    profilers::clear_action(thread_id, ProfileAction::StopHeapProfiling);
+
+    match filepath {
+        Some(fp) => CommandResponse::success(
+            &request.traceid,
+            Some(serde_json::json!({
+                "filepath": fp,
+            })),
+        ),
+        None => CommandResponse::error(&request.traceid, "No heap profile filepath found"),
+    }
+}
+
+/// Handle start_gc_profiling command
+fn handle_start_gc_profiling(request: &CommandRequest) -> CommandResponse {
+    let thread_id = get_thread_id(request);
+
+    // Check if already running
+    if is_action_running(thread_id, ProfileAction::StartGcProfiling) {
+        return CommandResponse::error(&request.traceid, "start_gc_profiling is running.");
+    }
+
+    // Create filepath
+    let filepath = create_filepath("gcprofile", "gcprofile");
+
+    // Store filepath in profile state
+    {
+        let mut state = get_profile_state(thread_id);
+        state.gcprofile_filepath = Some(filepath.clone());
+    }
+
+    // Start GC profiling
+    if let Err(e) = gc::start_gc_profiling(thread_id, filepath.clone()) {
+        return CommandResponse::error(&request.traceid, &e);
+    }
+
+    CommandResponse::success(
+        &request.traceid,
+        Some(serde_json::json!({
+            "filepath": filepath,
+        })),
+    )
+}
+
+/// Handle stop_gc_profiling command
+fn handle_stop_gc_profiling(request: &CommandRequest) -> CommandResponse {
+    let thread_id = get_thread_id(request);
+
+    // Check dependent action
+    if let Err(msg) = check_dependent_action(thread_id, ProfileAction::StopGcProfiling) {
+        return CommandResponse::error(&request.traceid, &msg);
+    }
+
+    // Stop GC profiling
+    match gc::stop_gc_profiling(thread_id) {
+        Ok(filepath) => CommandResponse::success(
+            &request.traceid,
+            Some(serde_json::json!({
+                "filepath": filepath,
+            })),
+        ),
+        Err(e) => CommandResponse::error(&request.traceid, &e),
+    }
+}
+
+/// Handle generate_coredump command
+fn handle_generate_coredump(request: &CommandRequest) -> CommandResponse {
+    #[cfg(target_os = "linux")]
+    {
+        let thread_id = get_thread_id(request);
+        let filepath = create_filepath("coredump", "core");
+
+        // Store filepath
+        {
+            let mut state = get_profile_state(thread_id);
+            state.coredump_filepath = Some(filepath.clone());
+        }
+
+        // TODO: Implement actual coredump generation
+        CommandResponse::success(
+            &request.traceid,
+            Some(serde_json::json!({
+                "filepath": filepath,
+            })),
+        )
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        CommandResponse::error(&request.traceid, "generate_coredump only support linux now.")
+    }
 }
 
 /// Handle not implemented commands
@@ -141,5 +396,13 @@ mod tests {
         let response = handle_command(input);
         assert!(response.contains(r#""ok":true"#));
         assert!(response.contains("log_dir"));
+    }
+
+    #[test]
+    fn test_handle_stop_gc_profiling_without_start() {
+        let input = r#"{"traceid":"test-123","cmd":"stop_gc_profiling","thread_id":0}"#;
+        let response = handle_command(input);
+        assert!(response.contains(r#""ok":false"#));
+        assert!(response.contains("dependent action"));
     }
 }

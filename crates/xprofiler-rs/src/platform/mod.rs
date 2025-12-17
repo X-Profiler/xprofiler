@@ -14,8 +14,8 @@ mod unix;
 #[cfg(windows)]
 mod windows;
 
-#[cfg(unix)]
-pub use unix::{get_ctl_socket_path, get_ipc_socket_path};
+// Note: get_ipc_socket_path and get_ctl_socket_path are available via unix module
+// but not currently used directly. IPC uses them internally.
 
 #[cfg(windows)]
 pub use windows::{get_ctl_pipe_path, get_ipc_pipe_path};
