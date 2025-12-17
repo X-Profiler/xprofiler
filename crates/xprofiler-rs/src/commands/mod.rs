@@ -15,16 +15,18 @@ pub struct CommandRequest {
     #[serde(default)]
     pub thread_id: Option<i64>,
     #[serde(default)]
-    pub options: Option<CommandOptions>,
+    pub options: Option<serde_json::Value>,
 }
 
-/// Command options
-#[derive(Debug, Deserialize, Default)]
-pub struct CommandOptions {
-    #[serde(default)]
-    pub profiling_time: Option<u64>,
-    #[serde(default)]
-    pub filepath: Option<String>,
+/// Helper to get profiling_time from options
+impl CommandRequest {
+    pub fn profiling_time(&self) -> Option<u64> {
+        self.options.as_ref()?.get("profiling_time")?.as_u64()
+    }
+
+    pub fn filepath(&self) -> Option<String> {
+        self.options.as_ref()?.get("filepath")?.as_str().map(|s| s.to_string())
+    }
 }
 
 /// Command response

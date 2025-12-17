@@ -40,8 +40,9 @@ impl ProfileAction {
             ProfileAction::StartCpuProfiling => "start_cpu_profiling",
             ProfileAction::StopCpuProfiling => "stop_cpu_profiling",
             ProfileAction::Heapdump => "heapdump",
-            ProfileAction::StartHeapProfiling => "start_heap_profiling",
-            ProfileAction::StopHeapProfiling => "stop_heap_profiling",
+            // Use "sampling" naming to match xprofctl expectations
+            ProfileAction::StartHeapProfiling => "start_sampling_heap_profiling",
+            ProfileAction::StopHeapProfiling => "stop_sampling_heap_profiling",
             ProfileAction::StartGcProfiling => "start_gc_profiling",
             ProfileAction::StopGcProfiling => "stop_gc_profiling",
             ProfileAction::DiagReport => "diag_report",

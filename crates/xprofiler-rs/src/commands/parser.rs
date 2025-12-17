@@ -100,16 +100,115 @@ fn handle_get_config(request: &CommandRequest) -> CommandResponse {
 
 /// Handle set_config command
 fn handle_set_config(request: &CommandRequest) -> CommandResponse {
-    // Parse options and update config
-    if let Some(_options) = &request.options {
-        // For now, return success with the current config
-        // TODO: Implement actual config update
+    // Boolean config keys that must be validated
+    const BOOLEAN_KEYS: &[&str] = &[
+        "enable_log_uv_handles",
+        "enable_fatal_error_hook",
+        "enable_fatal_error_report",
+        "enable_fatal_error_coredump",
+        "enable_http_profiling",
+        "enable_auto_incr_heap_limit",
+        "enable_avoid_rss_leak",
+        "log_format_alinode",
+        "patch_http",
+        "check_throw",
+    ];
+
+    // Validate and apply options if provided
+    if let Some(options) = &request.options {
+        // Check that boolean options are actually booleans
+        for key in BOOLEAN_KEYS {
+            if let Some(value) = options.get(*key) {
+                if !value.is_boolean() {
+                    return CommandResponse::error(
+                        &request.traceid,
+                        &format!(
+                            "<{}> type error: [json.exception.type_error.302] type must be boolean, but is {}",
+                            key,
+                            json_type_name(value)
+                        ),
+                    );
+                }
+            }
+        }
+
+        // Apply the config updates
+        let _ = config::update_config(|cfg| {
+            // Integer configs
+            if let Some(v) = options.get("log_level").and_then(|v| v.as_u64()) {
+                cfg.log_level = v as u32;
+            }
+            if let Some(v) = options.get("log_type").and_then(|v| v.as_u64()) {
+                cfg.log_type = v as u32;
+            }
+            if let Some(v) = options.get("log_interval").and_then(|v| v.as_u64()) {
+                cfg.log_interval = v as u32;
+            }
+            if let Some(v) = options.get("patch_http_timeout").and_then(|v| v.as_u64()) {
+                cfg.patch_http_timeout = v as u32;
+            }
+            if let Some(v) = options.get("auto_incr_heap_limit_size").and_then(|v| v.as_u64()) {
+                cfg.auto_incr_heap_limit_size = v as u32;
+            }
+            if let Some(v) = options.get("m_mmap_threshold").and_then(|v| v.as_i64()) {
+                cfg.m_mmap_threshold = v as i32;
+            }
+
+            // Boolean configs
+            if let Some(v) = options.get("enable_log_uv_handles").and_then(|v| v.as_bool()) {
+                cfg.enable_log_uv_handles = v;
+            }
+            if let Some(v) = options.get("enable_fatal_error_hook").and_then(|v| v.as_bool()) {
+                cfg.enable_fatal_error_hook = v;
+            }
+            if let Some(v) = options.get("enable_fatal_error_report").and_then(|v| v.as_bool()) {
+                cfg.enable_fatal_error_report = v;
+            }
+            if let Some(v) = options.get("enable_fatal_error_coredump").and_then(|v| v.as_bool()) {
+                cfg.enable_fatal_error_coredump = v;
+            }
+            if let Some(v) = options.get("enable_http_profiling").and_then(|v| v.as_bool()) {
+                cfg.enable_http_profiling = v;
+            }
+            if let Some(v) = options.get("enable_auto_incr_heap_limit").and_then(|v| v.as_bool()) {
+                cfg.enable_auto_incr_heap_limit = v;
+            }
+            if let Some(v) = options.get("enable_avoid_rss_leak").and_then(|v| v.as_bool()) {
+                cfg.enable_avoid_rss_leak = v;
+            }
+            if let Some(v) = options.get("log_format_alinode").and_then(|v| v.as_bool()) {
+                cfg.log_format_alinode = v;
+            }
+            if let Some(v) = options.get("patch_http").and_then(|v| v.as_bool()) {
+                cfg.patch_http = v;
+            }
+            if let Some(v) = options.get("check_throw").and_then(|v| v.as_bool()) {
+                cfg.check_throw = v;
+            }
+
+            // String configs
+            if let Some(v) = options.get("log_dir").and_then(|v| v.as_str()) {
+                cfg.log_dir = v.to_string();
+            }
+        });
     }
 
     let cfg = config::get_config();
     match serde_json::to_value(cfg) {
         Ok(value) => CommandResponse::success(&request.traceid, Some(value)),
         Err(e) => CommandResponse::error(&request.traceid, &format!("Failed to serialize config: {}", e)),
+    }
+}
+
+/// Get JSON type name for error messages
+fn json_type_name(value: &serde_json::Value) -> &'static str {
+    match value {
+        serde_json::Value::Null => "null",
+        serde_json::Value::Bool(_) => "boolean",
+        serde_json::Value::Number(_) => "number",
+        serde_json::Value::String(_) => "string",
+        serde_json::Value::Array(_) => "array",
+        serde_json::Value::Object(_) => "object",
     }
 }
 
@@ -211,7 +310,7 @@ fn handle_heapdump(request: &CommandRequest) -> CommandResponse {
     )
 }
 
-/// Handle start_heap_profiling command
+/// Handle start_heap_profiling command (called start_sampling_heap_profiling in xprofctl)
 fn handle_start_heap_profiling(request: &CommandRequest) -> CommandResponse {
     let thread_id = get_thread_id(request);
 
