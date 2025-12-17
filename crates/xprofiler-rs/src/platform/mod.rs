@@ -6,7 +6,7 @@
 //! - Socket path validation
 //! - mallopt configuration
 
-use napi::bindgen_prelude::*;
+use napi::Result;
 
 #[cfg(unix)]
 mod unix;
@@ -14,13 +14,9 @@ mod unix;
 #[cfg(windows)]
 mod windows;
 
-// Note: get_ipc_socket_path and get_ctl_socket_path are available via unix module
-// but not currently used directly. IPC uses them internally.
-
-#[cfg(windows)]
-pub use windows::{get_ctl_pipe_path, get_ipc_pipe_path};
-
+#[cfg(unix)]
 use crate::constants;
+#[cfg(unix)]
 use crate::utils;
 
 /// Check if the socket path is valid (not too long for Unix sockets)

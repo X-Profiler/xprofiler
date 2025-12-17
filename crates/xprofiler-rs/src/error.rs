@@ -1,6 +1,5 @@
 //! Error types for xprofiler-rs
 
-use napi::bindgen_prelude::*;
 use thiserror::Error;
 
 /// Error types for xprofiler operations

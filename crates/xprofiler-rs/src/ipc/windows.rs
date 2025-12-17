@@ -50,7 +50,10 @@ impl IpcServer for NamedPipeServer {
 
             let thread_handle = std::thread::spawn(move || {
                 use windows::Win32::Foundation::*;
-                use windows::Win32::Storage::FileSystem::*;
+                use windows::Win32::Storage::FileSystem::{
+                    CreateFileW, FlushFileBuffers, ReadFile, WriteFile,
+                    FILE_ATTRIBUTE_NORMAL, FILE_SHARE_NONE, OPEN_EXISTING,
+                };
                 use windows::Win32::System::Pipes::*;
                 use windows::core::*;
 
@@ -176,7 +179,10 @@ impl IpcClient for NamedPipeClient {
         #[cfg(windows)]
         {
             use windows::Win32::Foundation::*;
-            use windows::Win32::Storage::FileSystem::*;
+            use windows::Win32::Storage::FileSystem::{
+                CreateFileW, ReadFile, WriteFile,
+                FILE_ATTRIBUTE_NORMAL, FILE_SHARE_NONE, OPEN_EXISTING,
+            };
             use windows::Win32::System::Pipes::*;
             use windows::core::*;
 
