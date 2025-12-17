@@ -10,6 +10,7 @@ mod config;
 mod constants;
 mod env;
 mod error;
+mod hooks;
 mod ipc;
 mod logbypass;
 mod logger;
@@ -189,10 +190,13 @@ pub fn run_commands_listener() -> Result<()> {
 }
 
 /// Set V8 hooks (fatal error handler, heap limit)
+///
+/// Note: Due to napi-rs limitations, actual V8 hook registration is not possible.
+/// This function logs the configuration state for compatibility.
+/// For heap management, use --max-old-space-size or NODE_OPTIONS.
 #[napi]
 pub fn set_hooks() -> Result<()> {
-    // TODO: Implement in Phase 6
-    Ok(())
+    hooks::set_hooks_impl()
 }
 
 /// Get xprofiler version
