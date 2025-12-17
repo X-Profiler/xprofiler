@@ -8,16 +8,20 @@ const configure = require('./lib/configure');
 const moment = require('moment');
 const pkg = require('./package.json');
 const workerThreads = require('./lib/worker_threads');
+const { loadBinding, isUsingRust } = require('./lib/binding');
 
-// xprofiler.node
-const binary = require('@mapbox/node-pre-gyp');
-const bindingPath = binary.find(path.resolve(path.join(__dirname, './package.json')));
-const xprofiler = require(bindingPath);
+// Load native binding (C++ or Rust based on XPROFILER_USE_RUST env var)
+const xprofiler = loadBinding();
 xprofiler.setup({
   isMainThread: workerThreads.isMainThread,
   threadId: workerThreads.threadId,
   nodeVersion: process.version
 });
+
+// Log which binding is being used (debug info)
+if (process.env.XPROFILER_DEBUG === 'true') {
+  console.log(`[xprofiler] Using ${isUsingRust() ? 'Rust' : 'C++'} binding`);
+}
 
 const runOnceStatus = {
   bypassLogThreadStarted: false,
