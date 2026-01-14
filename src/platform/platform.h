@@ -28,9 +28,6 @@ void PrintLoadedLibraries(JSONWriter* writer);
 
 // coredumper
 void WriteCore(std::string filename);
-
-// mallopt
-int AvoidRssLeak(int threshold);
 }  // namespace xprofiler
 
 #endif /* XPROFILER_SRC_PLATFORM_PLATFORM_H */

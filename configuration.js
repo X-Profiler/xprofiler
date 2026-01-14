@@ -87,14 +87,5 @@ module.exports = () => {
       ...config('enable_auto_incr_heap_limit', 'XPROFILER_ENABLE_AUTO_INCR_HEAP_LIMIT', 'boolean', false),
     },
 
-    {
-      ...xprofctl(false),
-      ...config('enable_avoid_rss_leak', 'XPROFILER_ENABLE_AVOID_RSS_LEAK', 'boolean', false),
-    },
-
-    {
-      ...xprofctl(false),
-      ...config('m_mmap_threshold', 'XPROFILER_M_MMAP_THRESHOLD', 'number', 128), // KB
-    },
   ];
 };

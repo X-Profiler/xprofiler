@@ -91,7 +91,12 @@ extern "C" {
 
 #include <endian.h>
 #include <errno.h>
+/* MUSL libc compatibility: use sys/syscall.h instead of linux/unistd.h */
+#ifdef __GLIBC__
 #include <linux/unistd.h>
+#else
+#include <sys/syscall.h>
+#endif
 #include <signal.h>
 #include <stdarg.h>
 #include <string.h>
@@ -107,6 +112,14 @@ extern "C" {
 #include <sgidefs.h>
 #endif
 
+#endif
+
+/* MUSL libc compatibility: __off64_t is glibc-specific */
+#ifndef __GLIBC__
+#ifndef __off64_t_defined
+typedef off_t __off64_t;
+#define __off64_t_defined
+#endif
 #endif
 
 /* As glibc often provides subtly incompatible data structures (and implicit
@@ -2714,7 +2727,6 @@ LSS_INLINE int LSS_NAME(raise)(int sig) {
 LSS_INLINE int LSS_NAME(setpgrp)() { return LSS_NAME(setpgid)(0, 0); }
 
 LSS_INLINE int LSS_NAME(sysconf)(int name) {
-  extern int __getpagesize(void);
   switch (name) {
     case _SC_OPEN_MAX: {
       struct kernel_rlimit limit;
@@ -2722,7 +2734,8 @@ LSS_INLINE int LSS_NAME(sysconf)(int name) {
                                                             : limit.rlim_cur;
     }
     case _SC_PAGESIZE:
-      return __getpagesize();
+      /* Use getpagesize() for MUSL compatibility instead of glibc-specific __getpagesize */
+      return getpagesize();
     default:
       errno = ENOSYS;
       return -1;

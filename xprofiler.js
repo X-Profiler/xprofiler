@@ -23,7 +23,6 @@ const runOnceStatus = {
   bypassLogThreadStarted: false,
   commandsListenerThreadStarted: false,
   hooksSetted: false,
-  malloptInited: false,
 };
 
 let configured = false;
@@ -76,8 +75,6 @@ function start(config = {}) {
     if (!singleModuleMode) {
       // start commands listener thread if needed
       exports.runCommandsListener();
-      // init mallopt
-      exports.initMallopt();
     }
   }
 
@@ -132,4 +129,3 @@ exports.runCommandsListener = runOnce.bind(null, 'commandsListenerThreadStarted'
 
 exports.setHooks = runOnce.bind(null, 'hooksSetted', xprofiler.setHooks);
 
-exports.initMallopt = runOnce.bind(null, 'malloptInited', xprofiler.initMallopt);

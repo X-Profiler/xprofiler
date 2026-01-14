@@ -5,6 +5,7 @@ on:
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ '**' ]
+  workflow_dispatch:
 jobs:
   Runner:
     runs-on: ${{ matrix.ci-type.os }}
@@ -46,13 +47,43 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
-    # - name: Package Binary
-    #   run: npm run pack
+    - name: Package Binary
+      run: npm run pack
 
-    # - name: Draft Release
-    #   uses: softprops/action-gh-release@v1
-    #   if: startsWith(github.ref, 'refs/tags/')
-    #   with:
-    #     files: release/**
-    #     fail_on_unmatched_files: true
-    #     draft: true
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: release/**
+        fail_on_unmatched_files: true
+
+  Alpine:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [ 18, 20, 22, 24 ]
+    container:
+      image: node:${{ matrix.node-version }}-alpine
+    steps:
+    - name: Install build dependencies
+      run: apk add --no-cache python3 make g++ git linux-headers
+
+    - name: Checkout Git Source
+      uses: actions/checkout@master
+
+    - name: Install Dependencies
+      run: npm install --build-from-source
+
+    - name: Continuous Integration
+      run: npm run ci
+
+    - name: Package Binary
+      run: npm run pack
+
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: release/**
+        fail_on_unmatched_files: true
