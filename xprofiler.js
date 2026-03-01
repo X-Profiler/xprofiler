@@ -10,9 +10,10 @@ const pkg = require('./package.json');
 const workerThreads = require('./lib/worker_threads');
 
 // xprofiler.node
-const binary = require('@mapbox/node-pre-gyp');
-const bindingPath = binary.find(path.resolve(path.join(__dirname, './package.json')));
-const xprofiler = require(bindingPath);
+// const binary = require('@mapbox/node-pre-gyp');
+// const bindingPath = binary.find(path.resolve(path.join(__dirname, './package.json')));
+// const xprofiler = require(bindingPath);
+const xprofiler = require(path.join(__dirname, 'xprofiler.node'));
 xprofiler.setup({
   isMainThread: workerThreads.isMainThread,
   threadId: workerThreads.threadId,
@@ -107,10 +108,10 @@ exports.start = start;
 
 exports.setConfig = function (config) {
   // set config
-  const { flattern } = configure(config);
+  const { flattern, finalConfig } = configure(config);
   configured = true;
   if (workerThreads.isMainThread) {
-    xprofiler.configure(flattern);
+    xprofiler.configure(finalConfig);
   }
 
   return exports.getXprofilerConfig();
