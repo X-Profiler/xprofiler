@@ -1,0 +1,23 @@
+[package]
+name = "xprofiler"
+version = "3.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "2", features = ["napi4", "serde-json"] }
+napi-derive = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = "0.4"
+log = "0.4"
+lazy_static = "1.4"
+parking_lot = "0.12"
+thiserror = "1"
+crossbeam-channel = "0.5"
+
+[build-dependencies]
+napi-build = "2"
+cc = "1"
