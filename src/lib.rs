@@ -50,6 +50,21 @@ pub fn get_xprofiler_config_js() -> Result<XProfilerConfig> {
     Ok(get_global_config())
 }
 
+#[napi]
+pub fn info(component: String, msg: String) {
+    log_info(&component, &msg);
+}
+
+#[napi]
+pub fn error(component: String, msg: String) {
+    log_error(&component, &msg);
+}
+
+#[napi]
+pub fn debug(component: String, msg: String) {
+    log_debug(&component, &msg);
+}
+
 // 还有 checkSocketPath, runLogBypass 等占位符
 #[napi]
 pub fn check_socket_path(_force: bool) -> bool {
@@ -58,7 +73,6 @@ pub fn check_socket_path(_force: bool) -> bool {
 
 #[napi]
 pub fn run_log_bypass() {
-    println!("run_log_bypass called");
     start_log_bypass_thread();
 }
 
@@ -98,18 +112,3 @@ pub fn add_http_status_code(_status: u32) {}
 
 #[napi]
 pub fn add_http_profiling_detail(_detail: serde_json::Value) {}
-
-#[napi]
-pub fn info(component: String, msg: String) {
-    log_info(&component, &msg);
-}
-
-#[napi]
-pub fn error(component: String, msg: String) {
-    log_error(&component, &msg);
-}
-
-#[napi]
-pub fn debug(component: String, msg: String) {
-    log_debug(&component, &msg);
-}
