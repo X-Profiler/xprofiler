@@ -1,9 +1,13 @@
 mod config;
+mod logger;
+mod logbypass;
 
 use napi::bindgen_prelude::*;
 use napi::{Error, Result};
 use napi_derive::napi;
 use crate::config::{XProfilerConfig, set_global_config, get_global_config, check_configured};
+use crate::logger::{info as log_info, error as log_error, debug as log_debug};
+use crate::logbypass::start_log_bypass_thread;
 
 #[napi]
 pub fn start() {
@@ -54,7 +58,8 @@ pub fn check_socket_path(_force: bool) -> bool {
 
 #[napi]
 pub fn run_log_bypass() {
-    println!("run_log_bypass called (placeholder)");
+    println!("run_log_bypass called");
+    start_log_bypass_thread();
 }
 
 #[napi]
@@ -95,10 +100,16 @@ pub fn add_http_status_code(_status: u32) {}
 pub fn add_http_profiling_detail(_detail: serde_json::Value) {}
 
 #[napi]
-pub fn info(_msg: String) {}
+pub fn info(component: String, msg: String) {
+    log_info(&component, &msg);
+}
 
 #[napi]
-pub fn error(_msg: String) {}
+pub fn error(component: String, msg: String) {
+    log_error(&component, &msg);
+}
 
 #[napi]
-pub fn debug(_msg: String) {}
+pub fn debug(component: String, msg: String) {
+    log_debug(&component, &msg);
+}

@@ -1,1 +1,1 @@
-/mnt/trae/file/workspace/target/debug/libxprofiler.so: /mnt/trae/file/workspace/build.rs /mnt/trae/file/workspace/src/config.rs /mnt/trae/file/workspace/src/cpp/bridge.cc /mnt/trae/file/workspace/src/lib.rs
+/mnt/trae/file/workspace/target/debug/libxprofiler.so: /mnt/trae/file/workspace/build.rs /mnt/trae/file/workspace/src/config.rs /mnt/trae/file/workspace/src/cpp/bridge.cc /mnt/trae/file/workspace/src/lib.rs /mnt/trae/file/workspace/src/logbypass.rs /mnt/trae/file/workspace/src/logger.rs
