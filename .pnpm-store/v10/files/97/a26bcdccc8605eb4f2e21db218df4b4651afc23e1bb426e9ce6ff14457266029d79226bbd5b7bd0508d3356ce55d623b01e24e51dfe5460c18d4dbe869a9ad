@@ -1,0 +1,734 @@
+var traeLightSvg = "<svg width=\"92\" height=\"12\" viewBox=\"0 0 92 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_5805_55291)\">\n<g clip-path=\"url(#clip1_5805_55291)\">\n<path d=\"M15.1579 11.2121H2.6478V9.12821H0.562988V0.787872H15.1579V11.2121ZM2.6478 9.12821H13.073V2.87269H2.6478V9.12821ZM7.86092 5.96865L6.38672 7.44275L4.91261 5.96865L6.38672 4.49445L7.86092 5.96865ZM12.0306 5.96775L10.5564 7.44185L9.08233 5.96775L10.5564 4.49355L12.0306 5.96775Z\" fill=\"white\"/>\n</g>\n<g clip-path=\"url(#clip2_5805_55291)\">\n<path d=\"M28.0793 3.37087H25.142V10.6863H23.143V3.37087H20.2048V1.5047H28.0793V3.37087ZM55.4369 3.36808H50.3789V8.81641H55.4369V10.6835H48.3789V1.50092H55.4369V3.36808ZM34.1761 1.50092C36.4528 1.50092 37.1355 2.26109 37.1355 4.43355C37.1355 6.00363 36.6872 6.72417 35.4243 7.14483L37.1466 10.6817H34.9474L33.3569 7.38095H31.2204L31.2222 10.6817V10.6826H29.2583V1.50092H34.1761ZM47.4897 10.6826H45.3993L44.5662 8.50363H40.8449L40.0819 10.6826H37.9048L41.4232 1.5047H44.081L47.4897 10.6826ZM55.436 6.119L53.8697 7.59311L52.3955 6.119L53.8697 4.6448L55.436 6.119ZM41.4547 6.86439H44.0173L42.8578 3.54429H42.5985L41.4547 6.86439ZM31.2222 5.60883H33.8948V5.60793C34.5636 5.60793 35.07 5.38284 35.0701 4.79156V4.14581C35.0701 3.55449 34.5636 3.32934 33.8948 3.32934H31.2222V5.60883Z\" fill=\"white\"/>\n</g>\n</g>\n<path d=\"M65.0407 4.17188C65.0009 3.79972 64.8333 3.50994 64.5379 3.30256C64.2453 3.09517 63.8646 2.99148 63.3958 2.99148C63.0663 2.99148 62.7836 3.04119 62.5478 3.14062C62.312 3.24006 62.1316 3.375 62.0066 3.54545C61.8816 3.71591 61.8177 3.91051 61.8149 4.12926C61.8149 4.31108 61.856 4.46875 61.9384 4.60227C62.0237 4.7358 62.1387 4.84943 62.2836 4.94318C62.4285 5.03409 62.589 5.1108 62.7651 5.1733C62.9413 5.2358 63.1188 5.28835 63.2978 5.33097L64.116 5.53551C64.4455 5.61222 64.7623 5.71591 65.0663 5.84659C65.3731 5.97727 65.6472 6.14205 65.8887 6.34091C66.133 6.53977 66.3262 6.77983 66.4683 7.06108C66.6103 7.34233 66.6813 7.67187 66.6813 8.04972C66.6813 8.56108 66.5506 9.01136 66.2893 9.40057C66.0279 9.78693 65.6501 10.0895 65.1558 10.3082C64.6643 10.5241 64.0691 10.6321 63.3703 10.6321C62.6913 10.6321 62.1018 10.527 61.6018 10.3168C61.1046 10.1065 60.7154 9.79972 60.4342 9.39631C60.1558 8.9929 60.0052 8.50142 59.9825 7.92188H61.5379C61.5606 8.22585 61.6543 8.47869 61.8191 8.6804C61.9839 8.8821 62.1984 9.03267 62.4626 9.1321C62.7296 9.23153 63.0279 9.28125 63.3575 9.28125C63.7012 9.28125 64.0024 9.23011 64.2609 9.12784C64.5222 9.02273 64.7268 8.87784 64.8745 8.69318C65.0222 8.50568 65.0975 8.28693 65.1004 8.03693C65.0975 7.80966 65.0308 7.62216 64.9001 7.47443C64.7694 7.32386 64.5862 7.19886 64.3504 7.09943C64.1174 6.99716 63.8447 6.90625 63.5322 6.8267L62.5393 6.57102C61.8205 6.38636 61.2524 6.10653 60.8347 5.73153C60.42 5.35369 60.2126 4.85227 60.2126 4.22727C60.2126 3.71307 60.3518 3.26278 60.6302 2.87642C60.9114 2.49006 61.2935 2.19034 61.7765 1.97727C62.2595 1.76136 62.8063 1.65341 63.4171 1.65341C64.0364 1.65341 64.5791 1.76136 65.045 1.97727C65.5137 2.19034 65.8816 2.48722 66.1487 2.8679C66.4157 3.24574 66.5535 3.6804 66.562 4.17188H65.0407ZM75.8891 6.13636C75.8891 7.0767 75.7129 7.8821 75.3607 8.55256C75.0112 9.22017 74.534 9.73153 73.9288 10.0866C73.3266 10.4418 72.6433 10.6193 71.8791 10.6193C71.1149 10.6193 70.4303 10.4418 69.8252 10.0866C69.2229 9.72869 68.7456 9.21591 68.3933 8.5483C68.0439 7.87784 67.8692 7.07386 67.8692 6.13636C67.8692 5.19602 68.0439 4.39205 68.3933 3.72443C68.7456 3.05398 69.2229 2.54119 69.8252 2.18608C70.4303 1.83097 71.1149 1.65341 71.8791 1.65341C72.6433 1.65341 73.3266 1.83097 73.9288 2.18608C74.534 2.54119 75.0112 3.05398 75.3607 3.72443C75.7129 4.39205 75.8891 5.19602 75.8891 6.13636ZM74.2996 6.13636C74.2996 5.47443 74.1959 4.91619 73.9885 4.46165C73.784 4.00426 73.4999 3.65909 73.1362 3.42614C72.7726 3.19034 72.3536 3.07244 71.8791 3.07244C71.4047 3.07244 70.9857 3.19034 70.622 3.42614C70.2584 3.65909 69.9729 4.00426 69.7655 4.46165C69.5609 4.91619 69.4587 5.47443 69.4587 6.13636C69.4587 6.7983 69.5609 7.35795 69.7655 7.81534C69.9729 8.26989 70.2584 8.61506 70.622 8.85085C70.9857 9.08381 71.4047 9.20028 71.8791 9.20028C72.3536 9.20028 72.7726 9.08381 73.1362 8.85085C73.4999 8.61506 73.784 8.26989 73.9885 7.81534C74.1959 7.35795 74.2996 6.7983 74.2996 6.13636ZM77.3837 10.5V1.77273H78.9647V9.17472H82.8085V10.5H77.3837ZM91.6391 6.13636C91.6391 7.0767 91.4629 7.8821 91.1107 8.55256C90.7612 9.22017 90.284 9.73153 89.6788 10.0866C89.0766 10.4418 88.3933 10.6193 87.6291 10.6193C86.8649 10.6193 86.1803 10.4418 85.5752 10.0866C84.9729 9.72869 84.4956 9.21591 84.1433 8.5483C83.7939 7.87784 83.6192 7.07386 83.6192 6.13636C83.6192 5.19602 83.7939 4.39205 84.1433 3.72443C84.4956 3.05398 84.9729 2.54119 85.5752 2.18608C86.1803 1.83097 86.8649 1.65341 87.6291 1.65341C88.3933 1.65341 89.0766 1.83097 89.6788 2.18608C90.284 2.54119 90.7612 3.05398 91.1107 3.72443C91.4629 4.39205 91.6391 5.19602 91.6391 6.13636ZM90.0496 6.13636C90.0496 5.47443 89.9459 4.91619 89.7385 4.46165C89.534 4.00426 89.2499 3.65909 88.8862 3.42614C88.5226 3.19034 88.1036 3.07244 87.6291 3.07244C87.1547 3.07244 86.7357 3.19034 86.372 3.42614C86.0084 3.65909 85.7229 4.00426 85.5155 4.46165C85.3109 4.91619 85.2087 5.47443 85.2087 6.13636C85.2087 6.7983 85.3109 7.35795 85.5155 7.81534C85.7229 8.26989 86.0084 8.61506 86.372 8.85085C86.7357 9.08381 87.1547 9.20028 87.6291 9.20028C88.1036 9.20028 88.5226 9.08381 88.8862 8.85085C89.2499 8.61506 89.534 8.26989 89.7385 7.81534C89.9459 7.35795 90.0496 6.7983 90.0496 6.13636Z\" fill=\"#32F08C\"/>\n<defs>\n<clipPath id=\"clip0_5805_55291\">\n<rect width=\"54.874\" height=\"10.4242\" fill=\"white\" transform=\"translate(0.562988 0.787872)\"/>\n</clipPath>\n<clipPath id=\"clip1_5805_55291\">\n<rect width=\"14.5949\" height=\"10.4242\" fill=\"white\" transform=\"translate(0.562988 0.787872)\"/>\n</clipPath>\n<clipPath id=\"clip2_5805_55291\">\n<rect width=\"35.2321\" height=\"9.18536\" fill=\"white\" transform=\"translate(20.2048 1.50092)\"/>\n</clipPath>\n</defs>\n</svg>";
+
+var traeDarkSvg = "<svg width=\"92\" height=\"12\" viewBox=\"0 0 92 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_5805_55291)\">\n<g clip-path=\"url(#clip1_5805_55291)\">\n<path d=\"M15.1579 11.2121H2.6478V9.12821H0.562988V0.787872H15.1579V11.2121ZM2.6478 9.12821H13.073V2.87269H2.6478V9.12821ZM7.86092 5.96865L6.38672 7.44275L4.91261 5.96865L6.38672 4.49445L7.86092 5.96865ZM12.0306 5.96775L10.5564 7.44185L9.08233 5.96775L10.5564 4.49355L12.0306 5.96775Z\" fill=\"black\"/>\n</g>\n<g clip-path=\"url(#clip2_5805_55291)\">\n<path d=\"M28.0793 3.37088H25.142V10.6863H23.143V3.37088H20.2048V1.50471H28.0793V3.37088ZM55.4369 3.36808H50.3789V8.81642H55.4369V10.6835H48.3789V1.50092H55.4369V3.36808ZM34.1761 1.50092C36.4528 1.50092 37.1355 2.2611 37.1355 4.43355C37.1355 6.00364 36.6872 6.72418 35.4243 7.14484L37.1466 10.6817H34.9474L33.3569 7.38096H31.2204L31.2222 10.6817V10.6826H29.2583V1.50092H34.1761ZM47.4897 10.6826H45.3993L44.5662 8.50363H40.8449L40.0819 10.6826H37.9048L41.4232 1.50471H44.081L47.4897 10.6826ZM55.436 6.11901L53.8697 7.59312L52.3955 6.11901L53.8697 4.64481L55.436 6.11901ZM41.4547 6.8644H44.0173L42.8578 3.5443H42.5985L41.4547 6.8644ZM31.2222 5.60884H33.8948V5.60794C34.5636 5.60793 35.07 5.38285 35.0701 4.79156V4.14581C35.0701 3.5545 34.5636 3.32935 33.8948 3.32935H31.2222V5.60884Z\" fill=\"black\"/>\n</g>\n</g>\n<path d=\"M65.0407 4.17188C65.0009 3.79972 64.8333 3.50994 64.5379 3.30256C64.2453 3.09517 63.8646 2.99148 63.3958 2.99148C63.0663 2.99148 62.7836 3.04119 62.5478 3.14062C62.312 3.24006 62.1316 3.375 62.0066 3.54545C61.8816 3.71591 61.8177 3.91051 61.8149 4.12926C61.8149 4.31108 61.856 4.46875 61.9384 4.60227C62.0237 4.7358 62.1387 4.84943 62.2836 4.94318C62.4285 5.03409 62.589 5.1108 62.7651 5.1733C62.9413 5.2358 63.1188 5.28835 63.2978 5.33097L64.116 5.53551C64.4455 5.61222 64.7623 5.71591 65.0663 5.84659C65.3731 5.97727 65.6472 6.14205 65.8887 6.34091C66.133 6.53977 66.3262 6.77983 66.4683 7.06108C66.6103 7.34233 66.6813 7.67187 66.6813 8.04972C66.6813 8.56108 66.5506 9.01136 66.2893 9.40057C66.0279 9.78693 65.6501 10.0895 65.1558 10.3082C64.6643 10.5241 64.0691 10.6321 63.3703 10.6321C62.6913 10.6321 62.1018 10.527 61.6018 10.3168C61.1046 10.1065 60.7154 9.79972 60.4342 9.39631C60.1558 8.9929 60.0052 8.50142 59.9825 7.92188H61.5379C61.5606 8.22585 61.6543 8.47869 61.8191 8.6804C61.9839 8.8821 62.1984 9.03267 62.4626 9.1321C62.7296 9.23153 63.0279 9.28125 63.3575 9.28125C63.7012 9.28125 64.0024 9.23011 64.2609 9.12784C64.5222 9.02273 64.7268 8.87784 64.8745 8.69318C65.0222 8.50568 65.0975 8.28693 65.1004 8.03693C65.0975 7.80966 65.0308 7.62216 64.9001 7.47443C64.7694 7.32386 64.5862 7.19886 64.3504 7.09943C64.1174 6.99716 63.8447 6.90625 63.5322 6.8267L62.5393 6.57102C61.8205 6.38636 61.2524 6.10653 60.8347 5.73153C60.42 5.35369 60.2126 4.85227 60.2126 4.22727C60.2126 3.71307 60.3518 3.26278 60.6302 2.87642C60.9114 2.49006 61.2935 2.19034 61.7765 1.97727C62.2595 1.76136 62.8063 1.65341 63.4171 1.65341C64.0364 1.65341 64.5791 1.76136 65.045 1.97727C65.5137 2.19034 65.8816 2.48722 66.1487 2.8679C66.4157 3.24574 66.5535 3.6804 66.562 4.17188H65.0407ZM75.8891 6.13636C75.8891 7.0767 75.7129 7.8821 75.3607 8.55256C75.0112 9.22017 74.534 9.73153 73.9288 10.0866C73.3266 10.4418 72.6433 10.6193 71.8791 10.6193C71.1149 10.6193 70.4303 10.4418 69.8252 10.0866C69.2229 9.72869 68.7456 9.21591 68.3933 8.5483C68.0439 7.87784 67.8692 7.07386 67.8692 6.13636C67.8692 5.19602 68.0439 4.39205 68.3933 3.72443C68.7456 3.05398 69.2229 2.54119 69.8252 2.18608C70.4303 1.83097 71.1149 1.65341 71.8791 1.65341C72.6433 1.65341 73.3266 1.83097 73.9288 2.18608C74.534 2.54119 75.0112 3.05398 75.3607 3.72443C75.7129 4.39205 75.8891 5.19602 75.8891 6.13636ZM74.2996 6.13636C74.2996 5.47443 74.1959 4.91619 73.9885 4.46165C73.784 4.00426 73.4999 3.65909 73.1362 3.42614C72.7726 3.19034 72.3536 3.07244 71.8791 3.07244C71.4047 3.07244 70.9857 3.19034 70.622 3.42614C70.2584 3.65909 69.9729 4.00426 69.7655 4.46165C69.5609 4.91619 69.4587 5.47443 69.4587 6.13636C69.4587 6.7983 69.5609 7.35795 69.7655 7.81534C69.9729 8.26989 70.2584 8.61506 70.622 8.85085C70.9857 9.08381 71.4047 9.20028 71.8791 9.20028C72.3536 9.20028 72.7726 9.08381 73.1362 8.85085C73.4999 8.61506 73.784 8.26989 73.9885 7.81534C74.1959 7.35795 74.2996 6.7983 74.2996 6.13636ZM77.3837 10.5V1.77273H78.9647V9.17472H82.8085V10.5H77.3837ZM91.6391 6.13636C91.6391 7.0767 91.4629 7.8821 91.1107 8.55256C90.7612 9.22017 90.284 9.73153 89.6788 10.0866C89.0766 10.4418 88.3933 10.6193 87.6291 10.6193C86.8649 10.6193 86.1803 10.4418 85.5752 10.0866C84.9729 9.72869 84.4956 9.21591 84.1433 8.5483C83.7939 7.87784 83.6192 7.07386 83.6192 6.13636C83.6192 5.19602 83.7939 4.39205 84.1433 3.72443C84.4956 3.05398 84.9729 2.54119 85.5752 2.18608C86.1803 1.83097 86.8649 1.65341 87.6291 1.65341C88.3933 1.65341 89.0766 1.83097 89.6788 2.18608C90.284 2.54119 90.7612 3.05398 91.1107 3.72443C91.4629 4.39205 91.6391 5.19602 91.6391 6.13636ZM90.0496 6.13636C90.0496 5.47443 89.9459 4.91619 89.7385 4.46165C89.534 4.00426 89.2499 3.65909 88.8862 3.42614C88.5226 3.19034 88.1036 3.07244 87.6291 3.07244C87.1547 3.07244 86.7357 3.19034 86.372 3.42614C86.0084 3.65909 85.7229 4.00426 85.5155 4.46165C85.3109 4.91619 85.2087 5.47443 85.2087 6.13636C85.2087 6.7983 85.3109 7.35795 85.5155 7.81534C85.7229 8.26989 86.0084 8.61506 86.372 8.85085C86.7357 9.08381 87.1547 9.20028 87.6291 9.20028C88.1036 9.20028 88.5226 9.08381 88.8862 8.85085C89.2499 8.61506 89.534 8.26989 89.7385 7.81534C89.9459 7.35795 90.0496 6.7983 90.0496 6.13636Z\" fill=\"#0AB861\"/>\n<defs>\n<clipPath id=\"clip0_5805_55291\">\n<rect width=\"54.874\" height=\"10.4242\" fill=\"white\" transform=\"translate(0.562988 0.787872)\"/>\n</clipPath>\n<clipPath id=\"clip1_5805_55291\">\n<rect width=\"14.5949\" height=\"10.4242\" fill=\"white\" transform=\"translate(0.562988 0.787872)\"/>\n</clipPath>\n<clipPath id=\"clip2_5805_55291\">\n<rect width=\"35.2321\" height=\"9.18536\" fill=\"white\" transform=\"translate(20.2048 1.50092)\"/>\n</clipPath>\n</defs>\n</svg>";
+
+var cancelDarkSvg = "<svg width=\"16\" height=\"15\" viewBox=\"0 0 16 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_5993_243)\">\n<path d=\"M0.437012 7.5C0.437012 3.35786 3.79488 0 7.93701 0C12.0791 0 15.437 3.35786 15.437 7.5C15.437 11.6421 12.0791 15 7.93701 15C3.79488 15 0.437012 11.6421 0.437012 7.5Z\" fill=\"#EDEFF2\"/>\n<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7.93698 1.34036C11.3391 1.34036 14.0966 4.09792 14.0966 7.5C14.0966 10.9021 11.3391 13.6596 7.93698 13.6596C4.53491 13.6596 1.77734 10.9021 1.77734 7.5C1.77734 4.09792 4.53491 1.34036 7.93698 1.34036Z\" fill=\"#111214\"/>\n<path d=\"M7.93717 6.70886L9.40826 5.23776L9.80383 4.84128L10.5959 5.63334L10.1994 6.02891L8.72831 7.5L10.1994 8.9711L10.5959 9.36667L9.80383 10.1587L9.40826 9.76224L7.93717 8.29115L6.46607 9.76224L6.0705 10.1587L5.27844 9.36667L5.67493 8.9711L7.14602 7.5L5.67493 6.02891L5.27844 5.63334L6.0705 4.84128L6.46607 5.23776L7.93717 6.70886Z\" fill=\"white\"/>\n</g>\n<defs>\n<clipPath id=\"clip0_5993_243\">\n<path d=\"M0.437012 7.5C0.437012 3.35786 3.79488 0 7.93701 0C12.0791 0 15.437 3.35786 15.437 7.5C15.437 11.6421 12.0791 15 7.93701 15C3.79488 15 0.437012 11.6421 0.437012 7.5Z\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>";
+
+var cancelLightSvg = "<svg width=\"16\" height=\"15\" viewBox=\"0 0 16 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_5993_279)\">\n<path d=\"M0.437012 7.5C0.437012 3.35786 3.79488 0 7.93701 0C12.0791 0 15.437 3.35786 15.437 7.5C15.437 11.6421 12.0791 15 7.93701 15C3.79488 15 0.437012 11.6421 0.437012 7.5Z\" fill=\"#2A2D31\"/>\n<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7.93698 1.34036C11.3391 1.34036 14.0966 4.09792 14.0966 7.5C14.0966 10.9021 11.3391 13.6596 7.93698 13.6596C4.53491 13.6596 1.77734 10.9021 1.77734 7.5C1.77734 4.09792 4.53491 1.34036 7.93698 1.34036Z\" fill=\"white\"/>\n<path d=\"M7.93717 6.70886L9.40826 5.23776L9.80383 4.84128L10.5959 5.63334L10.1994 6.02891L8.72831 7.5L10.1994 8.9711L10.5959 9.36667L9.80383 10.1587L9.40826 9.76224L7.93717 8.29115L6.46607 9.76224L6.0705 10.1587L5.27844 9.36667L5.67493 8.9711L7.14602 7.5L5.67493 6.02891L5.27844 5.63334L6.0705 4.84128L6.46607 5.23776L7.93717 6.70886Z\" fill=\"black\"/>\n</g>\n<defs>\n<clipPath id=\"clip0_5993_279\">\n<path d=\"M0.437012 7.5C0.437012 3.35786 3.79488 0 7.93701 0C12.0791 0 15.437 3.35786 15.437 7.5C15.437 11.6421 12.0791 15 7.93701 15C3.79488 15 0.437012 11.6421 0.437012 7.5Z\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>";
+
+var shareSvg = "<svg width=\"15\" height=\"14\" viewBox=\"0 0 15 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n  <path d=\"M5.68693 2.33333H2.77026V11.6667H12.1036V8.75M8.6036 2.33333H12.1036V5.83333M6.8536 7.58333L11.5203 2.91666\" \n        stroke=\"currentColor\" stroke-width=\"1.05\" stroke-linecap=\"square\"/>\n</svg>";
+
+/**
+ * TRAE Badge 常量定义
+ */
+// SVG 文件导入
+// TRAE Logo SVG 数据 (通过 import 导入)
+const TRAE_LOGOS = {
+    light: traeLightSvg,
+    dark: traeDarkSvg
+};
+// 取消按钮 SVG
+const CANCEL_SVG_DARK = cancelDarkSvg;
+const CANCEL_SVG_LIGHT = cancelLightSvg;
+// 分享按钮 SVG
+const SHARE_SVG = shareSvg;
+// Badge CSS 样式 (更新以适配完整的 SVG)
+const BADGE_CSS = `
+.trae-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+  border-radius: 6px;
+  position: fixed;
+  padding: 8px 8px 8px 10px;
+  height: 28px;
+  width: 130px;
+  z-index: 9999;
+}
+
+.trae-badge:hover.trae-badge--light {
+  background-color: #EDEFF2;
+}
+
+.trae-badge:hover.trae-badge--dark {
+  background-color: #2A2D31;
+}
+
+.trae-badge-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.trae-badge-logo {
+  flex-shrink: 0;
+}
+
+.trae-badge-share {
+  flex-shrink: 0;
+  color: rgba(78, 82, 87, 1);
+}
+
+.trae-badge:hover.trae-badge--light .trae-badge-share {
+  color: rgba(38, 41, 44, 1);
+}
+
+.trae-badge:hover.trae-badge--dark .trae-badge-share {
+  color: #D1D3DB;
+}
+
+.trae-badge-cancel {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+}
+
+.trae-badge:hover .trae-badge-cancel {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* 在移动端设备上始终显示取消按钮 */
+@media (hover: none) and (pointer: coarse) {
+  .trae-badge-cancel {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+.trae-badge--light {
+  background-color: rgba(255, 255, 255, 1);
+  color: #ffffff;
+  box-shadow: 0px 0px 0.5px 0px rgba(0, 0, 0, 0.12), 0px 1px 3px 0px rgba(0, 0, 0, 0.08), 0px 4px 8px 0px rgba(0, 0, 0, 0.12);
+}
+
+.trae-badge--dark {
+  background-color: #000000;
+  color: #ffffff;
+  box-shadow: 0px 0px 0.5px 0px rgba(0, 0, 0, 0.12), 0px 1px 3px 0px rgba(0, 0, 0, 0.08), 0px 4px 8px 0px rgba(0, 0, 0, 0.12);
+}
+
+.trae-badge--bottom-right { bottom: 20px; right: 20px; }
+.trae-badge--bottom-left { bottom: 20px; left: 20px; }
+.trae-badge--top-right { top: 20px; right: 20px; }
+.trae-badge--top-left { top: 20px; left: 20px; }
+`;
+// 默认配置
+const DEFAULT_OPTIONS = {
+    variant: 'dark',
+    position: 'bottom-right',
+    clickable: true,
+    clickUrl: null,
+    disabled: false
+};
+
+/**
+ * TRAE Badge 主题选择工具
+ */
+/**
+ * 将RGB颜色转换为亮度值 (0-255)
+ */
+function getLuminance(r, g, b) {
+    // 使用标准的亮度计算公式
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+/**
+ * 解析颜色字符串为RGB值
+ */
+function parseColor(color) {
+    // 处理 rgba 格式
+    const rgbaMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+    if (rgbaMatch) {
+        return [parseInt(rgbaMatch[1]), parseInt(rgbaMatch[2]), parseInt(rgbaMatch[3])];
+    }
+    // 处理 hex 格式
+    const hexMatch = color.match(/^#([0-9a-f]{6})$/i);
+    if (hexMatch) {
+        const hex = hexMatch[1];
+        return [
+            parseInt(hex.substr(0, 2), 16),
+            parseInt(hex.substr(2, 2), 16),
+            parseInt(hex.substr(4, 2), 16)
+        ];
+    }
+    // 处理 hex 短格式
+    const hexShortMatch = color.match(/^#([0-9a-f]{3})$/i);
+    if (hexShortMatch) {
+        const hex = hexShortMatch[1];
+        return [
+            parseInt(hex[0] + hex[0], 16),
+            parseInt(hex[1] + hex[1], 16),
+            parseInt(hex[2] + hex[2], 16)
+        ];
+    }
+    return null;
+}
+/**
+ * 检测元素或其父元素的背景色
+ */
+function detectBackgroundColor(element) {
+    let targetElement;
+    if (typeof element === 'string') {
+        const found = document.querySelector(element);
+        if (!found)
+            return 'rgb(255, 255, 255)'; // 默认白色
+        targetElement = found;
+    }
+    else if (element) {
+        targetElement = element;
+    }
+    else {
+        targetElement = document.body;
+    }
+    // 向上查找直到找到非透明的背景色
+    let currentElement = targetElement;
+    while (currentElement && currentElement !== document.documentElement) {
+        const computedStyle = window.getComputedStyle(currentElement);
+        const backgroundColor = computedStyle.backgroundColor;
+        // 如果找到了非透明/默认的背景色
+        if (backgroundColor && backgroundColor !== 'rgba(0, 0, 0, 0)' && backgroundColor !== 'transparent') {
+            return backgroundColor;
+        }
+        currentElement = currentElement.parentElement;
+    }
+    // 检查 body 的背景色
+    const bodyStyle = window.getComputedStyle(document.body);
+    const bodyBackground = bodyStyle.backgroundColor;
+    if (bodyBackground && bodyBackground !== 'rgba(0, 0, 0, 0)' && bodyBackground !== 'transparent') {
+        return bodyBackground;
+    }
+    // 检查 html 的背景色
+    const htmlStyle = window.getComputedStyle(document.documentElement);
+    const htmlBackground = htmlStyle.backgroundColor;
+    if (htmlBackground && htmlBackground !== 'rgba(0, 0, 0, 0)' && htmlBackground !== 'transparent') {
+        return htmlBackground;
+    }
+    // 默认返回白色
+    return 'rgb(255, 255, 255)';
+}
+/**
+ * 根据背景色自动选择合适的主题
+ */
+function autoSelectTheme(container) {
+    const backgroundColor = detectBackgroundColor(container);
+    const rgb = parseColor(backgroundColor);
+    if (!rgb) {
+        return 'dark'; // 默认深色主题
+    }
+    const [r, g, b] = rgb;
+    const luminance = getLuminance(r, g, b);
+    // 根据亮度选择主题，只使用 light 和 dark 两种主题
+    if (luminance > 128) {
+        // 浅色背景，选择深色主题
+        return 'dark';
+    }
+    else {
+        // 深色背景，选择浅色主题
+        return 'light';
+    }
+}
+/**
+ * 检查背景是否为深色
+ */
+function isDarkBackground(container) {
+    const backgroundColor = detectBackgroundColor(container);
+    const rgb = parseColor(backgroundColor);
+    if (!rgb) {
+        return false; // 默认认为是浅色背景
+    }
+    const [r, g, b] = rgb;
+    const luminance = getLuminance(r, g, b);
+    return luminance < 128;
+}
+
+/**
+ * TRAE Badge 主类
+ */
+class TraeBadge {
+    constructor(options = {}) {
+        this.element = null;
+        this.styleElement = null;
+        this.options = { ...DEFAULT_OPTIONS, ...options };
+        this.originalVariant = options.variant; // 保存用户设置的原始主题
+        this.badgeId = `trae-badge-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        this.init();
+    }
+    init() {
+        this.injectStyles();
+        this.createBadge();
+    }
+    injectStyles() {
+        // 避免重复注入样式
+        if (document.getElementById('trae-badge-styles')) {
+            return;
+        }
+        this.styleElement = document.createElement('style');
+        this.styleElement.id = 'trae-badge-styles';
+        this.styleElement.textContent = BADGE_CSS;
+        document.head.appendChild(this.styleElement);
+    }
+    createBadge() {
+        // 移除已存在的 Badge
+        this.destroy();
+        if (this.options.disabled) {
+            return;
+        }
+        // 如果启用了自动主题选择，则自动选择主题
+        if (this.options.autoTheme) {
+            const autoThemeTarget = this.options.autoThemeTarget || this.options.container;
+            this.options.variant = autoSelectTheme(autoThemeTarget);
+        }
+        this.element = document.createElement('div');
+        this.element.id = this.badgeId;
+        this.element.className = this.getBadgeClassName();
+        const isDarkBackground = this.options.variant === 'dark';
+        const logoType = isDarkBackground ? 'light' : 'dark';
+        this.element.innerHTML = `
+      <div class="trae-badge-content">
+        <div class="trae-badge-logo">${TRAE_LOGOS[logoType]}</div>
+        <div class="trae-badge-share">${SHARE_SVG}</div>
+      </div>
+      <div class="trae-badge-cancel">
+        ${isDarkBackground ? CANCEL_SVG_LIGHT : CANCEL_SVG_DARK}
+      </div>
+    `;
+        // 应用自定义样式
+        if (this.options.style) {
+            Object.assign(this.element.style, this.options.style);
+        }
+        // 添加取消按钮点击事件
+        this.addCancelEvent();
+        // 添加点击事件（点击badge本身）
+        if (this.options.clickable) {
+            this.element.style.cursor = 'pointer';
+            this.element.addEventListener('click', this.handleClick.bind(this));
+        }
+        // 确定容器
+        let container = document.body;
+        if (this.options.container) {
+            if (typeof this.options.container === 'string') {
+                const found = document.querySelector(this.options.container);
+                if (found) {
+                    container = found;
+                }
+            }
+            else {
+                container = this.options.container;
+            }
+        }
+        container.appendChild(this.element);
+    }
+    addCancelEvent() {
+        if (!this.element)
+            return;
+        const cancelButton = this.element.querySelector('.trae-badge-cancel');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // 防止触发 badge 本身的点击事件
+                this.handleCancel();
+            });
+        }
+    }
+    handleCancel() {
+        // 隐藏/销毁 badge
+        this.destroy();
+    }
+    getBadgeClassName() {
+        const classes = [
+            'trae-badge',
+            `trae-badge--${this.options.variant}`,
+            `trae-badge--${this.options.position}`
+        ];
+        if (this.options.className) {
+            classes.push(this.options.className);
+        }
+        return classes.join(' ');
+    }
+    handleClick() {
+        if (this.options.clickUrl) {
+            window.open(this.options.clickUrl, '_blank');
+        }
+        else {
+            console.log('TRAE Badge clicked');
+        }
+    }
+    // 公共方法
+    updateOptions(newOptions) {
+        // 更新原始主题设置
+        if (newOptions.variant !== undefined) {
+            this.originalVariant = newOptions.variant;
+        }
+        this.options = { ...this.options, ...newOptions };
+        this.createBadge();
+    }
+    destroy() {
+        if (this.element) {
+            this.element.remove();
+            this.element = null;
+        }
+    }
+    getOptions() {
+        return { ...this.options };
+    }
+    getElement() {
+        return this.element;
+    }
+    /**
+     * 刷新自动主题（如果启用）
+     * 重新检测背景色并更新主题
+     */
+    refreshAutoTheme() {
+        if (this.options.autoTheme) {
+            const autoThemeTarget = this.options.autoThemeTarget || this.options.container;
+            const newVariant = autoSelectTheme(autoThemeTarget);
+            // 只有当主题发生变化时才重新创建badge
+            if (newVariant !== this.options.variant) {
+                this.options.variant = newVariant;
+                this.createBadge();
+            }
+        }
+    }
+    // 静态方法
+    static destroyAll() {
+        const badges = document.querySelectorAll('[id^="trae-badge-"]');
+        badges.forEach(badge => badge.remove());
+    }
+    static isStylesInjected() {
+        return !!document.getElementById('trae-badge-styles');
+    }
+}
+
+/**
+ * TRAE Badge 工具函数
+ */
+/**
+ * 自动初始化 Badge
+ */
+function autoInit(config = {}) {
+    // 检查是否在浏览器环境
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+        return null;
+    }
+    // 避免重复初始化
+    if (window.TraeBadgeInstance) {
+        return window.TraeBadgeInstance;
+    }
+    // 等待 DOM 加载完成
+    const initialize = () => {
+        const badge = new TraeBadge(config);
+        window.TraeBadgeInstance = badge;
+        return badge;
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+        return null;
+    }
+    else {
+        return initialize();
+    }
+}
+/**
+ * 创建 Badge 实例
+ */
+function createBadge(options = {}) {
+    return new TraeBadge(options);
+}
+/**
+ * 销毁所有 Badge 实例
+ */
+function destroyAllBadges() {
+    TraeBadge.destroyAll();
+    delete window.TraeBadgeInstance;
+}
+/**
+ * 检查是否支持 Badge
+ */
+function isSupported() {
+    return typeof window !== 'undefined' &&
+        typeof document !== 'undefined' &&
+        'querySelector' in document;
+}
+/**
+ * 获取全局 Badge 实例
+ */
+function getGlobalInstance() {
+    return window.TraeBadgeInstance || null;
+}
+
+/**
+ * TRAE Badge Vite Plugin
+ * 通过复用现有代码实现的 Vite 插件
+ */
+/**
+ * TRAE Badge Vite Plugin
+ */
+function traeBadgePlugin(options = {}) {
+    const config = {
+        variant: 'dark',
+        position: 'bottom-right',
+        clickable: true,
+        clickUrl: null,
+        disabled: false,
+        devOnly: false,
+        prodOnly: false,
+        autoTheme: true,
+        autoThemeTarget: 'body',
+        ...options
+    };
+    return {
+        name: 'vite-plugin-trae-badge',
+        configResolved(resolvedConfig) {
+            const isDev = resolvedConfig.command === 'serve';
+            const isProd = resolvedConfig.command === 'build';
+            if (config.disabled)
+                return;
+            if (config.devOnly && !isDev) {
+                config.disabled = true;
+                return;
+            }
+            if (config.prodOnly && !isProd) {
+                config.disabled = true;
+                return;
+            }
+        },
+        transformIndexHtml: {
+            order: 'post',
+            handler(html) {
+                if (config.disabled) {
+                    return html;
+                }
+                // 将主题函数转换为字符串以便注入
+                const themeFunctions = `
+          // 主题选择函数 (复用自 theme.ts)
+          function getLuminance(r, g, b) {
+            return 0.299 * r + 0.587 * g + 0.114 * b;
+          }
+          
+          function parseColor(color) {
+            const rgbaMatch = color.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*[\\d.]+)?\\)/);
+            if (rgbaMatch) {
+              return [parseInt(rgbaMatch[1]), parseInt(rgbaMatch[2]), parseInt(rgbaMatch[3])];
+            }
+            
+            const hexMatch = color.match(/^#([0-9a-f]{6})$/i);
+            if (hexMatch) {
+              const hex = hexMatch[1];
+              return [
+                parseInt(hex.substr(0, 2), 16),
+                parseInt(hex.substr(2, 2), 16),
+                parseInt(hex.substr(4, 2), 16)
+              ];
+            }
+            
+            const hexShortMatch = color.match(/^#([0-9a-f]{3})$/i);
+            if (hexShortMatch) {
+              const hex = hexShortMatch[1];
+              return [
+                parseInt(hex[0] + hex[0], 16),
+                parseInt(hex[1] + hex[1], 16),
+                parseInt(hex[2] + hex[2], 16)
+              ];
+            }
+            
+            return null;
+          }
+          
+          function detectBackgroundColor(element) {
+            let targetElement;
+            
+            if (typeof element === 'string') {
+              const found = document.querySelector(element);
+              console.debug('Target element found:', found);
+              if (!found) return 'rgb(255, 255, 255)';
+              targetElement = found;
+            } else if (element) {
+              targetElement = element;
+            } else {
+              targetElement = document.body;
+            }
+            
+            let currentElement = targetElement;
+            
+            while (currentElement && currentElement !== document.documentElement) {
+              const computedStyle = window.getComputedStyle(currentElement);
+              const backgroundColor = computedStyle.backgroundColor;
+              
+              console.debug('Checking element:', currentElement.tagName, currentElement.id, currentElement.className);
+              console.debug('Background color:', backgroundColor);
+              
+              if (backgroundColor && backgroundColor !== 'rgba(0, 0, 0, 0)' && backgroundColor !== 'transparent') {
+                console.debug('Found background color:', backgroundColor, 'on element:', currentElement);
+                return backgroundColor;
+              }
+              
+              currentElement = currentElement.parentElement;
+            }
+            
+            const bodyStyle = window.getComputedStyle(document.body);
+            const bodyBackground = bodyStyle.backgroundColor;
+            console.debug('Body background:', bodyBackground);
+            if (bodyBackground && bodyBackground !== 'rgba(0, 0, 0, 0)' && bodyBackground !== 'transparent') {
+              return bodyBackground;
+            }
+            
+            const htmlStyle = window.getComputedStyle(document.documentElement);
+            const htmlBackground = htmlStyle.backgroundColor;
+            console.debug('HTML background:', htmlBackground);
+            if (htmlBackground && htmlBackground !== 'rgba(0, 0, 0, 0)' && htmlBackground !== 'transparent') {
+              return htmlBackground;
+            }
+            
+            console.debug('No background found, returning default white');
+            return 'rgb(255, 255, 255)';
+          }
+          
+          function autoSelectTheme(container) {
+            const backgroundColor = detectBackgroundColor(container);
+            const rgb = parseColor(backgroundColor);
+            
+            console.debug('TRAE Badge Plugin - Background detection:', {
+              container,
+              backgroundColor,
+              rgb
+            });
+            
+            if (!rgb) {
+              console.debug('TRAE Badge Plugin - No RGB found, using dark theme');
+              return 'dark';
+            }
+            
+            const [r, g, b] = rgb;
+            const luminance = getLuminance(r, g, b);
+            const selectedTheme = luminance > 128 ? 'dark' : 'light';
+            
+            console.debug('TRAE Badge Plugin - Theme selection:', {
+              luminance,
+              selectedTheme,
+              reason: luminance > 128 ? 'Light background -> Dark badge' : 'Dark background -> Light badge'
+            });
+            
+            return selectedTheme;
+          }
+        `;
+                const badgeScript = `
+          <script>
+            (function() {
+              'use strict';
+              
+              if (window.TraeBadgePlugin) return;
+              
+              const css = \`${BADGE_CSS}\`;
+              const logos = ${JSON.stringify(TRAE_LOGOS)};
+              const cancelDark = \`${CANCEL_SVG_DARK}\`;
+              const cancelLight = \`${CANCEL_SVG_LIGHT}\`;
+              const shareIcon = \`${SHARE_SVG}\`;
+              
+              ${themeFunctions}
+              
+              // 注入样式
+              const style = document.createElement('style');
+              style.id = 'trae-badge-plugin-styles';
+              style.textContent = css;
+              document.head.appendChild(style);
+              
+              // 创建 Badge 函数
+              function createBadge() {
+                // 移除已存在的 badge
+                const existingBadge = document.getElementById('trae-badge-plugin');
+                if (existingBadge) {
+                  existingBadge.remove();
+                }
+                
+                // 确定主题
+                let variant = '${config.variant}';
+                if (${config.autoTheme}) {
+                  variant = autoSelectTheme('${config.autoThemeTarget}');
+                }
+                
+                const isDarkBackground = variant === 'dark';
+                const logoType = isDarkBackground ? 'light' : 'dark';
+                const cancelIcon = isDarkBackground ? cancelLight : cancelDark;
+                
+                const badge = document.createElement('div');
+                badge.id = 'trae-badge-plugin';
+                badge.className = \`trae-badge trae-badge--\${variant} trae-badge--${config.position}\`;
+                badge.innerHTML = \`
+                  <div class="trae-badge-content">
+                    <div class="trae-badge-logo">\${logos[logoType]}</div>
+                    <div class="trae-badge-share">\${shareIcon}</div>
+                  </div>
+                  <div class="trae-badge-cancel">\${cancelIcon}</div>
+                \`;
+                
+                // 添加点击事件
+                ${config.clickable ? `
+                badge.style.cursor = 'pointer';
+                badge.addEventListener('click', (e) => {
+                  if (e.target.closest('.trae-badge-cancel')) return;
+                  ${config.clickUrl ? `window.open('${config.clickUrl}', '_blank');` : `console.debug('TRAE Badge clicked (plugin)');`}
+                });
+                ` : ''}
+                
+                // 添加取消按钮事件
+                const cancelButton = badge.querySelector('.trae-badge-cancel');
+                if (cancelButton) {
+                  cancelButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    badge.remove();
+                  });
+                }
+                
+                document.body.appendChild(badge);
+                return badge;
+              }
+              
+              // 初始创建 badge
+              // 等待 React 组件渲染完成后再创建 badge
+              function initBadge() {
+                // 使用 requestAnimationFrame 等待渲染完成
+                requestAnimationFrame(() => {
+                  // 再次检查目标元素是否存在
+                  const targetElement = document.querySelector('${config.autoThemeTarget}');
+                  if (targetElement) {
+                    const badge = createBadge();
+                  } else {
+                    // 如果还没有找到，等待一段时间再试
+                    setTimeout(() => {
+                      const badge = createBadge();
+                    }, 500);
+                  }
+                });
+              }
+              
+              if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initBadge);
+              } else {
+                // DOM 已经加载完成，但 React 可能还没渲染
+                initBadge();
+              }
+              
+              window.TraeBadgePlugin = { 
+                destroy: () => {
+                  const badge = document.getElementById('trae-badge-plugin');
+                  if (badge) badge.remove();
+                  style.remove();
+                  delete window.TraeBadgePlugin;
+                },
+                recreate: createBadge
+              };
+            })();
+          </script>
+        `;
+                return html.replace('</body>', `${badgeScript}\n</body>`);
+            }
+        }
+    };
+}
+
+export { BADGE_CSS, DEFAULT_OPTIONS, TRAE_LOGOS, TraeBadge, autoInit, autoSelectTheme, createBadge, TraeBadge as default, destroyAllBadges, detectBackgroundColor, getGlobalInstance, getLuminance, isDarkBackground, isSupported, parseColor, traeBadgePlugin };

@@ -1,0 +1,56 @@
+{
+  "name": "babel-plugin-react-dev-locator",
+  "version": "1.0.6",
+  "sideEffects": false,
+  "description": "babel plugin for react-dev-locator to generate source code position info into jsx properties",
+  "main": "dist/cjs",
+  "module": "dist/esm",
+  "types": "dist/esm",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "author": "traecn <npm@mail.trae.cn>",
+  "license": "MIT",
+  "contributors": [
+    "zthxxx <zthxxx.me@gmail.com>"
+  ],
+  "files": [
+    "README.md",
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "gen:test-outputs": "tsx scripts/gen-test-outputs.ts",
+    "clean": "rimraf coverage dist es lib build",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build": "npm-run-all clean --parallel build:esm build:cjs"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {
+    "@babel/core": "^7.27.1",
+    "@babel/generator": "^7.27.1",
+    "@babel/parser": "^7.27.1",
+    "@babel/traverse": "^7.27.1",
+    "@babel/types": "^7.27.1"
+  },
+  "devDependencies": {
+    "@types/babel__core": "7.20.5",
+    "@types/babel__generator": "7.27.0",
+    "@types/babel__traverse": "7.20.7",
+    "@types/node": "20.12.10",
+    "@zthxxx/tsconfig": "1.0.5",
+    "babel-plugin-tester": "11.0.4",
+    "fs-extra": "11.1.0",
+    "globby": "11.1.0",
+    "npm-run-all": "4.1.5",
+    "rimraf": "3.0.2",
+    "tsx": "4.16.0",
+    "typescript": "5.2.2",
+    "vitest": "1.1.1"
+  }
+}
