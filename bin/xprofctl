@@ -34,6 +34,7 @@ const args = yargs
   .command('diag_report', '生成诊断报告', normalYargs)
   .command('generate_cored', '生成 coredump', normalYargs)
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
+  .command('kill', '杀死进程', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
   .command('set_config', '设置 xprofiler 配置',
     yargs => {
@@ -97,6 +98,22 @@ utils.cleanArgs(args);
 
 // send message
 utils.formatArgs(args);
+
+if (action === 'kill') {
+  try {
+    process.kill(pid);
+    console.log(`进程 (pid ${pid}) 已被杀死`);
+  } catch (err) {
+    if (err.code === 'EPERM') {
+      console.error(`杀死进程 (pid ${pid}) 失败: 权限不足`);
+    } else if (err.code === 'ESRCH') {
+      console.error(`杀死进程 (pid ${pid}) 失败: 进程不存在`);
+    } else {
+      console.error(`杀死进程 (pid ${pid}) 失败: ${err.message}`);
+    }
+  }
+  process.exit(0);
+}
 
 xctl(pid, thread_id, action, args)
   .then(data => {
