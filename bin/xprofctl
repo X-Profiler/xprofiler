@@ -35,6 +35,7 @@ const args = yargs
   .command('generate_cored', '生成 coredump', normalYargs)
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
+  .command('kill', '终止指定进程', normalYargs)
   .command('set_config', '设置 xprofiler 配置',
     yargs => {
       const child = yargs
@@ -93,6 +94,23 @@ const args = yargs
 const action = args['_'][0];
 const pid = args['pid'];
 const thread_id = args['worker_thread_id'] || 0;
+
+if (action === 'kill') {
+  try {
+    process.kill(pid, 'SIGKILL');
+    console.log(`成功结束进程 (pid ${pid})`);
+  } catch (err) {
+    if (err.code === 'EPERM') {
+      console.error(`无权限结束进程 (pid ${pid})，请检查当前用户是否有权限（如使用 sudo）`);
+    } else if (err.code === 'ESRCH') {
+      console.error(`进程 (pid ${pid}) 不存在`);
+    } else {
+      console.error(`结束进程 (pid ${pid}) 失败: ${err.message}`);
+    }
+  }
+  process.exit(0);
+}
+
 utils.cleanArgs(args);
 
 // send message
