@@ -34,6 +34,7 @@ const args = yargs
   .command('diag_report', '生成诊断报告', normalYargs)
   .command('generate_cored', '生成 coredump', normalYargs)
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
+  .command('kill', '杀死进程', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
   .command('set_config', '设置 xprofiler 配置',
     yargs => {
@@ -94,6 +95,16 @@ const action = args['_'][0];
 const pid = args['pid'];
 const thread_id = args['worker_thread_id'] || 0;
 utils.cleanArgs(args);
+
+if (action === 'kill') {
+  try {
+    process.kill(pid);
+    console.log(`进程 (pid ${pid}) 已被杀死`);
+  } catch (err) {
+    console.error(`杀死进程 (pid ${pid}) 失败: ${err.message}`);
+  }
+  return;
+}
 
 // send message
 utils.formatArgs(args);
