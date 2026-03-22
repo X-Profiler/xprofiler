@@ -51,14 +51,14 @@ function convertOptions(options) {
 
 describe('commands', () => {
   for (let i = 0; i < testConfig.length; i++) {
-    const { cmd, options = {}, profileRules, profileCheck,
+    const { cmd, options: staticOptions = {}, optionsFn, profileRules, profileCheck,
       errored = false, xctlRules, xprofctlRules, platform, env = {} } = testConfig[i];
     for (let j = 0; j < testFiles.length; j++) {
       const { jspath, desc, threadId = 0 } = testFiles[j];
       const ospt = platform || currentPlatform;
       const title =
         `[${ospt}] execute [${cmd}] on thread(${threadId}) with `
-        + `options: ${JSON.stringify(options)}, `
+        + `options: ${JSON.stringify(staticOptions)}, `
         + `env: ${JSON.stringify(env)} `
         + desc;
       describe(title, function () {
@@ -67,7 +67,11 @@ describe('commands', () => {
         let resByXprofctl = '';
         let pid = 0;
         let exitInfo = { code: null, signal: null };
+        let options = staticOptions;
         before(async function () {
+          if (typeof optionsFn === 'function') {
+            options = optionsFn();
+          }
           mm(os, 'homedir', () => tmphome);
           mm(process.env, 'UNIT_TEST_COMMAND_EXPIRED_TIME', commandExpiredTime);
           console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, 'start fork.');
