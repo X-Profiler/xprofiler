@@ -428,6 +428,22 @@ exports = module.exports = function (logdir) {
       xctlRules: [],
       xprofctlRules() { return [/执行命令失败: generate_coredump only support linux now./]; }
     },
+    {
+      cmd: 'kill_process',
+      optionsFn() {
+        const child = cp.spawn(process.execPath, ['-e', 'setTimeout(() => {}, 99999)']);
+        child.unref();
+        return { target_pid: child.pid };
+      },
+      xctlRules: [
+        { key: 'data.message', rule: /killed successfully/ },
+      ],
+      xprofctlRules() {
+        // xctl kills the target process first; by the time xprofctl runs the
+        // process is already gone, so we only validate the xctl response.
+        return [];
+      }
+    },
   ];
 
   return filterTestCaseByPlatform(list);

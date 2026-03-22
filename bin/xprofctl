@@ -21,6 +21,14 @@ const normalYargs = yargs => yargs
   .hide('v')
   .hide('h');
 
+const killProcessYargs = yargs => yargs
+  .group(['target_pid'], 'kill_process 配置:')
+  .describe('target_pid', '目标进程 pid')
+  .number('target_pid')
+  .demandOption(['target_pid'])
+  .hide('v')
+  .hide('h');
+
 const args = yargs
   .usage('$0 <action> -p <pid> [-t profiling_time] [-w worker_thread_id]')
   // commands
@@ -33,6 +41,7 @@ const args = yargs
   .command('heapdump', '生成 heapsnapshot', normalYargs)
   .command('diag_report', '生成诊断报告', normalYargs)
   .command('generate_cored', '生成 coredump', normalYargs)
+  .command('kill_process', '强制终止目标进程 (SIGKILL)', killProcessYargs)
   .command('check_version', '获取 xprofiler 版本号', normalYargs)
   .command('get_config', '获取 xprofiler 配置', normalYargs)
   .command('set_config', '设置 xprofiler 配置',
@@ -168,6 +177,9 @@ xctl(pid, thread_id, action, args)
         case 'generate_coredump':
           console.log(`Coredump 文件路径: ${data.filepath}`);
           console.log(`生成 Coredump 可能需要数秒至数十秒.`);
+          break;
+        case 'kill_process':
+          console.log(`进程 ${data.target_pid} 已被强制终止.`);
           break;
         default:
           console.error(`未知操作 ${action}: ${JSON.stringify(data)}`);

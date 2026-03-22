@@ -3,6 +3,7 @@
 #include "commands/dump.h"
 #include "commands/send.h"
 #include "commands/simple/config.h"
+#include "commands/simple/kill.h"
 #include "commands/simple/registry.h"
 #include "commands/simple/version.h"
 #include "library/error.h"
@@ -78,6 +79,9 @@ void ParseCmd(char* command) {
 
   // generator
   HANDLE_COMMANDS(generate_coredump, GenerateCoredump)
+
+  // kill process
+  HANDLE_COMMANDS(kill_process, KillProcess)
 
   // not match any commands
   /* else */ {

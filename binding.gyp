@@ -29,6 +29,7 @@
                 "src/commands/simple/version.cc",
                 "src/commands/simple/registry.cc",
                 "src/commands/simple/config.cc",
+                "src/commands/simple/kill.cc",
                 "src/commands/cpuprofiler/cpu_profiler.cc",
                 "src/commands/cpuprofiler/cpu_profile.cc",
                 "src/commands/cpuprofiler/cpu_profile_node.cc",
