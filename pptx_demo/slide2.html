@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #FFFFFF; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1C2833; padding: 15pt 40pt; height: 30pt;
+  display: flex; align-items: center; border-bottom: 4pt solid #3498DB;
+}
+h1 { color: #FFFFFF; font-size: 24pt; margin: 0; }
+.content {
+  padding: 15pt 40pt; display: flex; flex-direction: column; gap: 10pt; flex: 1;
+}
+.layer {
+  display: flex; gap: 15pt; align-items: center;
+}
+.layer-title {
+  width: 100pt; background: #3498DB; color: #FFFFFF; padding: 10pt;
+  border-radius: 6pt; text-align: center; font-weight: bold;
+}
+.layer-title p { margin: 0; font-size: 12pt; color: #ffffff; font-weight: bold; }
+.modules {
+  display: flex; gap: 10pt; flex: 1;
+}
+.module {
+  background: #FFFFFF; border: 2pt solid #D5D8DC; border-radius: 6pt;
+  padding: 10pt; flex: 1; text-align: center;
+  box-shadow: 2pt 2pt 8pt rgba(0,0,0,0.05);
+}
+.module p { margin: 0; color: #2E4053; font-size: 12pt; font-weight: bold; }
+.sub { margin-top: 5pt !important; color: #7F8C8D !important; font-size: 9pt !important; font-weight: normal !important; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>System Architecture</h1>
+  </div>
+  <div class="content">
+    <div class="layer">
+      <div class="layer-title"><p>Client / UI</p></div>
+      <div class="modules">
+        <div class="module"><p>Web App</p><p class="sub">React / Vue</p></div>
+        <div class="module"><p>Mobile App</p><p class="sub">iOS / Android</p></div>
+        <div class="module"><p>Admin Panel</p><p class="sub">Internal Dashboard</p></div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-title"><p>API Gateway</p></div>
+      <div class="modules">
+        <div class="module" style="background: #EBF5FB; border-color: #3498DB;">
+          <p>Nginx / AWS API Gateway</p>
+          <p class="sub">Routing, Auth, Rate Limiting</p>
+        </div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-title"><p>Backend</p></div>
+      <div class="modules">
+        <div class="module"><p>User Service</p><p class="sub">Node.js</p></div>
+        <div class="module"><p>Order Service</p><p class="sub">Java / Spring</p></div>
+        <div class="module"><p>Payment</p><p class="sub">Go</p></div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-title" style="background: #F39C12;"><p>Data Layer</p></div>
+      <div class="modules">
+        <div class="module"><p>Relational DB</p><p class="sub">PostgreSQL</p></div>
+        <div class="module"><p>Cache</p><p class="sub">Redis</p></div>
+        <div class="module"><p>Message Queue</p><p class="sub">Kafka / RabbitMQ</p></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

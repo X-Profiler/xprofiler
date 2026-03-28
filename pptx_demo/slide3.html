@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #FFFFFF; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F6; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1C2833; padding: 15pt 40pt; height: 30pt;
+  display: flex; align-items: center; border-bottom: 4pt solid #F39C12;
+}
+h1 { color: #FFFFFF; font-size: 24pt; margin: 0; }
+.content {
+  display: flex; flex: 1; padding: 15pt 40pt; gap: 20pt;
+}
+.col-left {
+  flex: 0.4; display: flex; flex-direction: column;
+}
+.col-right {
+  flex: 0.6; background: #EAECEE; border-radius: 8pt; padding: 15pt;
+}
+h2 { color: #2E4053; font-size: 18pt; margin-top: 0; margin-bottom: 10pt; }
+p { color: #566573; font-size: 12pt; line-height: 1.4; margin-bottom: 5pt; }
+ul { color: #566573; font-size: 12pt; margin-left: 0; padding-left: 15pt; }
+li { margin-bottom: 5pt; }
+.tech-box {
+  background: #FFFFFF; border-left: 6pt solid #3498DB; padding: 10pt; margin-bottom: 10pt;
+  box-shadow: 0 2pt 5pt rgba(0,0,0,0.05);
+}
+.tech-box p { margin: 0; color: #2E4053; font-weight: bold; font-size: 12pt; }
+.tech-box p.desc { color: #7F8C8D; font-size: 10pt; font-weight: normal; margin-top: 2pt; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Technology Stack</h1>
+  </div>
+  <div class="content">
+    <div class="col-left">
+      <h2>Key Choices</h2>
+      <p>Our architecture is built on modern, scalable technologies to ensure high performance.</p>
+      <ul>
+        <li>Microservices</li>
+        <li>Containerized</li>
+        <li>High availability</li>
+        <li>Automated CI/CD</li>
+      </ul>
+    </div>
+    <div class="col-right">
+      <div class="tech-box" style="border-color: #E74C3C;">
+        <p>Frontend: React & TypeScript</p>
+        <p class="desc">Component-based UI with strong type safety.</p>
+      </div>
+      <div class="tech-box" style="border-color: #2ECC71;">
+        <p>Backend: Node.js & Go</p>
+        <p class="desc">Node.js for Gateway, Go for high-performance services.</p>
+      </div>
+      <div class="tech-box" style="border-color: #3498DB;">
+        <p>Infrastructure: Docker & K8s</p>
+        <p class="desc">Container orchestration for auto-scaling and resilience.</p>
+      </div>
+      <div class="tech-box" style="border-color: #F39C12;">
+        <p>Observability: ELK & Prometheus</p>
+        <p class="desc">Centralized logging, monitoring, and alerting.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
