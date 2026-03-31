@@ -1,0 +1,66 @@
+[
+  {
+    "platform": "京东",
+    "name": "Apple iPhone 15 (A3092) 128GB 黑色 支持移动联通电信5G 双卡双待智能手机",
+    "price": 4999.00,
+    "sales": 500000,
+    "rating": 4.9,
+    "url": "https://item.jd.com/100064032174.html"
+  },
+  {
+    "platform": "京东",
+    "name": "Apple iPhone 15 (A3092) 256GB 蓝色 支持移动联通电信5G",
+    "price": 5999.00,
+    "sales": 200000,
+    "rating": 4.8,
+    "url": "https://item.jd.com/100064032175.html"
+  },
+  {
+    "platform": "淘宝",
+    "name": "Apple/苹果 iPhone 15 128G 5G智能手机 官方正品",
+    "price": 4899.00,
+    "sales": 30000,
+    "rating": 4.7,
+    "url": "https://detail.tmall.com/item.htm?id=737956890123"
+  },
+  {
+    "platform": "淘宝",
+    "name": "Apple/苹果 iPhone 15 256G 5G全网通 蓝色 手机",
+    "price": 5899.00,
+    "sales": 15000,
+    "rating": 4.9,
+    "url": "https://detail.tmall.com/item.htm?id=737956890124"
+  },
+  {
+    "platform": "拼多多",
+    "name": "【百亿补贴】Apple iPhone 15 128GB 黑色",
+    "price": 4599.00,
+    "sales": 100000,
+    "rating": 4.6,
+    "url": "https://mobile.yangkeduo.com/goods.html?goods_id=456789123"
+  },
+  {
+    "platform": "拼多多",
+    "name": "【百亿补贴】Apple iPhone 15 256GB 蓝色",
+    "price": 5499.00,
+    "sales": 50000,
+    "rating": 4.5,
+    "url": "https://mobile.yangkeduo.com/goods.html?goods_id=456789124"
+  },
+  {
+    "platform": "京东",
+    "name": "Apple iPhone 15 (A3092) 128GB 黑色 支持移动联通电信5G 双卡双待智能手机",
+    "price": 4999.00,
+    "sales": 500000,
+    "rating": 4.9,
+    "url": "https://item.jd.com/100064032174.html"
+  },
+  {
+    "platform": "淘宝",
+    "name": "Apple/苹果 iPhone 15 128G 黑色 国行原封",
+    "price": 4799.00,
+    "sales": 8000,
+    "rating": 4.2,
+    "url": "https://detail.tmall.com/item.htm?id=737956890125"
+  }
+]

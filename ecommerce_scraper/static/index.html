@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电商商品价格自动化采集与对比系统</title>
+    <!-- 引入 Vue 和 ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <!-- 引入 Tailwind CSS 进行快速样式开发 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        [v-cloak] { display: none; }
+        .tag-recommend {
+            background-color: #fef0f0;
+            color: #f56c6c;
+            border: 1px solid #fde2e2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .platform-京东 { color: #e1251b; font-weight: bold; }
+        .platform-淘宝 { color: #ff5000; font-weight: bold; }
+        .platform-拼多多 { color: #e02e24; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app" v-cloak class="container mx-auto px-4 py-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">电商商品价格自动化采集与对比系统</h1>
+            <p class="text-gray-500">支持多平台数据抓取、自动清洗去重、性价比智能分析</p>
+        </header>
+
+        <!-- 搜索区域 -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8 max-w-3xl mx-auto">
+            <div class="flex gap-4 items-center">
+                <input 
+                    v-model="keyword" 
+                    @keyup.enter="search"
+                    type="text" 
+                    placeholder="输入商品关键词，例如：iPhone 15" 
+                    class="flex-1 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                <button 
+                    @click="search" 
+                    :disabled="loading"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors disabled:bg-blue-400"
+                >
+                    {{ loading ? '采集中...' : '开始采集' }}
+                </button>
+            </div>
+            <div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" v-model="useMock" class="rounded text-blue-600 focus:ring-blue-500">
+                    <span>使用演示缓存数据 (极速响应，防反爬拦截)</span>
+                </label>
+                <span v-if="loading" class="text-blue-500 flex items-center gap-1">
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    数据采集清洗中，请稍候...
+                </span>
+            </div>
+        </div>
+
+        <!-- 错误提示 -->
+        <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-8">
+            {{ error }}
+        </div>
+
+        <!-- 结果展示区 -->
+        <div v-if="results.length > 0 && !loading" class="space-y-8">
+            
+            <!-- 可视化图表 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 价格趋势/分布图 -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h2 class="text-lg font-bold mb-4 text-gray-700">全网价格分布与性价比气泡图</h2>
+                    <div id="priceChart" class="w-full h-80"></div>
+                </div>
+                <!-- 平台占比 -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h2 class="text-lg font-bold mb-4 text-gray-700">各平台平均价格对比</h2>
+                    <div id="platformChart" class="w-full h-80"></div>
+                </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                    <h2 class="text-lg font-bold text-gray-700">商品横向对比详情 (已去重并按价格排序)</h2>
+                    <span class="text-sm text-gray-500">共找到 {{ results.length }} 条有效数据</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm">
+                                <th class="p-4 font-semibold border-b w-20">平台</th>
+                                <th class="p-4 font-semibold border-b">商品名称</th>
+                                <th class="p-4 font-semibold border-b w-24">价格</th>
+                                <th class="p-4 font-semibold border-b w-24">销量</th>
+                                <th class="p-4 font-semibold border-b w-20">评分</th>
+                                <th class="p-4 font-semibold border-b w-24">性价比</th>
+                                <th class="p-4 font-semibold border-b w-20">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in results" :key="index" class="border-b hover:bg-blue-50 transition-colors">
+                                <td class="p-4">
+                                    <span :class="'platform-' + item.platform">{{ item.platform }}</span>
+                                </td>
+                                <td class="p-4 text-sm text-gray-800">
+                                    <div class="line-clamp-2" :title="item.name">{{ item.name }}</div>
+                                    <span v-if="item.is_recommended" class="tag-recommend mt-1 inline-block">性价比首选</span>
+                                </td>
+                                <td class="p-4 font-bold text-red-500">¥{{ item.price.toFixed(2) }}</td>
+                                <td class="p-4 text-gray-600">{{ formatSales(item.sales) }}</td>
+                                <td class="p-4 text-gray-600">{{ item.rating.toFixed(1) }}</td>
+                                <td class="p-4">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                                      <div class="bg-blue-600 h-2.5 rounded-full" :style="'width: ' + item.roi_score + '%'"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-500">{{ item.roi_score }}分</span>
+                                </td>
+                                <td class="p-4">
+                                    <a :href="item.url" target="_blank" class="text-blue-500 hover:text-blue-700 text-sm font-medium">直达链接</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div v-if="results.length === 0 && !loading && !error" class="text-center text-gray-500 py-12">
+            暂无数据，请尝试输入关键词进行采集。
+        </div>
+
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
