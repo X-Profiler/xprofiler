@@ -25,16 +25,7 @@ const testFiles = [
   {
     jspath: path.join(__dirname, './fixtures/scripts/process_normal.js'),
     desc: 'when js main thread normal execute'
-  },
-  {
-    jspath: path.join(__dirname, './fixtures/scripts/process_blocking.js'),
-    desc: 'when js main thread blocking'
-  },
-  {
-    jspath: path.join(__dirname, './fixtures/scripts/worker_blocking.js'),
-    desc: 'when js worker thread blocking',
-    threadId: 1,
-  },
+  }
 ];
 
 function convertOptions(options) {

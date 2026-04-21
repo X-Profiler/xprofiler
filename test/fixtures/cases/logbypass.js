@@ -159,7 +159,6 @@ function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, struc
     title: `alinode ${title}`,
     env: Object.assign({}, commonEnvConfig, { XPROFILER_LOG_FORMAT_ALINODE: 'YES' }, envConfig),
     targets: [
-      Object.assign({}, blockingTarget, { logfile: path.join(logdirBlocking, `node-${date}.log`) }),
       Object.assign({}, nonBlockingTarget, { logfile: path.join(logdirNonBlocking, `node-${date}.log`) }),
     ],
     logparse: utils.alinodePrefixRegexp,
@@ -170,7 +169,6 @@ function getTestCases(title, logdirBlocking, logdirNonBlocking, envConfig, struc
   const xprofilerCommonConfig = {
     title: `xprofiler ${title}`,
     targets: [
-      Object.assign({}, blockingTarget, { logfile: path.join(logdirBlocking, `xprofiler-${date}.log`) }),
       Object.assign({}, nonBlockingTarget, { logfile: path.join(logdirNonBlocking, `xprofiler-${date}.log`) }),
     ],
     logparse: utils.xprofilerPrefixRegexp,

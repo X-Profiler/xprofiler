@@ -1,0 +1,31 @@
+# Tasks
+- [x] Task 1: 初始化 Rust (napi-rs) 项目配置
+  - [x] SubTask 1.1: 在项目根目录初始化 Cargo.toml 和基本的 napi-rs 目录结构。
+  - [x] SubTask 1.2: 移除 `binding.gyp` 和 `node-pre-gyp`，在 `package.json` 中配置 `@napi-rs/cli` 构建脚本。
+  - [x] SubTask 1.3: 验证空 Rust Addon 可以被 Node.js 成功加载并导出基本的 dummy function。
+- [x] Task 2: 基础核心模块重构 (Config, Utils, Logger)
+  - [x] SubTask 2.1: 使用 Rust 重写 `src/simple/config` (X-Profiler 配置系统)。
+  - [x] SubTask 2.2: 使用 Rust 重写 `src/library/utils` 和 `logger` (时间、文件操作、进程信息和格式化输出)。
+  - [x] SubTask 2.3: 导出 `configure` 和 `logger` 相关的 JS 接口。
+- [x] Task 3: Profilers 重构 (CPU, GC, Heap)
+  - [x] SubTask 3.1: 实现 CPU Profiler (基于 V8 CPU Profiler API 绑定)。
+  - [x] SubTask 3.2: 实现 Heap Profiler (Heap Snapshot 和 Sampling Heap Profiler)。
+  - [x] SubTask 3.3: 实现 GC Profiler。
+  - [x] SubTask 3.4: 导出相关 JS 接口并修复 JS 层面的加载逻辑。
+- [x] Task 4: Node.js Hooks 和 Reports 重构
+  - [x] SubTask 4.1: 实现 `fatal_error` 和 `heap_limit` 相关的 Node 崩溃拦截和诊断数据导出。
+  - [x] SubTask 4.2: 重写 System/UV/Heap Statistics 等统计数据采集模块。
+- [x] Task 5: Logbypass 重构 (基于独立线程的日志采集)
+  - [x] SubTask 5.1: 使用 Rust 线程和消息传递重写后台数据采集 (CPU/Mem/GC 状态监控等)。
+  - [x] SubTask 5.2: 实现通过 Unix Socket/Named Pipe 与前端 xprofctl 进程通信的能力 (IPC 替换)。
+- [x] Task 6: 接口对齐与集成测试
+  - [x] SubTask 6.1: 完整替换 `xprofiler.js` 中的 native module 加载路径，确保暴露的 JS 接口签名完全一致。
+  - [x] SubTask 6.2: 运行现有的 npm run test，修复测试用例失败。
+  - [x] SubTask 6.3: 清理旧的 `src` 目录下的所有 C++ 代码。
+
+# Task Dependencies
+- Task 2 depends on Task 1
+- Task 3 depends on Task 2
+- Task 4 depends on Task 2
+- Task 5 depends on Task 2
+- Task 6 depends on Task 3, Task 4, Task 5

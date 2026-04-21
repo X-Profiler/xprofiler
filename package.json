@@ -17,13 +17,13 @@
     "host": "https://github.com/X-Profiler/xprofiler/releases/download"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "napi build --platform",
     "package": "node scripts/build.js",
     "pack-common": "node scripts/common.js",
     "pack-7u": "node scripts/7u.js",
     "pack-8u": "node scripts/8u.js",
     "copy": "node scripts/copy.js",
-    "build": "node-pre-gyp rebuild",
+    "build": "napi build --platform --release",
     "format": "clang-format --version && clang-format -i --glob=\"src/**/!(report_win)[.h|.cc]\"",
     "lint": "npm run format && eslint --fix  *.js \"test/**/*.js\" lib/*.js patch/*.js bin/xprofctl scripts/**/*.js",
     "test": "mocha -t 0 -R spec test/*.test.js test/patch/*.test.js",
@@ -33,7 +33,7 @@
     "ci": "npm run lint && npm run build && npm run cov",
     "dep": "npm run build && npm run cov",
     "release": "node scripts/release.js",
-    "pack": "node scripts/clean.js && node-pre-gyp package && node-pre-gyp testpackage && npm run copy"
+    "pack": "node scripts/clean.js && npm run copy"
   },
   "repository": {
     "type": "git",
@@ -44,10 +44,12 @@
     "lib",
     "patch",
     "src",
-    "binding.gyp",
     "configuration.js",
     "index.d.ts",
-    "xprofiler.js"
+    "index.js",
+    "xprofiler.js",
+    "xprofiler.node",
+    "*.node"
   ],
   "author": "yeekwanvong@gmail.com",
   "license": "BSD-2-Clause",
@@ -56,13 +58,12 @@
   },
   "homepage": "https://github.com/X-Profiler/xprofiler#readme",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.11",
     "moment": "^2.30.1",
-    "nan": "^2.19.0",
     "uuid": "^9.0.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@napi-rs/cli": "^2.18.0",
     "@istanbuljs/schema": "^0.1.3",
     "clang-format": "^1.8.0",
     "eslint": "^8.57.1",
@@ -70,6 +71,23 @@
     "mm": "^3.4.0",
     "mocha": "^10.4.0",
     "nyc": "^15.1.0"
+  },
+  "napi": {
+    "name": "xprofiler",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-unknown-linux-musl",
+        "aarch64-unknown-linux-gnu",
+        "i686-pc-windows-msvc",
+        "armv7-unknown-linux-gnueabihf",
+        "aarch64-apple-darwin",
+        "aarch64-linux-android",
+        "x86_64-linux-android",
+        "aarch64-unknown-linux-musl",
+        "aarch64-pc-windows-msvc"
+      ]
+    }
   },
   "xctlIpcPath": {
     "unix": "xprofiler-ctl-uds-path.sock",

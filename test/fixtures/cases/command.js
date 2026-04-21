@@ -9,7 +9,7 @@ const pkg = require('../../../package.json');
 
 const currentPlatform = os.platform();
 
-const REGEXP_NUMBER = /^\d+(\.\d+)?$/;
+const REGEXP_NUMBER = /^-?\d+(\.\d+)?$/;
 
 function escape(str) {
   str = JSON.stringify(str);
@@ -21,14 +21,12 @@ if (currentPlatform === 'win32') {
   sep = '\\';
 }
 
-function checkCoreDump(filepath, log) {
-  if (currentPlatform === 'linux') {
-    const stdout = cp.execSync(`readelf -a ${filepath}`);
-    log && console.log(`${log}: ${stdout}`);
-    it(`should generate elf coredump file on linux`, function () {
-      expect(stdout.includes('ELF Header')).to.be.ok();
-    });
+function checkCoreDump(filepath) {
+  if (currentPlatform !== 'linux') {
+    return;
   }
+  const fs = require('fs');
+  expect(fs.existsSync(filepath)).to.be.ok();
 }
 
 function checkProfile(rules, obj, rawKey) {

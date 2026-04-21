@@ -1,0 +1,1 @@
+/workspace/target/debug/libxprofiler.so: /workspace/build.rs /workspace/src/commands/mod.rs /workspace/src/commands/simple/config.rs /workspace/src/commands/simple/mod.rs /workspace/src/config.rs /workspace/src/lib.rs /workspace/src/library/mod.rs /workspace/src/library/utils.rs /workspace/src/logger.rs
