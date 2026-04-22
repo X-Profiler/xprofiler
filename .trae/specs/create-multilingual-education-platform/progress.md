@@ -15,3 +15,19 @@
   - 创建了 `/workspace/backend` 及 `/workspace/frontend` 两个主要项目文件夹及其下属各文件。
   - 更新了 Prisma 的 `schema.prisma` 以及多张数据表的 API 路由代码。
   - 新增了包括 `Home.tsx`, `Login.tsx`, `Course.tsx`, `Lesson.tsx`, `Profile.tsx`, `Community.tsx` 在内的诸多前端核心页面。
+## Round 3
+
+- **Verdict**: FAIL
+- **Scope reviewed**: Frontend/Backend Auth Integration, Code Quality (Linting), API Edge Cases
+- **Verification results**:
+  - Build/Runtime: 后端及前端打包均成功。但前端用户注册和登录流程完全崩溃，无法使用。
+  - Tests/Coverage: 无自动化测试套件。前端执行 `npm run lint` 出现 8 个报错（包含不正确的 Hooks 使用等类型问题）。
+  - Adversarial probes:
+    - 通过 API 直接测试重复邮箱和用户名注册，正确返回 409 拦截；
+    - 测试缺失字段请求，正确返回 400 报错；
+    - 并发创建社区帖子正常处理。
+    - 针对 UI 的流程进行实测时发现：前端传递给后端的注册和登录字段完全错误（如前端 Login 发送 `username` 和 `password`，后端期望 `email` 和 `password`），导致所有操作必然返回 400（Missing required fields）。
+  - Checklist audit: 2 项通过（系统运行与部分 API 调用），1 项明确失败（前端用户登录注册与会话状态），其余 UI 功能因无法登录而受阻未能完整验证。
+- **Risks and issues**:
+  - 前后端认证接口契约严重不符，属于阻断性严重 Bug，系统主流程不通（高危）。
+  - 前端存在严重的 ESLint 报错，尤其是在 useEffect 中同步 setState 的使用方式可能引发无限渲染循环（高危）。
