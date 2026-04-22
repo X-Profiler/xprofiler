@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,20 +22,24 @@ export default function Register() {
     }
 
     try {
-      const response = await axios.post('/api/auth/register', { username, password });
+      const response = await axios.post('/api/auth/register', { username, email, password });
       const { token, user } = response.data;
       
       // Update auth context and store token
       if (token) {
-        login(token, user || { id: 'unknown', username });
+        login(token, user || { id: 'unknown', username, email });
         // Redirect to course page
         navigate('/course');
       } else {
         // If API doesn't return token on register, just redirect to login
         navigate('/login');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '注册失败，请稍后重试');
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.message || '注册失败，请稍后重试');
+      } else {
+        setError('注册失败，请稍后重试');
+      }
     }
   };
 
@@ -52,6 +57,16 @@ export default function Register() {
               type="text" 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">邮箱</label>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
               required
             />

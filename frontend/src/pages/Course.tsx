@@ -12,7 +12,6 @@ interface Course {
 
 export default function Course() {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
@@ -24,9 +23,8 @@ export default function Course() {
       try {
         const response = await axios.get('/api/courses');
         setCourses(response.data);
-        setFilteredCourses(response.data);
         setLoading(false);
-      } catch (err: any) {
+      } catch {
         setError('加载课程列表失败');
         setLoading(false);
       }
@@ -34,16 +32,12 @@ export default function Course() {
     fetchCourses();
   }, []);
 
-  useEffect(() => {
-    let result = courses;
-    if (languageFilter !== 'all') {
-      result = result.filter(course => course.language === languageFilter);
-    }
-    if (levelFilter !== 'all') {
-      result = result.filter(course => course.level === levelFilter);
-    }
-    setFilteredCourses(result);
-  }, [languageFilter, levelFilter, courses]);
+  const filteredCourses = courses.filter(course => {
+    let match = true;
+    if (languageFilter !== 'all' && course.language !== languageFilter) match = false;
+    if (levelFilter !== 'all' && course.level !== levelFilter) match = false;
+    return match;
+  });
 
   if (loading) return <div className="flex justify-center items-center h-screen">加载中...</div>;
   if (error) return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>;

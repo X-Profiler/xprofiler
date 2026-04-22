@@ -46,7 +46,7 @@ export default function CourseDetail() {
         }
         
         setLoading(false);
-      } catch (err: any) {
+      } catch {
         setError('加载课程详情失败');
         setLoading(false);
       }

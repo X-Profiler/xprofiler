@@ -31,3 +31,10 @@
 - **Risks and issues**:
   - 前后端认证接口契约严重不符，属于阻断性严重 Bug，系统主流程不通（高危）。
   - 前端存在严重的 ESLint 报错，尤其是在 useEffect 中同步 setState 的使用方式可能引发无限渲染循环（高危）。
+
+## Round 4
+
+- **Task(s) completed**: 修复了前端和后端认证接口字段不匹配的问题，开发并完善了前端登录注册页面及状态管理；修复了前端项目中的所有 ESLint 报错，确保 `npm run lint` 零错误通过。
+- **Issues fixed**: 修复了 `Login.tsx` 和 `Register.tsx` 发送字段（原 `username`）与后端要求（`email`）不一致导致的 400 错误；修复了 `Course.tsx` 中在 `useEffect` 同步调用 `setState` 引发的警告以及各类 TypeScript 未使用变量和 `any` 类型报错。
+- **Key decisions**: 重构了 `Course.tsx` 的过滤逻辑，将状态转换为衍生状态以提升性能；为网络请求错误处理引入了 `AxiosError` 类型判定以解决类型安全问题。
+- **Files changed**: `frontend/src/pages/Login.tsx`, `frontend/src/pages/Register.tsx`, `frontend/src/pages/Course.tsx`, `frontend/src/pages/CourseDetail.tsx`, `frontend/src/context/AuthContext.tsx`.

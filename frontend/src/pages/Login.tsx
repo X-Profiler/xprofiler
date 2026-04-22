@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -14,16 +14,20 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.post('/api/auth/login', { username, password });
+      const response = await axios.post('/api/auth/login', { email, password });
       const { token, user } = response.data;
       
       // Update auth context and store token
-      login(token, user || { id: 'unknown', username });
+      login(token, user || { id: 'unknown', email });
       
       // Redirect to course page
       navigate('/course');
-    } catch (err: any) {
-      setError(err.response?.data?.message || '登录失败，请检查用户名或密码');
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.message || '登录失败，请检查邮箱或密码');
+      } else {
+        setError('登录失败，请检查邮箱或密码');
+      }
     }
   };
 
@@ -36,11 +40,11 @@ export default function Login() {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">用户名</label>
+            <label className="block text-sm font-medium text-gray-700">邮箱</label>
             <input 
-              type="text" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
