@@ -17,6 +17,7 @@
     "@libsql/client": "^0.17.2",
     "@prisma/adapter-libsql": "^7.7.0",
     "@prisma/client": "^7.7.0",
+    "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
