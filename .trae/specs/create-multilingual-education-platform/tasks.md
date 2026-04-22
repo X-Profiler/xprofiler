@@ -31,3 +31,8 @@
 - [Task 4] depends on [Task 3]
 - [Task 5] depends on [Task 2, Task 4]
 - [Task 6] depends on [Task 2, Task 5]
+
+- [ ] Task 9: 修复前端 `CourseDetail.tsx` 中的“开始学习”按钮，使其正确绑定 `onClick` 或使用 `Link` 跳转至对应的 `/lesson/:id` 路由。
+- [ ] Task 10: 修复前后端题目类型（`type`）枚举不一致的问题：调整 `Lesson.tsx` 以兼容后端的 `VOCAB`, `GRAMMAR`, `SPEAKING`, `LISTENING` 类型，确保题目能够正常渲染。
+- [ ] Task 11: 修复前端 `Community.tsx` 及其他需要在挂载时发起请求的页面中的 Token 竞态问题，确保 Axios 拦截器或请求配置能够在 `AuthContext` 注入 Token 后再进行调用。
+- [ ] Task 12: 优化前端 `Lesson.tsx` 学习页面体验，增加顶部导航栏或返回按钮，允许用户中途退出练习。

@@ -38,3 +38,21 @@
 - **Issues fixed**: 修复了 `Login.tsx` 和 `Register.tsx` 发送字段（原 `username`）与后端要求（`email`）不一致导致的 400 错误；修复了 `Course.tsx` 中在 `useEffect` 同步调用 `setState` 引发的警告以及各类 TypeScript 未使用变量和 `any` 类型报错。
 - **Key decisions**: 重构了 `Course.tsx` 的过滤逻辑，将状态转换为衍生状态以提升性能；为网络请求错误处理引入了 `AxiosError` 类型判定以解决类型安全问题。
 - **Files changed**: `frontend/src/pages/Login.tsx`, `frontend/src/pages/Register.tsx`, `frontend/src/pages/Course.tsx`, `frontend/src/pages/CourseDetail.tsx`, `frontend/src/context/AuthContext.tsx`.
+
+## Round 5
+
+- **Verdict**: FAIL
+- **Scope reviewed**: Frontend Course Navigation, Learning Modules (Lesson.tsx), Community API requests, Auth State initialization
+- **Verification results**:
+  - Build/Runtime: 后端及前端打包均成功。前端无 Lint 错误。
+  - Tests/Coverage: 无自动化测试套件。通过 UI 和 curl 实测发现前端存在流程阻断性 Bug。
+  - Adversarial probes:
+    - 针对 API 缺失参数、不合法的参数类型（如字符串 ID）、无效的 token，系统均能正确处理并返回 400/401。
+    - 并发提交评论/发帖通过。
+    - 注册使用存在的邮箱/用户名测试，返回 409。
+  - Checklist audit: 无法完整验证“互动式学习模块”和“学习进度追踪”，因为入口损坏且前后端枚举值不匹配。
+- **Risks and issues**:
+  - 前端 `CourseDetail.tsx` 中的“开始学习”按钮纯属静态样式，没有点击事件或跳转链接，用户完全无法进入学习页面（高危，阻断主流程）。
+  - 前后端题目类型枚举不匹配：后端返回 `VOCAB`, `GRAMMAR` 等，而前端 `Lesson.tsx` 期望 `vocabulary`, `grammar` 等，导致真实题目无法渲染，直接抛出“未知的题目类型”（高危，阻断学习流程）。
+  - 前端全局请求状态同步存在竞态条件：在 `Community.tsx` 中组件挂载即调用 API 获取帖子，但 `AuthContext` 此时尚未完成 token 注入，导致刷新页面或直接访问时出现 401 Unauthorized，无法加载数据（中危）。
+  - `Lesson.tsx` 页面在学习中途缺乏返回按钮或顶部导航栏，用户一旦进入（或误入）只能完成题目才能离开（低危体验问题）。
