@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 interface Post {
   id: number;
@@ -12,6 +13,7 @@ interface Post {
 }
 
 export default function Community() {
+  const { isReady } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -24,8 +26,10 @@ export default function Community() {
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (isReady) {
+      fetchPosts();
+    }
+  }, [isReady]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

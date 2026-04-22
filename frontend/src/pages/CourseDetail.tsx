@@ -143,9 +143,12 @@ export default function CourseDetail() {
                                       <p className="text-gray-500 text-sm mt-1 line-clamp-1">{lesson.content}</p>
                                     )}
                                   </div>
-                                  <button className="opacity-0 group-hover:opacity-100 ml-4 px-4 py-1.5 bg-blue-50 text-blue-600 rounded text-sm font-medium hover:bg-blue-100 transition-all">
+                                  <Link 
+                                    to={`/lesson/${lesson.id}`}
+                                    className="opacity-0 group-hover:opacity-100 ml-4 px-4 py-1.5 bg-blue-50 text-blue-600 rounded text-sm font-medium hover:bg-blue-100 transition-all block"
+                                  >
                                     开始学习
-                                  </button>
+                                  </Link>
                                 </li>
                               ))}
                           </ul>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 interface Recommendation {
   id: number;
@@ -9,13 +10,26 @@ interface Recommendation {
 }
 
 export default function Home() {
+  const { isReady } = useAuth();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   useEffect(() => {
-    axios.get('/api/recommendations')
-      .then(res => setRecommendations(res.data))
-      .catch(err => console.error(err));
-  }, []);
+    if (isReady) {
+      axios.get('/api/recommendations')
+        .then(res => {
+          if (Array.isArray(res.data)) {
+            setRecommendations(res.data);
+          } else if (res.data.lesson) {
+            setRecommendations([res.data.lesson]);
+          } else if (res.data.title) {
+            setRecommendations([res.data]);
+          } else {
+            setRecommendations([]);
+          }
+        })
+        .catch(err => console.error(err));
+    }
+  }, [isReady]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-12">

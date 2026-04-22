@@ -56,3 +56,19 @@
   - 前后端题目类型枚举不匹配：后端返回 `VOCAB`, `GRAMMAR` 等，而前端 `Lesson.tsx` 期望 `vocabulary`, `grammar` 等，导致真实题目无法渲染，直接抛出“未知的题目类型”（高危，阻断学习流程）。
   - 前端全局请求状态同步存在竞态条件：在 `Community.tsx` 中组件挂载即调用 API 获取帖子，但 `AuthContext` 此时尚未完成 token 注入，导致刷新页面或直接访问时出现 401 Unauthorized，无法加载数据（中危）。
   - `Lesson.tsx` 页面在学习中途缺乏返回按钮或顶部导航栏，用户一旦进入（或误入）只能完成题目才能离开（低危体验问题）。
+
+## Round 6
+
+- Task(s) completed:
+  - 修复了 `CourseDetail.tsx` 中“开始学习”按钮无法跳转的阻断性 Bug。
+  - 调整了 `Lesson.tsx` 中的练习题目类型枚举，正确兼容了后端返回的 `VOCAB`, `GRAMMAR`, `SPEAKING`, `LISTENING` 类型。
+  - 在 `Lesson.tsx` 页面顶部增加了带有返回功能的“退出练习”按钮，优化用户体验。
+  - 修复了在 `Community.tsx` 及 `Home.tsx` 中因为 Token 尚未注入 Axios 配置导致的初次加载/刷新 401 报错竞态条件。
+- Key decisions made: 在 `AuthContext` 注入 `isReady` 状态以明确指示认证和拦截器配置的就绪状态，这使得各个页面（如社区、首页等）能安全地依赖 `isReady` 执行首屏需要 Token 的 API 请求。
+- Tests passed: 运行 `npm run lint` 和 `npm run build`，零错误通过，代码规范及静态检查通过。
+- Files changed:
+  - `frontend/src/pages/CourseDetail.tsx`
+  - `frontend/src/pages/Lesson.tsx`
+  - `frontend/src/context/AuthContext.tsx`
+  - `frontend/src/pages/Community.tsx`
+  - `frontend/src/pages/Home.tsx`

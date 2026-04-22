@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 // Types
-export type ExerciseType = 'vocabulary' | 'grammar' | 'listening' | 'speaking';
+export type ExerciseType = 'vocabulary' | 'grammar' | 'listening' | 'speaking' | 'VOCAB' | 'GRAMMAR' | 'LISTENING' | 'SPEAKING';
 
 export interface Exercise {
   id: string;
@@ -365,12 +365,16 @@ export default function Lesson() {
   const renderExercise = () => {
     switch (currentExercise.type) {
       case 'vocabulary':
+      case 'VOCAB':
         return <VocabularyExercise key={currentExercise.id} exercise={currentExercise} onAnswer={handleAnswer} />;
       case 'grammar':
+      case 'GRAMMAR':
         return <GrammarExercise key={currentExercise.id} exercise={currentExercise} onAnswer={handleAnswer} />;
       case 'listening':
+      case 'LISTENING':
         return <ListeningExercise key={currentExercise.id} exercise={currentExercise} onAnswer={handleAnswer} />;
       case 'speaking':
+      case 'SPEAKING':
         return <SpeakingExercise key={currentExercise.id} exercise={currentExercise} onAnswer={handleAnswer} />;
       default:
         return <div className="text-red-500">未知的题目类型: {currentExercise.type}</div>;
@@ -379,13 +383,30 @@ export default function Lesson() {
 
   const typeLabels: Record<string, string> = {
     vocabulary: '词汇',
+    VOCAB: '词汇',
     grammar: '语法',
+    GRAMMAR: '语法',
     listening: '听力',
-    speaking: '口语'
+    LISTENING: '听力',
+    speaking: '口语',
+    SPEAKING: '口语'
   };
 
   return (
     <div className="max-w-3xl mx-auto mt-10 p-8 bg-white rounded-2xl shadow-lg border border-gray-100">
+      {/* Header with Back Button */}
+      <div className="flex items-center justify-between mb-6">
+        <button 
+          onClick={() => navigate(-1)}
+          className="text-gray-500 hover:text-gray-700 flex items-center transition-colors font-medium"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          退出练习
+        </button>
+      </div>
+
       {/* Progress Bar */}
       <div className="w-full bg-gray-100 rounded-full h-3 mb-6 overflow-hidden">
         <div className="bg-blue-500 h-3 rounded-full transition-all duration-500 ease-in-out" style={{ width: `${progress}%` }}></div>
