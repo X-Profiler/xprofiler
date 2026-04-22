@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  progress  Progress[]
+  posts     Post[]
+  comments  Comment[]
+  badges    UserBadge[]
+}
+
+model Course {
+  id          Int       @id @default(autoincrement())
+  language    String
+  level       String
+  title       String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  chapters    Chapter[]
+}
+
+model Chapter {
+  id        Int      @id @default(autoincrement())
+  title     String
+  order     Int      @default(0)
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id])
+  lessons   Lesson[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lesson {
+  id        Int        @id @default(autoincrement())
+  title     String
+  content   String?
+  order     Int        @default(0)
+  chapterId Int
+  chapter   Chapter    @relation(fields: [chapterId], references: [id])
+  exercises Exercise[]
+  progress  Progress[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Exercise {
+  id            Int      @id @default(autoincrement())
+  type          String // VOCAB/GRAMMAR/SPEAKING/LISTENING
+  question      String
+  options       String // stored as JSON string
+  correctAnswer String
+  lessonId      Int
+  lesson        Lesson   @relation(fields: [lessonId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Progress {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  lessonId    Int
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  score       Int
+  completedAt DateTime @default(now())
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String
+  authorId  Int
+  author    User      @relation(fields: [authorId], references: [id])
+  comments  Comment[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Badge {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String
+  imageUrl    String?
+  users       UserBadge[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model UserBadge {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  badgeId   Int
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+  earnedAt  DateTime @default(now())
+
+  @@unique([userId, badgeId])
+}
