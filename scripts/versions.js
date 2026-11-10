@@ -21,4 +21,5 @@ exports.os8u = [
   'node-v20.10.0',
   'node-v21.5.0',
   'node-v22.1.0',
+  'node-v26.13.0',
 ];

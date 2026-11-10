@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 X-Profiler is a Node.js native addon for runtime profiling and performance monitoring. It outputs performance logs at regular intervals and enables real-time runtime state sampling via external commands (xprofctl CLI).
 
 **Supported Platforms:** Windows, Linux (x64/arm64), macOS (x64/arm64)
-**Node.js Versions:** v18.x, v20.x, v22.x, v24.x (LTS only)
+**Node.js Versions:** v18.x, v20.x, v22.x, v24.x, v26.x (LTS only)
 
 ## Build Commands
 
@@ -188,7 +188,7 @@ See `configuration.js` for full list and README.md for environment variable name
 ## CI/CD
 
 **GitHub Actions:** `.github/workflows/nodejs.yml`
-- Matrix: 3 OS × 4 Node.js versions
+- Matrix: 3 OS × 5 Node.js versions
 - Steps: Build → Test → Coverage → Upload to codecov
 - Runs on every commit
 
