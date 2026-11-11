@@ -16,7 +16,7 @@ jobs:
           {os: "macos-latest", arch: "x64"},
           {os: "ubuntu-latest", arch: "x64"},
         ]
-        node-version: [ 18, 20, 22, 24, 26 ]
+        node-version: [ 22, 24, 26 ]
     steps:
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -34,6 +34,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+
+    # npm bundled with Node.js 22 uses node-gyp 11, which cannot detect VS 2026.
+    # Use the same npm/node-gyp toolchain on every supported runtime.
+    - name: Setup npm
+      run: npm install --global npm@11.19.1
 
     - name: Install Dependencies
       run: npm install

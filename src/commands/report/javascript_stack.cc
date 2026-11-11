@@ -84,13 +84,9 @@ void NodeReport::SetJavaScriptStack(JSONWriter* writer, bool fatal_error) {
       writer->json_keyvalue("frameType", "constructor");
     } else if (frame->IsWasm()) {
       writer->json_keyvalue("frameType", "wasm");
-    }
-#if (NODE_VERSION_AT_LEAST(12, 9, 0))
-    else if (frame->IsUserJavaScript()) {
+    } else if (frame->IsUserJavaScript()) {
       writer->json_keyvalue("frameType", "userjs");
-    }
-#endif
-    else {
+    } else {
       writer->json_keyvalue("frameType", "unknown");
     }
 
