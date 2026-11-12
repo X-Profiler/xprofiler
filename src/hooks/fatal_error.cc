@@ -58,17 +58,11 @@ void DumpBeforeAbort(const char* location, const char* message) {
   }
 }
 
-#if (NODE_MODULE_VERSION > NODE_18_0_MODULE_VERSION)
 [[noreturn]] void OnOOMError(const char* location,
                              const v8::OOMDetails& details) {
   const char* message =
       details.detail != nullptr ? details.detail
       : details.is_heap_oom
-#else
-[[noreturn]] void OnOOMError(const char* location, bool is_heap_oom) {
-  const char* message =
-      is_heap_oom
-#endif
           ? "Allocation failed - JavaScript heap out of memory"
           : "Allocation failed - process out of memory";
   DumpBeforeAbort(location, message);

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+* Support only Node.js 22, 24 and 26; drop Node.js 18 and 20.
+* Remove legacy Node.js binary targets and the `pack-7u` script.
+
+### Maintenance
+
+* Require NAN 2.30.0 or newer within v2.
+* Use npm 11.19.1 (node-gyp 12.4.0) in CI to detect Visual Studio 2026 on Windows, including Node.js 22 builds.
+* Include all three supported Node.js majors in binary packaging.
+
 ## 3.1.0 (2025-10-29)
 
 * feat: build from Node.js v24 (#253) ([10dd462](https://github.com/X-Profiler/xprofiler/commit/10dd462)), closes [#253](https://github.com/X-Profiler/xprofiler/issues/253)

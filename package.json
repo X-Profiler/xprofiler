@@ -2,7 +2,7 @@
   "name": "xprofiler",
   "version": "3.1.0",
   "engines": {
-    "node": ">=18.19.0"
+    "node": "^22.0.0 || ^24.0.0 || ^26.0.0"
   },
   "description": "node.js addon to output runtime logs",
   "bin": {
@@ -20,7 +20,6 @@
     "install": "node-pre-gyp install --fallback-to-build",
     "package": "node scripts/build.js",
     "pack-common": "node scripts/common.js",
-    "pack-7u": "node scripts/7u.js",
     "pack-8u": "node scripts/8u.js",
     "copy": "node scripts/copy.js",
     "build": "node-pre-gyp rebuild",
@@ -58,7 +57,7 @@
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.11",
     "moment": "^2.30.1",
-    "nan": "^2.19.0",
+    "nan": "^2.30.0",
     "uuid": "^9.0.1",
     "yargs": "^17.7.2"
   },

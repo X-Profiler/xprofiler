@@ -29,7 +29,7 @@ NODE_C_CTOR(Main) {
       GetFunction(New<FunctionTemplate>(native_func)).ToLocalChecked())
 
 NAN_MODULE_INIT(Initialize) {
-  Isolate* isolate = target->GetIsolate();
+  Isolate* isolate = Isolate::GetCurrent();
   EnvironmentData::Create(isolate);
 
   // environment

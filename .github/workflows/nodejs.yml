@@ -16,24 +16,30 @@ jobs:
           {os: "macos-latest", arch: "x64"},
           {os: "ubuntu-latest", arch: "x64"},
         ]
-        node-version: [ 18, 20, 22, 24 ]
+        node-version: [ 22, 24, 26 ]
     steps:
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v7
       with:
         python-version: '3.10'
 
     - name: Checkout Git Source
-      uses: actions/checkout@master
+      uses: actions/checkout@v7
 
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v3
       if: ${{ matrix.ci-type.os == 'windows-latest' }}
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ matrix.node-version }}
+        package-manager-cache: false
+
+    # npm bundled with Node.js 22 uses node-gyp 11, which cannot detect VS 2026.
+    # Use the same npm/node-gyp toolchain on every supported runtime.
+    - name: Setup npm
+      run: npm install --global npm@11.19.1
 
     - name: Install Dependencies
       run: npm install
@@ -42,7 +48,7 @@ jobs:
       run: npm run ci
 
     - name: Code Coverage
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 

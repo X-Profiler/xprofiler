@@ -6,7 +6,7 @@ const { subscribeHttpServerRequestStart } = require('../../patch/http');
 
 const status = {};
 
-describe.only(`monitor http server request with diagnostics_channel`, function () {
+describe(`monitor http server request with diagnostics_channel`, function () {
   const requestTimes = 5;
   let triggerTimes = 0;
 

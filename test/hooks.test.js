@@ -9,7 +9,6 @@ const promisify = require('util').promisify;
 const readdir = promisify(fs.readdir);
 const unlink = promisify(fs.unlink);
 const exists = promisify(fs.exists);
-const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 const utils = require('./fixtures/utils');
 const cases = require('./fixtures/cases/hooks')();
@@ -46,14 +45,11 @@ for (const cse of cases) {
           }
           const { size } = await stat(hookFile);
           console.log('check hook file size:', size);
-          if (!size > 0) {
+          if (size === 0) {
             continue;
           }
-          const fileContent = (await readFile(hookFile, 'utf8')).trim();
-          console.log('check hook file content:', !!fileContent);
-          if (!fileContent) {
-            continue;
-          }
+          // Core dumps are binary and can exceed V8's maximum string length.
+          // Each case validates its file format in cse.check below.
           console.log('final hook file:', hookFile);
           break;
         }

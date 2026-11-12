@@ -20,13 +20,13 @@ xprofiler 插件支持三大主流操作系统：
 
 支持的 Node.js runtime 版本：
 
-- v18.x
-- v20.x
 - v22.x
 - v24.x
+- v26.x
 
 更低的版本已经不在 Node.js 官方 LTS 计划中，故正常情况下不再支持。
 
+- 需要在 Node.js 18 / 20 中使用，请使用最后支持它们的版本 `xprofiler@3.1.0`。
 - 需要在 `node-v16.x` 以下的版本中使用，可以使用 `2.x` 分支的的最新版本：<https://github.com/X-Profiler/xprofiler/tree/2.x>
 - 需要在 `node-v12.x` 以下的版本中使用，可以使用 `1.x` 分支的的最新版本：[1.4.0](https://github.com/X-Profiler/xprofiler/tree/v1.x-staging)
 
