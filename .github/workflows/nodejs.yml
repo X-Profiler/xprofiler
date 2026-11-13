@@ -1,11 +1,40 @@
 name: Continuous integration
 on:
   push:
-    branches: [ '**' ]
-    tags: [ 'v*.*.*' ]
+    branches: [ master ]
   pull_request:
     branches: [ '**' ]
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  version:
+    name: Check release version
+    if: github.event_name == 'pull_request' && github.base_ref == 'master'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install release check dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Check version change
+        id: version
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-release.js "$BASE_REF"
+
   Runner:
     runs-on: ${{ matrix.ci-type.os }}
     strategy:
@@ -52,13 +81,32 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
-    # - name: Package Binary
-    #   run: npm run pack
+  build:
+    name: Binary builds
+    needs: version
+    if: needs.version.outputs.changed == 'true'
+    uses: ./.github/workflows/build-binaries.yml
 
-    # - name: Draft Release
-    #   uses: softprops/action-gh-release@v1
-    #   if: startsWith(github.ref, 'refs/tags/')
-    #   with:
-    #     files: release/**
-    #     fail_on_unmatched_files: true
-    #     draft: true
+  build_status:
+    name: Check binary builds
+    needs: [ version, build ]
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.base_ref == 'master' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required builds
+        env:
+          VERSION_RESULT: ${{ needs.version.result }}
+          VERSION_CHANGED: ${{ needs.version.outputs.changed }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          if [ "$VERSION_RESULT" != success ]; then
+            echo "::error::Release version check did not succeed."
+            exit 1
+          fi
+          case "$VERSION_CHANGED:$BUILD_RESULT" in
+            true:success|false:skipped) ;;
+            *)
+              echo "::error::Unexpected binary build result: version changed=$VERSION_CHANGED, builds=$BUILD_RESULT"
+              exit 1
+              ;;
+          esac

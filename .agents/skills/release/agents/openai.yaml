@@ -1,0 +1,4 @@
+interface:
+  display_name: "Xprofiler Release"
+  short_description: "Prepare version PRs and verify xprofiler releases"
+  default_prompt: "Use $release to prepare the next xprofiler release PR."

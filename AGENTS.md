@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents working in this repository.
 
 ## Project Overview
 
@@ -187,14 +187,24 @@ See `configuration.js` for full list and README.md for environment variable name
 
 ## CI/CD
 
+For release preparation, status checks, or recovery, follow the repository's
+[release skill](.agents/skills/release/SKILL.md). It prepares version PRs and
+leaves GitHub and npm publishing to the release workflow.
+
 **GitHub Actions:** `.github/workflows/nodejs.yml`
-- Matrix: 3 OS × 3 Node.js versions
+- Runtime checks: 3 OS × 3 Node.js versions
+- Binary builds: Node.js 22/24/26 × Linux x64/arm64, macOS x64/arm64, and Windows x64
+- Node.js 22 Linux x64 targets glibc 2.17 with an unofficial Node.js runtime; other Linux binaries target glibc 2.28
 - Steps: Build → Test → Coverage → Upload to codecov
 - Uses npm 11.19.1 (node-gyp 12.4.0) across all runtimes so Windows builds detect Visual Studio 2026
-- Runs on every commit
+- Runs on pull requests and pushes to `master`; feature branch and tag pushes do not trigger CI
+- Checks release versions in PRs into `master` and calls `.github/workflows/build-binaries.yml` only when the version increases
+- `Check binary builds` requires successful packaging for version PRs and accepts skipped packaging for other PRs
+- `.github/workflows/release.yml` runs independently on pushes to `master` that change `package.json`; version increases use the same build workflow before publishing
 
 **Binary Distribution:**
 - Pre-built binaries released to GitHub Releases
+- Release publishing uses artifacts from its own release run, uploads all 15 assets, then publishes to npm
 - node-pre-gyp downloads matching binary during npm install
 - Fallback to source compilation if binary unavailable
 

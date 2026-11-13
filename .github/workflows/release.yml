@@ -2,17 +2,93 @@ name: Release
 on:
   push:
     branches: [ master ]
+    paths: [ package.json ]
 
 permissions:
-  contents: write
-  deployments: write
-  issues: write
-  pull-requests: write
-  id-token: write
+  contents: read
 
 jobs:
-  release:
-    name: NPM
-    uses: X-Profiler/github-actions/.github/workflows/npm-release.yml@master
-    secrets:
-      GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+  version:
+    name: Check release version
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+      version: ${{ steps.version.outputs.version }}
+      dist_tag: ${{ steps.version.outputs.dist_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install release check dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Check version change
+        id: version
+        env:
+          BASE_REF: ${{ github.event.before }}
+        run: node scripts/check-release.js "$BASE_REF"
+
+  build:
+    name: Binary builds
+    needs: version
+    if: >-
+      github.repository == 'X-Profiler/xprofiler' &&
+      needs.version.outputs.changed == 'true'
+    uses: ./.github/workflows/build-binaries.yml
+
+  publish:
+    name: Publish GitHub release and npm package
+    needs: [ version, build ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    concurrency:
+      group: npm-release-${{ needs.version.outputs.version }}
+      cancel-in-progress: false
+    env:
+      RELEASE_TAG: v${{ needs.version.outputs.version }}
+      NPM_DIST_TAG: ${{ needs.version.outputs.dist_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Install release check dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Check published version
+        id: npm
+        run: node scripts/check-release.js --published
+      - name: Check existing tag
+        shell: bash
+        run: |
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            tag_commit=$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")
+            if [ "$tag_commit" != "$GITHUB_SHA" ]; then
+              echo "::error::Tag $RELEASE_TAG already points to another commit."
+              exit 1
+            fi
+          fi
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: binary-*
+          path: release
+          merge-multiple: true
+      - name: Publish GitHub release with native addons
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: bash scripts/publish-github-release.sh
+      - name: Publish with npm trusted publishing
+        if: steps.npm.outputs.published == 'false'
+        run: npm publish --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org

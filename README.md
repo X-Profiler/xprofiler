@@ -225,7 +225,7 @@ copyright 2019
 
 ## 稳定性
 
-xprofiler 每个 commit 都会通过 github actions 进行在 windows/linux/macos 下的编译以及单元测试，
+xprofiler 会在 PR 和 master 分支更新时通过 GitHub Actions 在 Windows/Linux/macOS 下编译并运行单元测试，
 如果您在使用中依旧出现意外的 crash，可以反馈到 [Issue 列表](https://github.com/X-Profiler/xprofiler/issues) 进行跟踪处理。
 
 ## 测试与代码覆盖率
@@ -248,6 +248,17 @@ master 分支的代码覆盖率情况可以参见 [codecov badge](https://codeco
 - 查看 pr 下的 GitHub Action CI 状态，如果执行失败请到对应页面查看失败原因并在你自己的仓库下进行修复，修复 commit 会自动同步到此 pr 下，无需关闭重启发起
 
 我们将在 review 后选择合并至本仓库内，贡献者也会加入到本项目的协作者列表中。
+
+## 发布版本
+
+维护者可以使用仓库内的 [release skill](.agents/skills/release/SKILL.md) 准备版本 PR、检查发布状态或重试失败的发布。
+例如向 Codex 输入：`使用 $release 准备 4.0.0 的发布 PR`，将版本号替换为本次计划发布的版本。
+
+通过 PR 提升 `package.json` 中的版本号并更新 `CHANGELOG.md`。
+目标分支为 `master` 的版本 PR 会构建并打包各平台的二进制文件；其他 PR 和 `master` 分支更新只执行常规编译和测试。
+CI 和发布流程独立运行，共用 `build-binaries.yml`。版本 PR 合并后，发布流程重新构建二进制文件，
+上传至 GitHub Release，再发布到 npm。
+配置和操作步骤见 [发布指南](RELEASING.md)。
 
 ## 贡献者
 
