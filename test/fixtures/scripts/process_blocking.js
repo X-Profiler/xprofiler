@@ -3,8 +3,8 @@
 const os = require('os');
 const mm = require('mm');
 const moment = require('moment');
-const { v4: uuid } = require('uuid');
-const traceid = uuid();
+const { randomUUID } = require('node:crypto');
+const traceid = randomUUID();
 const utils = require('../utils');
 console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]`, traceid, 'blocking start.');
 

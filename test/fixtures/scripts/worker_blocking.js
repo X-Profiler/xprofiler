@@ -4,10 +4,10 @@ const workerThreads = require('worker_threads');
 const os = require('os');
 const mm = require('mm');
 const moment = require('moment');
-const { v4: uuid } = require('uuid');
+const { randomUUID } = require('node:crypto');
 const utils = require('../utils');
 
-const traceid = uuid();
+const traceid = randomUUID();
 
 if (process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR) {
   mm(os, 'homedir', () => process.env.XPROFILER_UNIT_TEST_TMP_HOMEDIR);
