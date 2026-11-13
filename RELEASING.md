@@ -45,10 +45,11 @@ the `Check release version` check and all native addon build checks.
 `build-binaries.yml` workflow, which owns the complete build matrix and uploads
 the binary artifacts into the caller's run.
 
-Normal CI checks the native builds on every push and pull request. It also runs
-`Check release version` for PRs into `master`. The release workflow does not run
-on PRs. New commits cancel older CI runs for the same PR or branch, including
-their native builds and PR version checks.
+Normal CI checks the native builds on pull requests and pushes to `master`.
+Feature branch and tag pushes do not trigger CI, so a PR update starts one CI run.
+CI also runs `Check release version` for PRs into `master`. The release workflow
+does not run on PRs. New commits cancel older CI runs for the same PR or `master`,
+including their native builds and PR version checks.
 Publishing runs on `master` are independent and are not canceled by newer commits.
 
 After a push that changes `package.json` on `master`, `release.yml` compares the

@@ -197,8 +197,8 @@ leaves GitHub and npm publishing to the release workflow.
 - Node.js 22 Linux x64 targets glibc 2.17 with an unofficial Node.js runtime; other Linux binaries target glibc 2.28
 - Steps: Build → Test → Coverage → Upload to codecov
 - Uses npm 11.19.1 (node-gyp 12.4.0) across all runtimes so Windows builds detect Visual Studio 2026
-- Runs on every commit
-- Calls the reusable `.github/workflows/build-binaries.yml` on every push and pull request
+- Runs on pull requests and pushes to `master`; feature branch and tag pushes do not trigger CI
+- Calls the reusable `.github/workflows/build-binaries.yml` in each CI run
 - Checks release versions in PRs into `master`; the release workflow does not run on PRs
 - `.github/workflows/release.yml` runs independently when a push to `master` changes `package.json`
 - Version increases call the same reusable build workflow before publishing

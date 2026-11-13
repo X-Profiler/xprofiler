@@ -225,7 +225,7 @@ copyright 2019
 
 ## 稳定性
 
-xprofiler 每个 commit 都会通过 github actions 进行在 windows/linux/macos 下的编译以及单元测试，
+xprofiler 会在 PR 和 master 分支更新时通过 GitHub Actions 在 Windows/Linux/macOS 下编译并运行单元测试，
 如果您在使用中依旧出现意外的 crash，可以反馈到 [Issue 列表](https://github.com/X-Profiler/xprofiler/issues) 进行跟踪处理。
 
 ## 测试与代码覆盖率

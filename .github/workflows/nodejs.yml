@@ -1,8 +1,7 @@
 name: Continuous integration
 on:
   push:
-    branches: [ '**' ]
-    tags: [ 'v*.*.*' ]
+    branches: [ master ]
   pull_request:
     branches: [ '**' ]
 permissions:
