@@ -47,6 +47,9 @@ the binary artifacts into the caller's run.
 
 Normal CI checks the native builds on every push and pull request. The release
 workflow checks version changes in PRs into `master`. PRs do not publish.
+New commits cancel older CI runs for the same PR or branch, including their
+native builds. They also cancel older release version checks for the same PR.
+Publishing runs on `master` are independent and are not canceled by newer commits.
 
 After a push that changes `package.json` on `master`, `release.yml` compares the
 version with the commit before the push. If the version increased, it calls the
