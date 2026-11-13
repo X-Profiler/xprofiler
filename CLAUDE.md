@@ -190,6 +190,7 @@ See `configuration.js` for full list and README.md for environment variable name
 **GitHub Actions:** `.github/workflows/nodejs.yml`
 - Runtime checks: 3 OS × 3 Node.js versions
 - Binary builds: Node.js 22/24/26 × Linux x64/arm64, macOS x64/arm64, and Windows x64
+- Node.js 22 Linux x64 targets glibc 2.17 with an unofficial Node.js runtime; other Linux binaries target glibc 2.28
 - Steps: Build → Test → Coverage → Upload to codecov
 - Uses npm 11.19.1 (node-gyp 12.4.0) across all runtimes so Windows builds detect Visual Studio 2026
 - Runs on every commit

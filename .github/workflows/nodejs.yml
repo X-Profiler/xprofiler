@@ -115,6 +115,14 @@ jobs:
             platform: win32
             arch: x64
             container: ''
+        exclude:
+          # This asset is built against glibc 2.17 in build_linux_glibc217.
+          - node-version: 22
+            target:
+              os: ubuntu-22.04
+              platform: linux
+              arch: x64
+              container: quay.io/pypa/manylinux_2_28_x86_64
     steps:
       - uses: actions/checkout@v7
         with:
@@ -151,9 +159,43 @@ jobs:
           compression-level: 0
           overwrite: true
 
+  build_linux_glibc217:
+    name: Build Node.js 22 linux x64 (glibc 2.17)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # Keep JavaScript actions on the host: their Node.js runtime needs glibc 2.28.
+      - name: Build and package for glibc 2.17
+        env:
+          NODE_VERSION: 22.23.5
+          NODE_SHA256: 6f7345b0bccaba0d6d8e435904f604f7b56f12bf962941b39a21f1fee77f084d
+        run: |
+          docker run --rm --platform linux/amd64 \
+            -e NODE_VERSION -e NODE_SHA256 \
+            -v "$GITHUB_WORKSPACE:/work" -w /work \
+            quay.io/pypa/manylinux2014_x86_64 \
+            bash scripts/build-linux-glibc217.sh
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Check official Node.js 22 compatibility
+        run: |
+          node -e 'const binary = require("@mapbox/node-pre-gyp");
+            require(binary.find(require("path").resolve("package.json")));'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: binary-22-linux-x64
+          path: release/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          overwrite: true
+
   release:
     name: Release
-    needs: [ version, Runner, build ]
+    needs: [ version, Runner, build, build_linux_glibc217 ]
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/master' &&

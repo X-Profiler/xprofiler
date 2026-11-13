@@ -56,7 +56,8 @@ GitHub prerelease.
 
 The build matrix packages Node.js 22, 24, and 26 for these targets:
 
-- Linux x64 and arm64, built in `manylinux_2_28` containers with glibc 2.28
+- Node.js 22 Linux x64, built in `manylinux2014_x86_64` with glibc 2.17
+- Other Linux builds, using `manylinux_2_28` containers with glibc 2.28
 - macOS x64 and arm64
 - Windows x64
 
@@ -65,6 +66,18 @@ Each build uses `npm run pack` to package the addon and check that the archive c
 workflow keeps the filenames that `node-pre-gyp` expects, such as
 `xprofiler-v4.0.0-node-v127-linux-x64.tar.gz`. The publish job requires all 15
 assets before it can publish the GitHub release or npm package.
+
+The glibc 2.17 build uses the unofficial Node.js 22 runtime because official
+Node.js binaries require glibc 2.28. The workflow pins its version and archive
+SHA-256. Update both together when selecting a newer unofficial Node.js 22 build.
+See [Node.js unofficial builds](https://github.com/nodejs/unofficial-builds).
+
+This build checks the addon's glibc and C++ library requirements and loads it
+with the container's system libraries. It also checks loading under official
+Node.js 22 on the Ubuntu runner. The archive keeps the standard
+`node-v127-linux-x64` filename, so the same asset serves older and newer glibc
+systems. Users on older glibc systems also need a compatible Node.js runtime;
+the addon does not lower the requirements of the official Node.js executable.
 
 ## Retry a failed release
 
