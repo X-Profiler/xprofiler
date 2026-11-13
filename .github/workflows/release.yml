@@ -35,9 +35,80 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: node scripts/check-release.js "$BASE_REF"
 
-  publish:
-    name: Publish to npm
+  build:
+    name: Build Node.js ${{ matrix.node-version }} ${{ matrix.target.platform }} ${{ matrix.target.arch }}
     needs: version
+    if: needs.version.outputs.changed == 'true'
+    runs-on: ${{ matrix.target.os }}
+    container: ${{ matrix.target.container }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [ 22, 24, 26 ]
+        target:
+          # Build on glibc 2.28 so Linux assets also work on older distributions.
+          - os: ubuntu-22.04
+            platform: linux
+            arch: x64
+            container: quay.io/pypa/manylinux_2_28_x86_64
+          - os: ubuntu-22.04-arm
+            platform: linux
+            arch: arm64
+            container: quay.io/pypa/manylinux_2_28_aarch64
+          - os: macos-15-intel
+            platform: darwin
+            arch: x64
+            container: ''
+          - os: macos-15
+            platform: darwin
+            arch: arm64
+            container: ''
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            container: ''
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        if: runner.os != 'Linux'
+        with:
+          python-version: '3.10'
+      - name: Set up Linux Python
+        if: runner.os == 'Linux'
+        run: |
+          manylinux-interpreters ensure cp312-cp312
+          echo "PYTHON=/opt/python/cp312-cp312/bin/python" >> "$GITHUB_ENV"
+      - uses: microsoft/setup-msbuild@v3
+        if: runner.os == 'Windows'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          architecture: ${{ matrix.target.arch }}
+          package-manager-cache: false
+      - name: Setup npm
+        run: npm install --global npm@11.19.1
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Build native addon
+        run: npm run build
+      - name: Package native addon
+        run: npm run pack
+      - uses: actions/upload-artifact@v7
+        with:
+          name: binary-${{ matrix.node-version }}-${{ matrix.target.platform }}-${{ matrix.target.arch }}
+          path: release/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          overwrite: true
+
+  publish:
+    name: Publish GitHub release and npm package
+    needs: [ version, build ]
     if: >-
       github.event_name == 'push' &&
       github.repository == 'X-Profiler/xprofiler' &&
@@ -80,27 +151,42 @@ jobs:
               exit 1
             fi
           fi
-      - uses: actions/setup-python@v7
-        if: steps.npm.outputs.published == 'false'
+      - uses: actions/download-artifact@v8
         with:
-          python-version: '3.10'
-      - name: Build native addon
-        if: steps.npm.outputs.published == 'false'
-        run: npm run build
-      - name: Publish with npm trusted publishing
-        if: steps.npm.outputs.published == 'false'
-        run: npm publish --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org
-      - name: Create GitHub release
+          pattern: binary-*
+          path: release
+          merge-multiple: true
+      - name: Publish GitHub release with native addons
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
-            echo "Release $RELEASE_TAG already exists."
-            exit 0
+          shopt -s nullglob
+          files=(release/*.tar.gz)
+          # Five platform/architecture targets for each of three Node.js majors.
+          if [ "${#files[@]}" -ne 15 ]; then
+            echo "::error::Expected 15 native addon assets, found ${#files[@]}."
+            exit 1
           fi
-          args=(--target "$GITHUB_SHA" --title "$RELEASE_TAG" --generate-notes)
-          if [ "$NPM_DIST_TAG" != latest ]; then
-            args+=(--prerelease --latest=false)
+
+          if ! gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            args=(--target "$GITHUB_SHA" --title "$RELEASE_TAG" --generate-notes --draft)
+            if [ "$NPM_DIST_TAG" != latest ]; then
+              args+=(--prerelease --latest=false)
+            fi
+            gh release create "$RELEASE_TAG" "${args[@]}"
           fi
-          gh release create "$RELEASE_TAG" "${args[@]}"
+
+          uploaded=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.state == "uploaded") | .name')
+          for file in "${files[@]}"; do
+            if ! grep -Fxq "${file##*/}" <<< "$uploaded"; then
+              gh release upload "$RELEASE_TAG" "$file" --clobber
+            fi
+          done
+
+          if [ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true ]; then
+            gh release edit "$RELEASE_TAG" --draft=false
+          fi
+      - name: Publish with npm trusted publishing
+        if: steps.npm.outputs.published == 'false'
+        run: npm publish --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org
