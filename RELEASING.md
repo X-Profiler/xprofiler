@@ -3,6 +3,14 @@
 Releases are controlled by the version in `package.json`. Commit messages do not
 select a version, and the release workflow does not write commits to `master`.
 
+## Release skill
+
+Use the repository's [release skill](.agents/skills/release/SKILL.md) to prepare
+the version PR and follow the publishing workflow. For example, ask Codex:
+`Use $release to prepare a release PR for version 4.0.0.` Replace the example
+version with the intended version. The skill also handles release status checks
+and retries. Creating a release PR does not merge it or publish the package.
+
 ## One-time setup
 
 Configure a GitHub Actions trusted publisher in the npm settings for `xprofiler`:

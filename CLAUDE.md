@@ -187,6 +187,10 @@ See `configuration.js` for full list and README.md for environment variable name
 
 ## CI/CD
 
+For release preparation, status checks, or recovery, follow the repository's
+[release skill](.agents/skills/release/SKILL.md). It prepares version PRs and
+leaves GitHub and npm publishing to the release workflow.
+
 **GitHub Actions:** `.github/workflows/nodejs.yml`
 - Runtime checks: 3 OS × 3 Node.js versions
 - Binary builds: Node.js 22/24/26 × Linux x64/arm64, macOS x64/arm64, and Windows x64
