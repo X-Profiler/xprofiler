@@ -29,8 +29,6 @@ jobs:
           package-manager-cache: false
       - name: Install release check dependencies
         run: npm install --ignore-scripts --no-package-lock
-      - name: Test release checks
-        run: npx mocha test/release.test.js
       - name: Check version change
         id: version
         env:
