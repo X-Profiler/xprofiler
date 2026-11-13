@@ -254,7 +254,8 @@ master 分支的代码覆盖率情况可以参见 [codecov badge](https://codeco
 维护者可以使用仓库内的 [release skill](.agents/skills/release/SKILL.md) 准备版本 PR、检查发布状态或重试失败的发布。
 例如向 Codex 输入：`使用 $release 准备 4.0.0 的发布 PR`，将版本号替换为本次计划发布的版本。
 
-常规 CI 会构建并打包各平台的二进制文件，可以在 PR 阶段检查构建结果。
+只有目标分支为 `master` 且提升 `package.json` 版本号的 PR 才会构建并打包各平台的二进制文件，可以在合并前检查构建结果。
+其他 PR 和 `master` 分支更新仍执行常规编译和测试，不执行二进制打包矩阵。
 CI 和发布流程独立运行，共用 `build-binaries.yml` 中的构建定义。
 通过 PR 更新 `package.json` 中的版本号和 `CHANGELOG.md`，合并后发布流程构建二进制文件，
 上传至 GitHub Release，再发布到 npm。

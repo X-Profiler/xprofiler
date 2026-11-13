@@ -26,8 +26,11 @@ The publisher must authorize `release.yml`, the standalone workflow that runs
 See the [npm trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
 No `NPM_TOKEN` or `GIT_TOKEN` secret is required by the release workflow.
 
-Protect `master` so changes require a pull request and successful CI, including
-the `Check release version` check and all native addon build checks.
+Protect `master` so changes require a pull request and successful runtime checks,
+`Check release version`, and `Check binary builds`. Require the aggregate
+`Check binary builds` check instead of individual packaging matrix jobs: it
+accepts skipped builds for unchanged versions and requires successful builds
+when the version increases.
 
 ## Prepare a release PR
 
@@ -45,11 +48,13 @@ the `Check release version` check and all native addon build checks.
 `build-binaries.yml` workflow, which owns the complete build matrix and uploads
 the binary artifacts into the caller's run.
 
-Normal CI checks the native builds on pull requests and pushes to `master`.
+Normal CI runs runtime checks on pull requests and pushes to `master`.
 Feature branch and tag pushes do not trigger CI, so a PR update starts one CI run.
-CI also runs `Check release version` for PRs into `master`. The release workflow
-does not run on PRs. New commits cancel older CI runs for the same PR or `master`,
-including their native builds and PR version checks.
+CI also runs `Check release version` for PRs into `master`. Only PRs that increase
+the package version run `Binary builds`. Other PRs and pushes to `master` skip
+that packaging matrix. The release workflow does not run on PRs. New commits
+cancel older CI runs for the same PR or `master`, including their native builds
+and PR version checks.
 Publishing runs on `master` are independent and are not canceled by newer commits.
 
 After a push that changes `package.json` on `master`, `release.yml` compares the
@@ -61,8 +66,9 @@ It publishes the GitHub release and its `v<version>` tag before publishing to
 npm through OIDC. This makes the binaries
 available for `npm install` as soon as the npm version is available.
 The release workflow relies on successful PR checks enforced by branch protection.
-It does not run the test suite or change the version or changelog. CI and release
-runs each build their own assets with the same shared build definition.
+It does not run the test suite or change the version or changelog. Version PRs
+and release runs each build their own assets with the same shared
+build definition.
 An unchanged version does not publish. Direct pushes with a version increase also
 trigger publishing, so branch protection enforces the PR requirement.
 
@@ -78,7 +84,8 @@ The build matrix packages Node.js 22, 24, and 26 for these targets:
 - macOS x64 and arm64
 - Windows x64
 
-Every PR, including a version PR, builds these assets without publishing them.
+PRs into `master` that increase the package version build these assets without
+publishing them. Other PRs still compile the addon in the normal runtime checks.
 Each build uses `npm run pack` to package the addon and check that the archive can load. The
 workflow keeps the filenames that `node-pre-gyp` expects, such as
 `xprofiler-v4.0.0-node-v127-linux-x64.tar.gz`. The publish job requires all 15

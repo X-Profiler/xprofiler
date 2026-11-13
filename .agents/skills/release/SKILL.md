@@ -55,13 +55,16 @@ current release gates and asset matrix. Run commands from the repository root.
    Require `changed=true` and the chosen version. Stable versions use `latest`;
    prereleases use `next`. Do not add a local test suite or rebuild every target
    for a version-only change: PR CI performs the runtime checks and native builds.
+   The packaging matrix runs only when this version check reports a change in a
+   PR into `master`.
 6. Commit the release files, push the branch, and create or update its PR into
    `master`. Use a title such as `chore: release v<version>`. Describe the version,
    material changes, and npm dist-tag in short prose. Follow repository PR rules.
    Report the PR URL and current checks. Before an authorized merge, require
    successful checks on the latest PR commit, including `Check release version`,
-   runtime checks, and all native builds. Respect required reviews and branch
-   protection. If `master` changes, recheck the version comparison and PR status.
+   `Check binary builds`, runtime checks, and all native builds. Respect required
+   reviews and branch protection. If `master` changes, recheck the version
+   comparison and PR status.
 
 ## Follow the automated release
 

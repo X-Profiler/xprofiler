@@ -198,7 +198,8 @@ leaves GitHub and npm publishing to the release workflow.
 - Steps: Build → Test → Coverage → Upload to codecov
 - Uses npm 11.19.1 (node-gyp 12.4.0) across all runtimes so Windows builds detect Visual Studio 2026
 - Runs on pull requests and pushes to `master`; feature branch and tag pushes do not trigger CI
-- Calls the reusable `.github/workflows/build-binaries.yml` in each CI run
+- Calls the reusable `.github/workflows/build-binaries.yml` only for PRs into `master` that increase the package version
+- `Check binary builds` requires successful packaging for version PRs and accepts skipped packaging for other PRs
 - Checks release versions in PRs into `master`; the release workflow does not run on PRs
 - `.github/workflows/release.yml` runs independently when a push to `master` changes `package.json`
 - Version increases call the same reusable build workflow before publishing
