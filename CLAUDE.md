@@ -194,12 +194,13 @@ See `configuration.js` for full list and README.md for environment variable name
 - Steps: Build → Test → Coverage → Upload to codecov
 - Uses npm 11.19.1 (node-gyp 12.4.0) across all runtimes so Windows builds detect Visual Studio 2026
 - Runs on every commit
-- Builds and packages binary artifacts on every push and pull request
-- Calls `.github/workflows/release.yml` after successful CI when a push to `master` increases the package version
+- Calls the reusable `.github/workflows/build-binaries.yml` on every push and pull request
+- `.github/workflows/release.yml` runs independently when a push to `master` changes `package.json`
+- Version increases call the same reusable build workflow before publishing
 
 **Binary Distribution:**
 - Pre-built binaries released to GitHub Releases
-- Release publishing uses artifacts from the same CI run, uploads all 15 assets, then publishes to npm
+- Release publishing uses artifacts from its own release run, uploads all 15 assets, then publishes to npm
 - node-pre-gyp downloads matching binary during npm install
 - Fallback to source compilation if binary unavailable
 

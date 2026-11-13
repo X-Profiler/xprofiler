@@ -9,12 +9,12 @@ Configure a GitHub Actions trusted publisher in the npm settings for `xprofiler`
 
 - Organization: `X-Profiler`
 - Repository: `xprofiler`
-- Workflow filename: `nodejs.yml`
+- Workflow filename: `release.yml`
 - Environment: leave blank
 - Allow direct publishing with `npm publish`
 
-The publisher must authorize `nodejs.yml`, the CI workflow that calls this
-repository's reusable `release.yml`. npm checks the calling workflow's filename.
+The publisher must authorize `release.yml`, the standalone workflow that runs
+`npm publish`.
 See the [npm trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
 No `NPM_TOKEN` or `GIT_TOKEN` secret is required by the release workflow.
 
@@ -33,19 +33,24 @@ the `Check release version` check and all native addon build checks.
 3. Commit these changes and open a pull request into `master`.
 4. Merge the PR after review and CI pass.
 
-The normal CI workflow builds and packages the native addons on every push and
-pull request. It also checks version changes in PRs into `master` and pushes to
-`master`.
+`nodejs.yml` and `release.yml` run independently. Both call the reusable
+`build-binaries.yml` workflow, which owns the complete build matrix and uploads
+the binary artifacts into the caller's run.
 
-After a push to `master`, CI compares `package.json` with the commit before the
-push. If its version increased and all CI jobs succeeded, CI calls `release.yml`
-with the checked version. The release job downloads the binary artifacts from
-that same CI run, creates a draft GitHub release at the merged commit, and
-uploads all binary assets. It publishes the GitHub release and its
-`v<version>` tag before publishing to npm through OIDC. This makes the binaries
+Normal CI checks the native builds on every push and pull request. The release
+workflow checks version changes in PRs into `master`. PRs do not publish.
+
+After a push that changes `package.json` on `master`, `release.yml` compares the
+version with the commit before the push. If the version increased, it calls the
+shared build workflow to build assets for the merged commit. After all builds
+succeed, the publish job downloads the artifacts from its own release run,
+creates a draft GitHub release, and uploads all binary assets.
+It publishes the GitHub release and its `v<version>` tag before publishing to
+npm through OIDC. This makes the binaries
 available for `npm install` as soon as the npm version is available.
-The release job uses the existing CI results and artifacts. It does not rebuild
-the binaries, run the test suite, or change the version or changelog.
+The release workflow relies on successful PR checks enforced by branch protection.
+It does not run the test suite or change the version or changelog. CI and release
+runs each build their own assets with the same shared build definition.
 An unchanged version does not publish. Direct pushes with a version increase also
 trigger publishing, so branch protection enforces the PR requirement.
 
@@ -81,10 +86,10 @@ the addon does not lower the requirements of the official Node.js executable.
 
 ## Retry a failed release
 
-Re-run the failed jobs in the CI workflow in GitHub Actions. The release job uses
-the binary artifacts from that CI run. If those artifacts expired, re-run all CI
-jobs to rebuild them. The release job keeps assets that already uploaded
-successfully and uploads missing assets before publishing the GitHub
+Re-run the failed jobs in the Release workflow in GitHub Actions. The publish job
+uses the binary artifacts from that release run. If those artifacts expired,
+re-run all release jobs to rebuild them. The publish job keeps assets that
+already uploaded successfully and uploads missing assets before publishing the GitHub
 release. It skips npm publishing if that exact version already exists. Registry
 errors stop the workflow. An existing tag that points to a different commit also
 stops the workflow; tags are never overwritten.

@@ -1,36 +1,67 @@
 name: Release
 on:
-  workflow_call:
-    inputs:
-      version:
-        description: Package version checked by CI
-        required: true
-        type: string
-      dist_tag:
-        description: npm dist-tag for the release
-        required: true
-        type: string
+  push:
+    branches: [ master ]
+    paths: [ package.json ]
+  pull_request:
+    branches: [ master ]
 
 permissions:
   contents: read
 
 jobs:
-  publish:
-    name: Publish GitHub release and npm package
+  version:
+    name: Check release version
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+      version: ${{ steps.version.outputs.version }}
+      dist_tag: ${{ steps.version.outputs.dist_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install release check dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Check version change
+        id: version
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/check-release.js "$BASE_REF"
+
+  build:
+    name: Binary builds
+    needs: version
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/master' &&
-      github.repository == 'X-Profiler/xprofiler'
+      github.repository == 'X-Profiler/xprofiler' &&
+      needs.version.outputs.changed == 'true'
+    uses: ./.github/workflows/build-binaries.yml
+
+  publish:
+    name: Publish GitHub release and npm package
+    needs: [ version, build ]
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/master' &&
+      github.repository == 'X-Profiler/xprofiler' &&
+      needs.version.outputs.changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
     concurrency:
-      group: npm-release-${{ inputs.version }}
+      group: npm-release-${{ needs.version.outputs.version }}
       cancel-in-progress: false
     env:
-      RELEASE_TAG: v${{ inputs.version }}
-      NPM_DIST_TAG: ${{ inputs.dist_tag }}
+      RELEASE_TAG: v${{ needs.version.outputs.version }}
+      NPM_DIST_TAG: ${{ needs.version.outputs.dist_tag }}
     steps:
       - uses: actions/checkout@v7
         with:
