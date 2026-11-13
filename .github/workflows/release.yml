@@ -2,17 +2,110 @@ name: Release
 on:
   push:
     branches: [ master ]
+    paths: [ package.json ]
+  pull_request:
+    branches: [ master ]
 
 permissions:
-  contents: write
-  deployments: write
-  issues: write
-  pull-requests: write
-  id-token: write
+  contents: read
 
 jobs:
-  release:
-    name: NPM
-    uses: X-Profiler/github-actions/.github/workflows/npm-release.yml@master
-    secrets:
-      GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+  version:
+    name: Check release version
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      dist_tag: ${{ steps.version.outputs.dist_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install release check dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Test release checks
+        run: npx mocha test/release.test.js
+      - name: Check version change
+        id: version
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/check-release.js "$BASE_REF"
+
+  publish:
+    name: Publish to npm
+    needs: version
+    if: >-
+      github.event_name == 'push' &&
+      github.repository == 'X-Profiler/xprofiler' &&
+      needs.version.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    concurrency:
+      group: npm-release-${{ needs.version.outputs.version }}
+      cancel-in-progress: false
+    env:
+      RELEASE_TAG: ${{ needs.version.outputs.tag }}
+      NPM_DIST_TAG: ${{ needs.version.outputs.dist_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Setup npm
+        run: npm install --global npm@11.19.1
+      - name: Install release check dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Check published version
+        id: npm
+        run: node scripts/check-release.js --published
+      - name: Check existing tag
+        shell: bash
+        run: |
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            tag_commit=$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")
+            if [ "$tag_commit" != "$GITHUB_SHA" ]; then
+              echo "::error::Tag $RELEASE_TAG already points to another commit."
+              exit 1
+            fi
+          fi
+      - uses: actions/setup-python@v7
+        if: steps.npm.outputs.published == 'false'
+        with:
+          python-version: '3.10'
+      - name: Build native addon
+        if: steps.npm.outputs.published == 'false'
+        run: npm run build
+      - name: Run tests
+        if: steps.npm.outputs.published == 'false'
+        run: npm test
+      - name: Publish with npm trusted publishing
+        if: steps.npm.outputs.published == 'false'
+        run: npm publish --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists."
+            exit 0
+          fi
+          args=(--target "$GITHUB_SHA" --title "$RELEASE_TAG" --generate-notes)
+          if [ "$NPM_DIST_TAG" != latest ]; then
+            args+=(--prerelease --latest=false)
+          fi
+          gh release create "$RELEASE_TAG" "${args[@]}"

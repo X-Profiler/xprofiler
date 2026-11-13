@@ -249,6 +249,11 @@ master 分支的代码覆盖率情况可以参见 [codecov badge](https://codeco
 
 我们将在 review 后选择合并至本仓库内，贡献者也会加入到本项目的协作者列表中。
 
+## 发布版本
+
+通过 PR 更新 `package.json` 中的版本号和 `CHANGELOG.md`，合并后自动发布到 npm。
+配置和操作步骤见 [发布指南](RELEASING.md)。
+
 ## 贡献者
 
 [![contributors](https://contrib.rocks/image?repo=x-profiler/xprofiler&max=240&columns=26)](https://github.com/x-profiler/xprofiler/graphs/contributors)
