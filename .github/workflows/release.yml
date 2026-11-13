@@ -36,8 +36,6 @@ jobs:
     name: Binary builds
     needs: version
     if: >-
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/master' &&
       github.repository == 'X-Profiler/xprofiler' &&
       needs.version.outputs.changed == 'true'
     uses: ./.github/workflows/build-binaries.yml
@@ -45,11 +43,6 @@ jobs:
   publish:
     name: Publish GitHub release and npm package
     needs: [ version, build ]
-    if: >-
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/master' &&
-      github.repository == 'X-Profiler/xprofiler' &&
-      needs.version.outputs.changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -95,33 +88,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
-        run: |
-          shopt -s nullglob
-          files=(release/*.tar.gz)
-          # Five platform/architecture targets for each of three Node.js majors.
-          if [ "${#files[@]}" -ne 15 ]; then
-            echo "::error::Expected 15 native addon assets, found ${#files[@]}."
-            exit 1
-          fi
-
-          if ! gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
-            args=(--target "$GITHUB_SHA" --title "$RELEASE_TAG" --generate-notes --draft)
-            if [ "$NPM_DIST_TAG" != latest ]; then
-              args+=(--prerelease --latest=false)
-            fi
-            gh release create "$RELEASE_TAG" "${args[@]}"
-          fi
-
-          uploaded=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.state == "uploaded") | .name')
-          for file in "${files[@]}"; do
-            if ! grep -Fxq "${file##*/}" <<< "$uploaded"; then
-              gh release upload "$RELEASE_TAG" "$file" --clobber
-            fi
-          done
-
-          if [ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true ]; then
-            gh release edit "$RELEASE_TAG" --draft=false
-          fi
+        run: bash scripts/publish-github-release.sh
       - name: Publish with npm trusted publishing
         if: steps.npm.outputs.published == 'false'
         run: npm publish --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org

@@ -19,7 +19,8 @@ jobs:
         node-version: [ 22, 24, 26 ]
         target:
           # Build on glibc 2.28 so Linux assets also work on older distributions.
-          - os: ubuntu-22.04
+          - &linux-x64
+            os: ubuntu-22.04
             platform: linux
             arch: x64
             container: quay.io/pypa/manylinux_2_28_x86_64
@@ -42,11 +43,7 @@ jobs:
         exclude:
           # This asset is built against glibc 2.17 in build_linux_glibc217.
           - node-version: 22
-            target:
-              os: ubuntu-22.04
-              platform: linux
-              arch: x64
-              container: quay.io/pypa/manylinux_2_28_x86_64
+            target: *linux-x64
     steps:
       - uses: actions/checkout@v7
         with:

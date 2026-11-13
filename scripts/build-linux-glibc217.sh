@@ -32,11 +32,11 @@ import sys
 
 symbols = subprocess.check_output(["readelf", "--version-info", sys.argv[1]], text=True)
 for library, maximum in [("GLIBC", (2, 17)), ("GLIBCXX", (3, 4, 19)), ("CXXABI", (1, 3, 7))]:
-    versions = re.findall(r"\b" + library + r"_(\d+(?:\.\d+)+)\b", symbols)
-    for version in set(versions):
+    versions = set(re.findall(r"\b" + library + r"_(\d+(?:\.\d+)+)\b", symbols))
+    for version in versions:
         if tuple(map(int, version.split("."))) > maximum:
             sys.exit(f"Unsupported dependency: {library}_{version}")
-    print(f"{library} requirements: {', '.join(sorted(set(versions))) or 'none'}")
+    print(f"{library} requirements: {', '.join(sorted(versions)) or 'none'}")
 PYTHON
 
 # Load with the system libraries, without the compiler toolchain's library path.

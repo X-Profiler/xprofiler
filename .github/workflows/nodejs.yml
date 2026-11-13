@@ -84,7 +84,7 @@ jobs:
   build:
     name: Binary builds
     needs: version
-    if: github.event_name == 'pull_request' && needs.version.outputs.changed == 'true'
+    if: needs.version.outputs.changed == 'true'
     uses: ./.github/workflows/build-binaries.yml
 
   build_status:

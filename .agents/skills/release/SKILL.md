@@ -81,8 +81,7 @@ Check these results before reporting a release as complete:
 - The `Release` run succeeds for the merged commit.
 - The `v<version>` tag resolves to that commit and its GitHub release is public.
   Check asset names and uploaded states against the current matrix, not just the
-  count. The current matrix produces 15 archives for Node.js 22, 24, and 26 across
-  Linux x64/arm64, macOS x64/arm64, and Windows x64.
+  count. See the binary asset matrix in `RELEASING.md`.
 - npm serves the exact package version. Check its `latest` or `next` dist-tag;
   account for any newer release before treating a moved dist-tag as a failure.
 
