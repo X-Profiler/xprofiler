@@ -199,6 +199,7 @@ leaves GitHub and npm publishing to the release workflow.
 - Uses npm 11.19.1 (node-gyp 12.4.0) across all runtimes so Windows builds detect Visual Studio 2026
 - Runs on every commit
 - Calls the reusable `.github/workflows/build-binaries.yml` on every push and pull request
+- Checks release versions in PRs into `master`; the release workflow does not run on PRs
 - `.github/workflows/release.yml` runs independently when a push to `master` changes `package.json`
 - Version increases call the same reusable build workflow before publishing
 

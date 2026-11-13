@@ -3,16 +3,9 @@ on:
   push:
     branches: [ master ]
     paths: [ package.json ]
-  pull_request:
-    branches: [ master ]
 
 permissions:
   contents: read
-
-concurrency:
-  # Replace stale PR checks, but keep every publishing run on master.
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   version:
@@ -36,7 +29,7 @@ jobs:
       - name: Check version change
         id: version
         env:
-          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          BASE_REF: ${{ github.event.before }}
         run: node scripts/check-release.js "$BASE_REF"
 
   build:
