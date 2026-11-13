@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0 (2026-11-13)
 
 ### Breaking Changes
 
@@ -12,6 +12,8 @@
 * Require NAN 2.30.0 or newer within v2.
 * Use npm 11.19.1 (node-gyp 12.4.0) in CI to detect Visual Studio 2026 on Windows, including Node.js 22 builds.
 * Include all three supported Node.js majors in binary packaging.
+* Build 15 native binaries for Linux x64/arm64, macOS x64/arm64, and Windows x64. Preserve glibc 2.17 compatibility for Node.js 22 Linux x64; other Linux binaries target glibc 2.28.
+* Replace the manual release script with automated GitHub and npm publishing after version PRs merge. Upload all native binaries before publishing to npm.
 
 ## 3.1.0 (2025-10-29)
 
