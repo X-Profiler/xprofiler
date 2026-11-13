@@ -5,7 +5,37 @@ on:
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ '**' ]
+permissions:
+  contents: read
+
 jobs:
+  version:
+    name: Check release version
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'master') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+      version: ${{ steps.version.outputs.version }}
+      dist_tag: ${{ steps.version.outputs.dist_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install release check dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Check version change
+        id: version
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/check-release.js "$BASE_REF"
+
   Runner:
     runs-on: ${{ matrix.ci-type.os }}
     strategy:
@@ -52,13 +82,87 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
-    # - name: Package Binary
-    #   run: npm run pack
+  build:
+    name: Build Node.js ${{ matrix.node-version }} ${{ matrix.target.platform }} ${{ matrix.target.arch }}
+    runs-on: ${{ matrix.target.os }}
+    container: ${{ matrix.target.container }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [ 22, 24, 26 ]
+        target:
+          # Build on glibc 2.28 so Linux assets also work on older distributions.
+          - os: ubuntu-22.04
+            platform: linux
+            arch: x64
+            container: quay.io/pypa/manylinux_2_28_x86_64
+          - os: ubuntu-22.04-arm
+            platform: linux
+            arch: arm64
+            container: quay.io/pypa/manylinux_2_28_aarch64
+          - os: macos-15-intel
+            platform: darwin
+            arch: x64
+            container: ''
+          - os: macos-15
+            platform: darwin
+            arch: arm64
+            container: ''
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            container: ''
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        if: runner.os != 'Linux'
+        with:
+          python-version: '3.10'
+      - name: Set up Linux Python
+        if: runner.os == 'Linux'
+        run: |
+          manylinux-interpreters ensure cp312-cp312
+          echo "PYTHON=/opt/python/cp312-cp312/bin/python" >> "$GITHUB_ENV"
+      - uses: microsoft/setup-msbuild@v3
+        if: runner.os == 'Windows'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          architecture: ${{ matrix.target.arch }}
+          package-manager-cache: false
+      - name: Setup npm
+        run: npm install --global npm@11.19.1
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Build native addon
+        run: npm run build
+      - name: Package native addon
+        run: npm run pack
+      - uses: actions/upload-artifact@v7
+        with:
+          name: binary-${{ matrix.node-version }}-${{ matrix.target.platform }}-${{ matrix.target.arch }}
+          path: release/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          overwrite: true
 
-    # - name: Draft Release
-    #   uses: softprops/action-gh-release@v1
-    #   if: startsWith(github.ref, 'refs/tags/')
-    #   with:
-    #     files: release/**
-    #     fail_on_unmatched_files: true
-    #     draft: true
+  release:
+    name: Release
+    needs: [ version, Runner, build ]
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/master' &&
+      github.repository == 'X-Profiler/xprofiler' &&
+      needs.version.outputs.changed == 'true'
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/release.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
+      dist_tag: ${{ needs.version.outputs.dist_tag }}

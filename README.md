@@ -251,8 +251,9 @@ master 分支的代码覆盖率情况可以参见 [codecov badge](https://codeco
 
 ## 发布版本
 
-通过 PR 更新 `package.json` 中的版本号和 `CHANGELOG.md`，合并后自动构建各平台的二进制文件，
-上传至 GitHub Release 后再发布到 npm。
+常规 CI 会构建并打包各平台的二进制文件，可以在 PR 阶段检查构建结果。
+通过 PR 更新 `package.json` 中的版本号和 `CHANGELOG.md`，合并后等待 CI 成功，
+将该次 CI 的二进制文件上传至 GitHub Release，再发布到 npm。
 配置和操作步骤见 [发布指南](RELEASING.md)。
 
 ## 贡献者

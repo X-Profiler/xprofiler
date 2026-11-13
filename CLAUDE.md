@@ -188,13 +188,17 @@ See `configuration.js` for full list and README.md for environment variable name
 ## CI/CD
 
 **GitHub Actions:** `.github/workflows/nodejs.yml`
-- Matrix: 3 OS × 3 Node.js versions
+- Runtime checks: 3 OS × 3 Node.js versions
+- Binary builds: Node.js 22/24/26 × Linux x64/arm64, macOS x64/arm64, and Windows x64
 - Steps: Build → Test → Coverage → Upload to codecov
 - Uses npm 11.19.1 (node-gyp 12.4.0) across all runtimes so Windows builds detect Visual Studio 2026
 - Runs on every commit
+- Builds and packages binary artifacts on every push and pull request
+- Calls `.github/workflows/release.yml` after successful CI when a push to `master` increases the package version
 
 **Binary Distribution:**
 - Pre-built binaries released to GitHub Releases
+- Release publishing uses artifacts from the same CI run, uploads all 15 assets, then publishes to npm
 - node-pre-gyp downloads matching binary during npm install
 - Fallback to source compilation if binary unavailable
 
