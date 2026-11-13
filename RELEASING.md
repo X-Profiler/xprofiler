@@ -34,9 +34,10 @@ the `Check release version` check.
 4. Merge the PR after review and CI pass.
 
 The push to `master` compares `package.json` with the commit before the push.
-If its version increased, the workflow builds the native addon, runs the tests,
-publishes that version to npm through OIDC, and creates a `v<version>` tag and a
-GitHub release at the merged commit. It does not change the version or changelog.
+If its version increased, the workflow builds the native addon, publishes that
+version to npm through OIDC, and creates a `v<version>` tag and a GitHub release
+at the merged commit. The release job relies on the PR's CI results.
+It does not change the version or changelog.
 An unchanged version does not publish. Direct pushes with a version increase also
 trigger publishing, so branch protection enforces the PR requirement.
 

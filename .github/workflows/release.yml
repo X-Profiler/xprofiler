@@ -87,9 +87,6 @@ jobs:
       - name: Build native addon
         if: steps.npm.outputs.published == 'false'
         run: npm run build
-      - name: Run tests
-        if: steps.npm.outputs.published == 'false'
-        run: npm test
       - name: Publish with npm trusted publishing
         if: steps.npm.outputs.published == 'false'
         run: npm publish --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org
