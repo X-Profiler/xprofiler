@@ -134,8 +134,6 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
-      - name: Setup npm
-        run: npm install --global npm@11.19.1
       - name: Install release check dependencies
         run: npm install --ignore-scripts --no-package-lock
       - name: Check published version
